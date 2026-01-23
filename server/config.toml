@@ -1,0 +1,213 @@
+# ═════════════════════════════════════════════════════════
+#                     Heliactyl Config            
+#       This config will work with Heliactyl Next 10
+#          or any Toledo based distribution. (310+)        
+# ═════════════════════════════════════════════════════════
+
+# ---------------------------------
+# General Configuration
+# ---------------------------------
+name = "Heliactyl" # Website/dashboard name
+
+# ---------------------------------
+# Heliactyl Release Information
+# ---------------------------------
+platform_codename = "Toledo"
+platform_level = 305 # channel: stable - 27-04-2025 (Toledo)
+version = "10.0.0"
+
+# ---------------------------------
+# Additional Settings
+# ---------------------------------
+database = "heliactyl.db"
+
+# ---------------------------------
+# Pterodactyl Settings
+# ---------------------------------
+[pterodactyl]
+domain = "https://panel.mantle.lat" # Format: https://panel.domain.tld with no / on the end
+key = "" # Find this under Admin -> Application API
+client_key = "" # Create an admin account and generate from Account -> API Keys
+
+# ---------------------------------
+# Webserver Configuration
+# ---------------------------------
+[website]
+port = 17_000 # Default: 25_001
+secret = "CHANGE_THIS_SECRET" # Change this - do not run Heliactyl in production with the default secret
+domain = "http://localhost:17000"
+
+# ---------------------------------
+# API Client Settings
+# ---------------------------------
+[api.client]
+accountSwitcher = true
+
+  [api.client.discord]
+  client_id = ""
+  client_secret = "EL2IQYn-Qu"
+  bot_token = ".GP589Y."
+  server_id = ""
+
+  [api.client.resend]
+  # ---------------------------------
+  # Resend API Key
+  #
+  # This is required, but no worries as Resend is free.
+  # ---------------------------------
+  api_key = "re_xxxxxxxx_xxxxxxxxxxxxxxxxxxxxxxxx"
+  from = "noreply@example.com"
+  app_name = "Heliactyl"
+
+  [api.client.api] # Heliactyl API version 5
+  enabled = false
+  code = "YOUR_API_KEY"
+
+  [api.client.passwordgenerator]
+  signup = true # Disable user signups
+  length = 24
+
+  [api.client.allow]
+  regen = true # Allow users to regenerate their SFTP/panel password
+  overresourcessuspend = false # Suspend users if they go over resource limits
+
+    [api.client.allow.server]
+    create = true
+    modify = true
+    delete = true
+
+  [api.client.packages]
+  default = "default" # Default package assigned to users
+
+# ---------------------------------
+# Package Configuration
+# ---------------------------------
+[api.client.packages.list.default]
+ram = 4_096
+disk = 10_240
+cpu = 150
+servers = 4
+
+[api.client.locations.1]
+name = "Warsaw, PL (Zone 1A)"
+
+# ---------------------------------
+# Egg Configuration
+# ---------------------------------
+
+# Paper
+[api.client.eggs.paper]
+display = "Minecraft: Java Edition - Paper"
+
+  [api.client.eggs.paper.minimum]
+  ram = 1_024
+  disk = 1_024
+  cpu = 80
+
+  [api.client.eggs.paper.info]
+  egg = 1
+  docker_image = "ghcr.io/argon-foss/images:java_21"
+  startup = "java -Xms128M -Xmx{{SERVER_MEMORY}}M -Dterminal.jline=false -Dterminal.ansi=true -jar {{SERVER_JARFILE}}"
+
+    [api.client.eggs.paper.info.environment]
+    SERVER_JARFILE = "server.jar"
+    BUILD_NUMBER = "latest"
+
+    [api.client.eggs.paper.info.feature_limits]
+    databases = 4
+    backups = 4
+
+# Vanilla
+[api.client.eggs.vanilla]
+display = "Minecraft: Bedrock Edition - Vanilla"
+
+  [api.client.eggs.vanilla.minimum]
+  ram = 1_024
+  disk = 1_024
+  cpu = 80
+
+  [api.client.eggs.vanilla.info]
+  egg = 16
+  docker_image = "ghcr.io/parkervcp/yolks:debian"
+  startup = "./bedrock_server"
+
+    [api.client.eggs.vanilla.info.environment]
+    BEDROCK_VERSION = "latest"
+    LD_LIBRARY_PATH = "."
+    SERVERNAME = "Bedrock Dedicated Server"
+    GAMEMODE = "survival"
+    DIFFICULTY = "easy"
+    CHEATS = "true"
+
+    [api.client.eggs.vanilla.info.feature_limits]
+    databases = 4
+    backups = 4
+
+# PMMP
+[api.client.eggs.pmmp]
+display = "Minecraft: Bedrock Edition - PocketmineMP"
+
+  [api.client.eggs.pmmp.minimum]
+  ram = 1_024
+  disk = 1_024
+  cpu = 80
+
+  [api.client.eggs.pmmp.info]
+  egg = 17
+  docker_image = "ghcr.io/parkervcp/yolks:debian"
+  startup = "./bin/php7/bin/php ./PocketMine-MP.phar --no-wizard"
+
+    [api.client.eggs.pmmp.info.environment]
+    VERSION = "PM5"
+
+    [api.client.eggs.pmmp.info.feature_limits]
+    databases = 4
+    backups = 4
+
+# ---------------------------------
+# Coin Configuration
+# ---------------------------------
+[api.client.coins]
+enabled = true
+
+    [api.client.coins.store]
+    enabled = true
+
+      [api.client.coins.store.ram]
+      cost = 600
+
+      [api.client.coins.store.disk]
+      cost = 400
+
+      [api.client.coins.store.cpu]
+      cost = 500
+
+      [api.client.coins.store.servers]
+      cost = 200
+
+# ---------------------------------
+# Logging Configuration
+# ---------------------------------
+[logging]
+status = true
+webhook = "https://discord.com/api/webhooks/your_webhook_url"
+
+[logging.actions.user]
+signup = true
+"create server" = true
+"gifted coins" = true
+"modify server" = true
+"buy servers" = true
+"buy ram" = true
+"buy cpu" = true
+"buy disk" = true
+
+[logging.actions.admin]
+"set coins" = true
+"add coins" = true
+"set resources" = true
+"set plan" = true
+"create coupon" = true
+"revoke coupon" = true
+"remove account" = true
+"view ip" = true
