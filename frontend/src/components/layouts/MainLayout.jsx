@@ -4,10 +4,10 @@ import { AnimatePresence, motion } from 'framer-motion';
 import axios from 'axios';
 import {
   ServerStackIcon, WindowIcon, FolderIcon, GlobeAltIcon, PuzzlePieceIcon,
-  CloudArrowDownIcon, UsersIcon, Cog6ToothIcon, CubeIcon, 
-  ArrowRightOnRectangleIcon, UserIcon, WalletIcon, 
-  EllipsisHorizontalIcon, CircleStackIcon, 
-  ListBulletIcon, ArrowLeftIcon, ArrowTrendingUpIcon, GiftIcon, 
+  CloudArrowDownIcon, UsersIcon, Cog6ToothIcon, CubeIcon,
+  ArrowRightOnRectangleIcon, UserIcon, WalletIcon,
+  EllipsisHorizontalIcon, CircleStackIcon,
+  ListBulletIcon, ArrowLeftIcon, ArrowTrendingUpIcon, GiftIcon,
   FingerPrintIcon, HomeIcon, BoltIcon, PaperAirplaneIcon, ArrowDownLeftIcon,
   ChevronDownIcon, EllipsisVerticalIcon, LinkIcon
 } from '@heroicons/react/24/outline';
@@ -15,18 +15,18 @@ import {
 // Sidebar context for visibility management
 const SidebarContext = createContext({
   sidebarVisible: true,
-  toggleSidebar: () => {}
+  toggleSidebar: () => { }
 });
 
 export const useSidebar = () => useContext(SidebarContext);
 
 const SidebarProvider = ({ children }) => {
   const [sidebarVisible, setSidebarVisible] = useState(true);
-  
+
   const toggleSidebar = () => {
     setSidebarVisible(!sidebarVisible);
   };
-  
+
   return (
     <SidebarContext.Provider value={{ sidebarVisible, toggleSidebar }}>
       {children}
@@ -38,23 +38,22 @@ const SidebarProvider = ({ children }) => {
 const NavItem = ({ to, icon: Icon, label, isActive, setRef }) => {
   const id = to.replace(/\//g, '-').slice(1);
   const linkRef = useRef(null);
-  
+
   useEffect(() => {
     if (linkRef.current) {
       setRef(id, linkRef.current);
     }
     return () => setRef(id, null);
   }, [id, setRef]);
-  
+
   return (
     <Link
       to={to}
       ref={linkRef}
-      className={`flex items-center h-8 px-2 text-xs rounded-md transition duration-300 relative z-10 outline-none active:scale-95 ${
-        isActive
+      className={`flex items-center h-8 px-2 text-xs rounded-md transition duration-300 relative z-10 outline-none active:scale-95 ${isActive
           ? 'text-white font-semibold'
           : 'hover:text-white text-white/50 border-none'
-      }`}
+        }`}
     >
       {Icon && <Icon className={`mr-2 h-4 w-4 ${isActive ? 'text-white/60' : 'text-white/30'}`} />}
       <span>{label}</span>
@@ -85,7 +84,7 @@ const MainLayout = () => {
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const [menuDropdownOpen, setMenuDropdownOpen] = useState(false);
   const [serverName, setServerName] = useState("");
-  
+
   const userDropdownRef = useRef(null);
   const menuDropdownRef = useRef(null);
 
@@ -99,7 +98,7 @@ const MainLayout = () => {
   const [indicatorStyle, setIndicatorStyle] = useState({
     width: 0, height: 0, top: 0, left: 0, opacity: 0,
   });
-  
+
   const tabRefsMap = useRef({});
   const setTabRef = useCallback((id, element) => {
     tabRefsMap.current[id] = element;
@@ -123,7 +122,7 @@ const MainLayout = () => {
         const rect = tabElement.getBoundingClientRect();
         const navElement = tabElement.closest('nav');
         const navRect = navElement?.getBoundingClientRect();
-        
+
         if (navRect) {
           setIndicatorStyle({
             width: rect.width,
@@ -145,13 +144,13 @@ const MainLayout = () => {
       const currentServer = allServers.find(
         server => server.id === id || (server.attributes && server.attributes.identifier === id)
       );
-      
+
       if (currentServer) {
         setServerName(currentServer.name || (currentServer.attributes && currentServer.attributes.name));
       }
     }
   }, [id, showServerSection, servers, subuserServers]);
-  
+
   // Close dropdowns when clicking outside
   useEffect(() => {
     function handleClickOutside(event) {
@@ -162,7 +161,7 @@ const MainLayout = () => {
         setMenuDropdownOpen(false);
       }
     }
-    
+
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
@@ -188,7 +187,7 @@ const MainLayout = () => {
     { icon: PuzzlePieceIcon, label: 'Plugins', path: `/server/${id}/plugins` },
     { icon: ListBulletIcon, label: 'Logs', path: `/server/${id}/logs` }
   ];
-  
+
   const menuItems = [
     { icon: <LinkIcon className="w-4 h-4" />, label: 'Panel', path: 'https://panel.mantle.lat', external: true },
     { icon: <ArrowRightOnRectangleIcon className="w-4 h-4" />, label: 'Logout', action: handleLogout, className: 'text-red-400 hover:text-red-300 hover:bg-red-950/30' }
@@ -231,9 +230,9 @@ const MainLayout = () => {
       console.error('Logout error:', error);
     }
   }
-  
+
   const isActivePath = (path) => location.pathname === path;
-  
+
   const getInitials = (name) => {
     if (!name) return 'U';
     return name
@@ -250,9 +249,8 @@ const MainLayout = () => {
         {/* Main container - Full width with no artificial centering */}
         <div className="w-full flex relative z-10">
           {/* Sidebar */}
-          <aside className={`hidden lg:block sticky top-0 h-screen w-56 p-4 border-r border-white/5 bg-[#08090c] flex-shrink-0 relative overflow-hidden transform transition-transform duration-300 ease-in-out ${
-            useSidebar().sidebarVisible ? 'translate-x-0' : '-translate-x-full'
-          }`}>
+          <aside className={`hidden lg:block sticky top-0 h-screen w-56 p-4 border-r border-white/5 bg-[#08090c] flex-shrink-0 relative overflow-hidden transform transition-transform duration-300 ease-in-out ${useSidebar().sidebarVisible ? 'translate-x-0' : '-translate-x-full'
+            }`}>
             {/* Sidebar content */}
             <div className="flex flex-col h-full relative z-10">
               {/* Logo and Toggle Button */}
@@ -265,7 +263,7 @@ const MainLayout = () => {
               {/* Server title when in server view */}
               {showServerSection && (
                 <div className="py-2 px-4">
-                  <button 
+                  <button
                     onClick={() => navigate('/dashboard')}
                     className="flex text-white/70 hover:text-white transition duration-200 text-sm active:scale-95 items-center"
                   >
@@ -283,10 +281,10 @@ const MainLayout = () => {
                 ) : (
                   <SectionHeader label="Server" />
                 )}
-              
+
                 <nav className="py-1 px-3 space-y-0.5 relative">
                   {/* Animated background indicator - Argon style */}
-                  <div 
+                  <div
                     className="absolute transform transition-all duration-200 ease-spring bg-[#383c47] rounded-md z-0"
                     style={{
                       width: `${indicatorStyle.width}px`,
@@ -297,7 +295,7 @@ const MainLayout = () => {
                       transitionDelay: '30ms',
                     }}
                   />
-                  
+
                   {/* Main nav items */}
                   {!showServerSection && (
                     <>
@@ -305,7 +303,7 @@ const MainLayout = () => {
                         <NavItem
                           key={item.label}
                           to={item.path}
-                          icon={item.icon} 
+                          icon={item.icon}
                           label={item.label}
                           isActive={isActivePath(item.path)}
                           setRef={setTabRef}
@@ -313,7 +311,7 @@ const MainLayout = () => {
                       ))}
                     </>
                   )}
-                  
+
                   {/* Server Navigation */}
                   {showServerSection && (
                     <>
@@ -358,40 +356,40 @@ const MainLayout = () => {
                   </div>
                 </div>
                 {/* User Profile Section */}
-                        <div className="flex items-center gap-3 border border-white/5 shadow-xs rounded-xl py-3 px-3">
-                          <div className="h-7 w-7 bg-[#191b20] rounded-lg flex items-center justify-center">
-                          <span className="text-xs text-white/70 font-semibold">
-                            {getInitials(userData.global_name)}
-                          </span>
+                <div className="flex items-center gap-3 border border-white/5 shadow-xs rounded-xl py-3 px-3">
+                  <div className="h-7 w-7 bg-[#191b20] rounded-lg flex items-center justify-center">
+                    <span className="text-xs text-white/70 font-semibold">
+                      {getInitials(userData.global_name)}
+                    </span>
+                  </div>
+                  <div className="flex flex-col relative" ref={userDropdownRef}>
+                    <button
+                      className="flex items-center gap-1 text-sm font-medium hover:text-white transition-all duration-200 active:scale-95"
+                      onClick={() => setUserDropdownOpen(!userDropdownOpen)}
+                    >
+                      <span className="truncate max-w-[120px]">{(userData.global_name).trim(4)}</span>
+                    </button>
+                    <span className="text-[0.55rem] uppercase max-w-[120px] truncate tracking-widest text-white/30 leading-none mt-0.3">
+                      {userData.email}
+                    </span>
+
+                    <AnimatePresence>
+                      {userDropdownOpen && (
+                        <motion.div
+                          initial={{ opacity: 0, y: -10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -10 }}
+                          transition={{ duration: 0.2 }}
+                          className="absolute bottom-full mb-2 w-64 bg-[#202229] border border-white/5 rounded-xl shadow-lg z-20"
+                        >
+                          <div className="p-3 border-b border-white/5">
+                            <p className="text-sm font-medium">{userData.username}</p>
+                            <p className="text-xs text-[#95a1ad] mt-1">{userData.email}</p>
                           </div>
-                          <div className="flex flex-col relative" ref={userDropdownRef}>
-                          <button 
-                            className="flex items-center gap-1 text-sm font-medium hover:text-white transition-all duration-200 active:scale-95"
-                            onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-                          >
-                            <span className="truncate max-w-[120px]">{(userData.global_name).trim(4)}</span>
-                          </button>
-                          <span className="text-[0.55rem] uppercase max-w-[120px] truncate tracking-widest text-white/30 leading-none mt-0.3">
-                            {userData.email}
-                          </span>
-                          
-                          <AnimatePresence>
-                            {userDropdownOpen && (
-                            <motion.div
-                              initial={{ opacity: 0, y: -10 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              exit={{ opacity: 0, y: -10 }}
-                              transition={{ duration: 0.2 }}
-                              className="absolute bottom-full mb-2 w-64 bg-[#202229] border border-white/5 rounded-xl shadow-lg z-20"
-                            >
-                              <div className="p-3 border-b border-white/5">
-                              <p className="text-sm font-medium">{userData.username}</p>
-                              <p className="text-xs text-[#95a1ad] mt-1">{userData.email}</p>
-                              </div>
-                              <div className="py-1">
-                              <button 
-                                className="flex items-center w-full px-3 py-2.5 text-sm text-left hover:bg-white/5 transition-all duration-200 active:scale-95"
-                                onClick={() => {
+                          <div className="py-1">
+                            <button
+                              className="flex items-center w-full px-3 py-2.5 text-sm text-left hover:bg-white/5 transition-all duration-200 active:scale-95"
+                              onClick={() => {
                                 navigate('/account');
                                 setUserDropdownOpen(false);
                               }}
@@ -401,7 +399,7 @@ const MainLayout = () => {
                             </button>
                           </div>
                           <div className="py-1">
-                            <button 
+                            <button
                               className="flex items-center w-full px-3 py-2.5 text-sm text-left hover:bg-white/5 transition-all duration-200 active:scale-95"
                               onClick={() => {
                                 navigate('/passkeys');
@@ -413,7 +411,7 @@ const MainLayout = () => {
                             </button>
                           </div>
                           <div className="py-1 border-t border-white/5">
-                            <button 
+                            <button
                               className="flex items-center w-full px-3 py-2.5 text-sm text-left text-red-400 hover:bg-red-950/30 hover:text-red-300 transition-all duration-200 active:scale-95"
                               onClick={() => {
                                 handleLogout();
@@ -432,8 +430,8 @@ const MainLayout = () => {
 
                 {/* Powered by text - Bottom of sidebar */}
                 <div className="relative py-4 pt-6 px-4">
-                  <Link 
-                    to="https://github.com/mantle" 
+                  <Link
+                    to="https://github.com/mantle"
                     className="text-[0.75rem] border-b font-mono border-white/10 pb-0.5 hover:border-white/15 text-white/40 transition hover:text-white/60"
                   >
                     v10.0.0 [toledo]

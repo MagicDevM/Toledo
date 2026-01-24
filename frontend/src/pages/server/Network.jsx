@@ -197,8 +197,8 @@ const AllocationsPage = () => {
             <Button variant="secondary" onClick={() => setIsDeleteModalOpen(false)}>
               Cancel
             </Button>
-            <Button 
-              variant="destructive" 
+            <Button
+              variant="destructive"
               onClick={handleDeleteAllocation}
               disabled={deleteLoading}
             >

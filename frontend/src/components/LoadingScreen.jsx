@@ -11,10 +11,10 @@ export default function LoadingScreen({ onComplete }) {
         // Start transition out
         setPhase('transitioning');
       };
-      
+
       // Listen for the completion signal
       window.addEventListener('loadingComplete', handler);
-      
+
       return () => {
         window.removeEventListener('loadingComplete', handler);
       };
@@ -27,7 +27,7 @@ export default function LoadingScreen({ onComplete }) {
       const timer = setTimeout(() => {
         setPhase('complete');
       }, 400);
-      
+
       return () => clearTimeout(timer);
     }
   }, [phase]);
@@ -38,27 +38,27 @@ export default function LoadingScreen({ onComplete }) {
   return (
     <AnimatePresence>
       {phase !== 'complete' && (
-        <motion.div 
+        <motion.div
           className="fixed inset-0 bg-[#101218] z-50 flex flex-col items-center justify-center"
-          animate={{ 
+          animate={{
             opacity: phase === 'transitioning' ? 0 : 1,
             y: phase === 'transitioning' ? -10 : 0
           }}
-          transition={{ 
-            duration: 0.4, 
+          transition={{
+            duration: 0.4,
             ease: "easeInOut"
           }}
         >
           {/* Center Content */}
-          <div className="flex flex-col items-center">            
+          <div className="flex flex-col items-center">
             {/* Spinner */}
             <div className="relative">
-              <motion.div 
+              <motion.div
                 className="w-6 h-6 border-4 border-white/20 border-t-white rounded-full"
-                animate={{ 
+                animate={{
                   rotate: 360
                 }}
-                transition={{ 
+                transition={{
                   duration: 1.2,
                   ease: "linear",
                   repeat: Infinity

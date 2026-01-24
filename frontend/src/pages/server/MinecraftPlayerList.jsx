@@ -1,23 +1,23 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
-import { 
-  UsersIcon, 
-  UserMinusIcon, 
-  TerminalIcon, 
-  RefreshCw, 
-  ChevronDown, 
+import {
+  UsersIcon,
+  UserMinusIcon,
+  TerminalIcon,
+  RefreshCw,
+  ChevronDown,
   MoreVertical,
   Info,
   Crown,
   ShieldAlert,
   AlertTriangle
 } from 'lucide-react';
-import { 
-  fetchServerStatus, 
-  getPlayerHeadUrl, 
-  executeServerCommand 
+import {
+  fetchServerStatus,
+  getPlayerHeadUrl,
+  executeServerCommand
 } from '../../services/minecraftService';
-import { 
+import {
   Popover,
   PopoverContent,
   PopoverTrigger
@@ -56,21 +56,21 @@ const MinecraftPlayerList = ({ serverIdentifier }) => {
       // First get the server's IP and port from our backend
       const serverInfoResponse = await axios.get(`/api/server/${serverIdentifier}`);
       const serverInfo = serverInfoResponse.data;
-      
+
       // Fix: Properly access the allocation data from the response
-      const allocation = serverInfo?.attributes?.relationships?.allocations?.data?.[0]?.attributes || 
-                        serverInfo?.relationships?.allocations?.data?.[0]?.attributes;
-      
+      const allocation = serverInfo?.attributes?.relationships?.allocations?.data?.[0]?.attributes ||
+        serverInfo?.relationships?.allocations?.data?.[0]?.attributes;
+
       if (!allocation || !allocation.ip_alias || !allocation.port) {
         console.error('Could not find allocation data in the server info response');
         setServerAddress('Server address unavailable');
         setError('Failed to get server connection information');
         return;
       }
-      
+
       const address = `${allocation.ip_alias}:${allocation.port}`;
       setServerAddress(address);
-      
+
       // Then use this to query the Minecraft server status API
       const status = await fetchServerStatus(address);
       setServerStatus(status);
@@ -87,10 +87,10 @@ const MinecraftPlayerList = ({ serverIdentifier }) => {
 
   useEffect(() => {
     refreshStatus();
-    
+
     // Set up an interval to refresh the status every 30 seconds
     const intervalId = setInterval(refreshStatus, 30000);
-    
+
     return () => clearInterval(intervalId);
   }, [serverIdentifier]);
 
@@ -104,7 +104,7 @@ const MinecraftPlayerList = ({ serverIdentifier }) => {
   // Execute command on a player
   const executeCommand = async (command) => {
     if (!command.trim()) return;
-    
+
     setIsExecuting(true);
     try {
       const response = await executeServerCommand(serverIdentifier, command);
@@ -156,26 +156,26 @@ const MinecraftPlayerList = ({ serverIdentifier }) => {
 
   const handleConfirm = () => {
     if (!confirming) return;
-    
+
     if (confirming.action === 'ban') {
       executeCommand(`ban ${confirming.player} Banned by admin`);
     } else if (confirming.action === 'kick') {
       kickPlayer(confirming.player);
     }
-    
+
     setConfirming(null);
     setSelectedPlayer(null);
   };
 
   if (loading && !serverStatus) {
     return (
-        <div></div>
+      <div></div>
     );
   }
 
   if (error || !serverStatus?.online) {
     return (
-        <div></div>
+      <div></div>
     );
   }
 
@@ -208,7 +208,7 @@ const MinecraftPlayerList = ({ serverIdentifier }) => {
 
           {/* Player list popup */}
           {playerCount > 0 && (
-            <PopoverContent 
+            <PopoverContent
               className="w-80 p-0 bg-[#202229] rounded-lg shadow-xl animate-in fade-in-0 zoom-in-95"
               align="start"
               side="bottom"
@@ -225,31 +225,31 @@ const MinecraftPlayerList = ({ serverIdentifier }) => {
                   <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
                 </Button>
               </div>
-              
+
               <div className="max-h-64 overflow-y-auto">
                 {playerList.map((player) => (
-                  <div 
+                  <div
                     key={player.uuid}
                     className={`flex items-center p-3 hover:bg-white/5 cursor-pointer transition-colors ${selectedPlayer?.uuid === player.uuid ? 'bg-white/5' : ''}`}
                     onClick={() => setSelectedPlayer(prev => prev?.uuid === player.uuid ? null : player)}
                   >
                     <div className="w-8 h-8 rounded-md overflow-hidden mr-3 border border-white/10 bg-white/5">
-                      <img 
-                        src={getPlayerHeadUrl(player.uuid)} 
-                        alt={player.name} 
+                      <img
+                        src={getPlayerHeadUrl(player.uuid)}
+                        alt={player.name}
                         className="w-full h-full object-cover"
                       />
                     </div>
                     <span className="flex-1 text-sm truncate">{player.name}</span>
-                    
+
                     {selectedPlayer?.uuid === player.uuid && (
                       <div className="flex gap-1">
-                        <Button 
+                        <Button
                           size="icon"
                           variant="ghost"
                           className="h-7 w-7 text-red-500 hover:text-red-400 hover:bg-red-500/10"
-                          onClick={(e) => { 
-                            e.stopPropagation(); 
+                          onClick={(e) => {
+                            e.stopPropagation();
                             setConfirming({
                               action: 'kick',
                               player: player.name,
@@ -262,25 +262,25 @@ const MinecraftPlayerList = ({ serverIdentifier }) => {
                         >
                           <UserMinusIcon className="w-4 h-4" />
                         </Button>
-                        <Button 
+                        <Button
                           size="icon"
                           variant="ghost"
                           className="h-7 w-7 text-blue-500 hover:text-blue-400 hover:bg-blue-500/10"
-                          onClick={(e) => { 
-                            e.stopPropagation(); 
-                            opPlayer(player.name); 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            opPlayer(player.name);
                           }}
                           title="Op player"
                         >
                           <Crown className="w-4 h-4" />
                         </Button>
-                        <Button 
+                        <Button
                           size="icon"
                           variant="ghost"
                           className="h-7 w-7 text-yellow-500 hover:text-yellow-400 hover:bg-yellow-500/10"
-                          onClick={(e) => { 
-                            e.stopPropagation(); 
-                            banPlayer(player.name); 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            banPlayer(player.name);
                           }}
                           title="Ban player"
                         >
@@ -291,7 +291,7 @@ const MinecraftPlayerList = ({ serverIdentifier }) => {
                   </div>
                 ))}
               </div>
-              
+
               {/* Command input for selected player */}
               {selectedPlayer && (
                 <div className="p-3 border-t border-white/10">
@@ -328,22 +328,22 @@ const MinecraftPlayerList = ({ serverIdentifier }) => {
                     </Button>
                   </div>
                   <div className="mt-2 flex flex-wrap gap-1.5">
-                    <Badge 
-                      variant="outline" 
+                    <Badge
+                      variant="outline"
                       className="cursor-pointer hover:bg-white/5"
                       onClick={() => executeCommand(`tp ${selectedPlayer.name} spawn`)}
                     >
                       Teleport to spawn
                     </Badge>
-                    <Badge 
-                      variant="outline" 
+                    <Badge
+                      variant="outline"
                       className="cursor-pointer hover:bg-white/5"
                       onClick={() => executeCommand(`gamemode creative ${selectedPlayer.name}`)}
                     >
                       Creative mode
                     </Badge>
-                    <Badge 
-                      variant="outline" 
+                    <Badge
+                      variant="outline"
                       className="cursor-pointer hover:bg-white/5"
                       onClick={() => executeCommand(`gamemode survival ${selectedPlayer.name}`)}
                     >
@@ -367,7 +367,7 @@ const MinecraftPlayerList = ({ serverIdentifier }) => {
         {/* Additional server stats cards - these match your UI style from the overview page */}
         <div className="border border-white/5 p-4 rounded-lg">
           <div className="flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-[#191b20]">
+            <div className="p-2 rounded-lg bg-[#191b20]">
               <Info className="w-5 h-5 text-white" />
             </div>
             <div>
@@ -383,7 +383,7 @@ const MinecraftPlayerList = ({ serverIdentifier }) => {
 
         <div className="border border-white/5 p-4 rounded-lg">
           <div className="flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-[#191b20]">
+            <div className="p-2 rounded-lg bg-[#191b20]">
               <Crown className="w-5 h-5 text-white" />
             </div>
             <div>

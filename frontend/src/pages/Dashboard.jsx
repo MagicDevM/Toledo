@@ -3,9 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import {
-  ServerIcon, PlusIcon, CpuChipIcon, 
-  ChartPieIcon, ArchiveBoxIcon, ArrowPathIcon, 
-  ExclamationCircleIcon, CommandLineIcon, PencilIcon, 
+  ServerIcon, PlusIcon, CpuChipIcon,
+  ChartPieIcon, ArchiveBoxIcon, ArrowPathIcon,
+  ExclamationCircleIcon, CommandLineIcon, PencilIcon,
   TrashIcon, UsersIcon, CheckIcon, EllipsisVerticalIcon
 } from '@heroicons/react/24/outline';
 import { ChartPie } from 'lucide-react';
@@ -24,7 +24,7 @@ function formatBytes(bytes, decimals = 2) {
 function ResourceCard({ icon: Icon, title, used, total, unit }) {
   const percentage = total ? (used / total) * 100 : 0;
   const colorClass = percentage > 90 ? 'bg-red-500' : percentage > 70 ? 'bg-amber-500' : 'bg-neutral-300';
-  
+
   return (
     <div className="border border-[#2e3337]/50 shadow-xs rounded-lg p-4 bg-transparent">
       <div className="flex items-center justify-between pb-2">
@@ -37,8 +37,8 @@ function ResourceCard({ icon: Icon, title, used, total, unit }) {
       </div>
       <div>
         <div className="h-1 bg-[#202229] rounded-full overflow-hidden">
-          <div 
-            className={`h-full ${colorClass} rounded-full`} 
+          <div
+            className={`h-full ${colorClass} rounded-full`}
             style={{ width: `${Math.min(percentage, 100)}%` }}
           ></div>
         </div>
@@ -61,10 +61,10 @@ function CreateServerModal({ isOpen, onClose }) {
   const [isCreating, setIsCreating] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const [animationClass, setAnimationClass] = useState('');
-  
+
   const [showEggDropdown, setShowEggDropdown] = useState(false);
   const [showLocationDropdown, setShowLocationDropdown] = useState(false);
-  
+
   const eggDropdownRef = useRef(null);
   const locationDropdownRef = useRef(null);
 
@@ -107,7 +107,7 @@ function CreateServerModal({ isOpen, onClose }) {
         setShowLocationDropdown(false);
       }
     }
-    
+
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
@@ -144,28 +144,28 @@ function CreateServerModal({ isOpen, onClose }) {
 
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50">
-      <div 
-        className={`fixed inset-0 transition-opacity duration-300 ${animationClass}`} 
+      <div
+        className={`fixed inset-0 transition-opacity duration-300 ${animationClass}`}
         onClick={onClose}
       ></div>
-      <div 
+      <div
         className={`relative bg-[#202229] border border-white/5 rounded-lg w-full max-w-lg p-6 transition-all duration-300 ${animationClass}`}
       >
         <div className="mb-4">
           <h2 className="text-lg font-medium">Create New Server</h2>
         </div>
-        
+
         <div className="space-y-5 py-4">
           <div className="space-y-2">
             <label className="text-sm text-[#95a1ad] block">Server Name</label>
-            <input 
-              placeholder="My Awesome Server" 
+            <input
+              placeholder="My Awesome Server"
               value={name}
               onChange={e => setName(e.target.value)}
               className="w-full bg-[#394047] focus:bg-[#394047]/50 border border-white/5 focus:border-white/5 focus:ring-1 focus:ring-white/20 rounded-md p-2 text-sm focus:outline-none transition-colors"
             />
           </div>
-          
+
           <div className="space-y-2" ref={eggDropdownRef}>
             <label className="text-sm text-[#95a1ad] block">Server Type</label>
             <div className="relative">
@@ -181,7 +181,7 @@ function CreateServerModal({ isOpen, onClose }) {
                   <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" />
                 </svg>
               </button>
-              
+
               {showEggDropdown && (
                 <div className="absolute z-10 mt-1 w-full bg-[#202229] border border-white/5 rounded-md shadow-lg max-h-60 overflow-auto">
                   {Array.isArray(eggs) && eggs.map(eggItem => (
@@ -216,7 +216,7 @@ function CreateServerModal({ isOpen, onClose }) {
                   <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" />
                 </svg>
               </button>
-              
+
               {showLocationDropdown && (
                 <div className="absolute z-10 mt-1 w-full bg-[#202229] border border-white/5 rounded-md shadow-lg max-h-60 overflow-auto">
                   {Array.isArray(locations) && locations.map(locationItem => (
@@ -239,7 +239,7 @@ function CreateServerModal({ isOpen, onClose }) {
           <div className="grid grid-cols-3 gap-4">
             <div className="space-y-2">
               <label className="text-sm text-[#95a1ad] block">RAM (MB)</label>
-              <input 
+              <input
                 type="number"
                 placeholder="2048"
                 value={ram}
@@ -249,7 +249,7 @@ function CreateServerModal({ isOpen, onClose }) {
             </div>
             <div className="space-y-2">
               <label className="text-sm text-[#95a1ad] block">Disk (MB)</label>
-              <input 
+              <input
                 type="number"
                 placeholder="10240"
                 value={disk}
@@ -259,7 +259,7 @@ function CreateServerModal({ isOpen, onClose }) {
             </div>
             <div className="space-y-2">
               <label className="text-sm text-[#95a1ad] block">CPU (%)</label>
-              <input 
+              <input
                 type="number"
                 placeholder="100"
                 value={cpu}
@@ -287,13 +287,13 @@ function CreateServerModal({ isOpen, onClose }) {
         </div>
 
         <div className="flex justify-end gap-3 mt-6">
-          <button 
+          <button
             onClick={onClose}
             className="px-4 py-2 rounded-md border border-white/5 text-[#95a1ad] hover:text-white hover:bg-white/5 font-medium text-sm transition active:scale-95"
           >
             Cancel
           </button>
-          <button 
+          <button
             onClick={handleCreate}
             disabled={isCreating}
             className="px-4 py-2 bg-white text-black hover:bg-white/90 rounded-md font-medium text-sm transition active:scale-95 flex items-center justify-center gap-2 disabled:opacity-70"
@@ -309,7 +309,7 @@ function CreateServerModal({ isOpen, onClose }) {
 
 function ServerCard({ server, wsStatus, stats }) {
   const navigate = useNavigate();
-  
+
   const statusColors = {
     running: 'bg-emerald-500',
     starting: 'bg-amber-500',
@@ -342,9 +342,9 @@ function ServerCard({ server, wsStatus, stats }) {
   const handleCardClick = () => {
     navigate(`/server/${globalIdentifier}/overview`);
   };
-  
+
   return (
-    <div 
+    <div
       className="border border-[#2e3337]/50 hover:scale-95 hover:border-[#2e3337] rounded-lg bg-transparent transition duration-200 hover:border-white/10 cursor-pointer relative"
       onClick={handleCardClick}
     >
@@ -364,7 +364,7 @@ function ServerCard({ server, wsStatus, stats }) {
           </div>
         </div>
       </div>
-      
+
       <div className="p-4 pt-2 pb-3 space-y-4">
         <div>
           <div className="flex justify-between text-xs text-[#95a1ad] mb-1.5">
@@ -372,34 +372,34 @@ function ServerCard({ server, wsStatus, stats }) {
             <span>{serverStats.memory?.toFixed(0) || 0} / {limits.memory || 0} MB</span>
           </div>
           <div className="h-1 bg-[#202229] rounded-full overflow-hidden">
-            <div 
-              className="h-full bg-neutral-300 rounded-full" 
+            <div
+              className="h-full bg-neutral-300 rounded-full"
               style={{ width: `${limits.memory ? Math.min((serverStats.memory / limits.memory) * 100, 100) : 0}%` }}
             ></div>
           </div>
         </div>
-        
+
         <div>
           <div className="flex justify-between text-xs text-[#95a1ad] mb-1.5">
             <span>CPU</span>
             <span>{serverStats.cpu?.toFixed(1) || 0} / {limits.cpu || 0}%</span>
           </div>
           <div className="h-1 bg-[#202229] rounded-full overflow-hidden">
-            <div 
-              className="h-full bg-neutral-300 rounded-full" 
+            <div
+              className="h-full bg-neutral-300 rounded-full"
               style={{ width: `${limits.cpu ? Math.min((serverStats.cpu / limits.cpu) * 100, 100) : 0}%` }}
             ></div>
           </div>
         </div>
-        
+
         <div>
           <div className="flex justify-between text-xs text-[#95a1ad] mb-1.5">
             <span>Disk</span>
             <span>{formatBytes(serverStats.disk || 0)} / {formatBytes((limits.disk || 0) * 1024 * 1024)}</span>
           </div>
           <div className="h-1 bg-[#202229] rounded-full overflow-hidden">
-            <div 
-              className="h-full bg-neutral-300 rounded-full" 
+            <div
+              className="h-full bg-neutral-300 rounded-full"
               style={{ width: `${limits.disk ? Math.min((serverStats.disk / (limits.disk * 1024 * 1024)) * 100, 100) : 0}%` }}
             ></div>
           </div>
@@ -416,7 +416,7 @@ function LoadingSkeleton() {
         <div className="h-8 w-32 bg-[#202229] rounded-md animate-pulse"></div>
         <div className="h-9 w-32 bg-[#202229] rounded-md animate-pulse"></div>
       </div>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {[...Array(4)].map((_, i) => (
           <div key={i} className="border border-[#2e3337] rounded-lg p-4">
@@ -429,7 +429,7 @@ function LoadingSkeleton() {
           </div>
         ))}
       </div>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {[...Array(3)].map((_, i) => (
           <div key={i} className="h-[220px] border border-[#2e3337] rounded-lg bg-[#202229]/20 animate-pulse"></div>
@@ -448,7 +448,7 @@ export default function Dashboard() {
   const [serverStatus, setServerStatus] = useState({});
   const [serverStats, setServerStats] = useState({});
   const socketsRef = useRef({});
-  
+
   const { data: resources, isLoading: loadingResources } = useQuery({
     queryKey: ['resources'],
     queryFn: async () => {
@@ -533,9 +533,9 @@ export default function Dashboard() {
   const handleWebSocketMessage = (message, serverId) => {
     switch (message.event) {
       case 'auth success':
-        socketsRef.current[serverId].send(JSON.stringify({ 
-          event: 'send stats', 
-          args: [null] 
+        socketsRef.current[serverId].send(JSON.stringify({
+          event: 'send stats',
+          args: [null]
         }));
         break;
 
@@ -588,28 +588,28 @@ export default function Dashboard() {
       </div>
 
       <div className="grid grid-cols-4 md:grid-cols-4 gap-4">
-        <ResourceCard 
+        <ResourceCard
           icon={ChartPieIcon}
           title="Memory"
-          used={resources?.current?.ram/1024 || 0}
-          total={resources?.limits?.ram/1024 || 0}
+          used={resources?.current?.ram / 1024 || 0}
+          total={resources?.limits?.ram / 1024 || 0}
           unit="GB"
         />
-        <ResourceCard 
+        <ResourceCard
           icon={CpuChipIcon}
           title="CPU"
           used={resources?.current?.cpu || 0}
           total={resources?.limits?.cpu || 0}
           unit="%"
         />
-        <ResourceCard 
+        <ResourceCard
           icon={ArchiveBoxIcon}
           title="Storage"
-          used={resources?.current?.disk/1024 || 0}
-          total={resources?.limits?.disk/1024 || 0}
+          used={resources?.current?.disk / 1024 || 0}
+          total={resources?.limits?.disk / 1024 || 0}
           unit="GB"
         />
-        <ResourceCard 
+        <ResourceCard
           icon={ServerIcon}
           title="Servers"
           used={resources?.current?.servers || 0}
@@ -665,7 +665,7 @@ export default function Dashboard() {
       <FAQSection />
 
       {/* Create Server Modal */}
-      <CreateServerModal 
+      <CreateServerModal
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
       />

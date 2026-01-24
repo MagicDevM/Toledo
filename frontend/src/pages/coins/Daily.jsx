@@ -89,11 +89,11 @@ export default function DailyRewardsPage() {
       setIsClaiming(true);
       setError('');
       setSuccess('');
-      
+
       const response = await axios.post('/api/daily-rewards/claim');
       setClaimResult(response.data);
       setSuccess('Successfully claimed your daily reward!');
-      
+
       // Refetch data
       queryClient.invalidateQueries(['daily-rewards-status']);
       queryClient.invalidateQueries(['daily-rewards-history']);
@@ -111,10 +111,10 @@ export default function DailyRewardsPage() {
       setPurchasingProtection(true);
       setError('');
       setSuccess('');
-      
+
       const response = await axios.post('/api/daily-rewards/protection', { level });
       setSuccess(`Successfully purchased ${level} streak protection!`);
-      
+
       // Refetch status
       queryClient.invalidateQueries(['daily-rewards-status']);
       setConfirmDialog(null);
@@ -167,7 +167,7 @@ export default function DailyRewardsPage() {
           <span className="text-sm">{error}</span>
         </div>
       )}
-      
+
       {success && (
         <div className="rounded-md border border-green-500/20 bg-green-500/10 text-green-500 p-3 flex items-start">
           <Check className="w-4 h-4 mt-0.5 mr-2 flex-shrink-0" />
@@ -180,33 +180,30 @@ export default function DailyRewardsPage() {
         <div className="flex space-x-2">
           <button
             onClick={() => setActiveTab('claim')}
-            className={`flex items-center gap-2 px-4 py-2 border-b-2 font-medium transition ${
-              activeTab === 'claim' 
-                ? 'border-white text-white' 
+            className={`flex items-center gap-2 px-4 py-2 border-b-2 font-medium transition ${activeTab === 'claim'
+                ? 'border-white text-white'
                 : 'border-transparent text-[#95a1ad] hover:text-white hover:border-white/20'
-            }`}
+              }`}
           >
             <Gift className="w-4 h-4" />
             Daily Claim
           </button>
           <button
             onClick={() => setActiveTab('history')}
-            className={`flex items-center gap-2 px-4 py-2 border-b-2 font-medium transition ${
-              activeTab === 'history' 
-                ? 'border-white text-white' 
+            className={`flex items-center gap-2 px-4 py-2 border-b-2 font-medium transition ${activeTab === 'history'
+                ? 'border-white text-white'
                 : 'border-transparent text-[#95a1ad] hover:text-white hover:border-white/20'
-            }`}
+              }`}
           >
             <History className="w-4 h-4" />
             Claim History
           </button>
           <button
             onClick={() => setActiveTab('leaderboard')}
-            className={`flex items-center gap-2 px-4 py-2 border-b-2 font-medium transition ${
-              activeTab === 'leaderboard' 
-                ? 'border-white text-white' 
+            className={`flex items-center gap-2 px-4 py-2 border-b-2 font-medium transition ${activeTab === 'leaderboard'
+                ? 'border-white text-white'
                 : 'border-transparent text-[#95a1ad] hover:text-white hover:border-white/20'
-            }`}
+              }`}
           >
             <Trophy className="w-4 h-4" />
             Streaks Leaderboard
@@ -234,13 +231,13 @@ export default function DailyRewardsPage() {
                       <p className="text-2xl font-bold text-green-500">+{claimResult.reward} coins</p>
                       <p className="text-sm text-[#95a1ad]">Current streak: {claimResult.streak} day{claimResult.streak !== 1 ? 's' : ''}</p>
                     </div>
-                    
+
                     {claimResult.milestoneMessage && (
                       <div className="bg-[#202229] p-4 rounded-lg border border-white/10 max-w-md">
                         <p className="text-yellow-400 font-medium">{claimResult.milestoneMessage}</p>
                       </div>
                     )}
-                    
+
                     <div className="grid grid-cols-3 gap-4 w-full max-w-md">
                       <div className="bg-[#202229] p-3 rounded-lg border border-white/5 flex flex-col items-center">
                         <p className="text-xs text-[#95a1ad]">Base</p>
@@ -255,7 +252,7 @@ export default function DailyRewardsPage() {
                         <p className="font-medium">+{claimResult.milestoneBonus}</p>
                       </div>
                     </div>
-                    
+
                     <div className="mt-4 text-sm text-[#95a1ad]">
                       <p>Come back tomorrow to continue your streak!</p>
                       {claimResult.streakProtectionRemaining > 0 && (
@@ -273,18 +270,18 @@ export default function DailyRewardsPage() {
                     <div className="space-y-2">
                       <h3 className="text-xl font-medium">Claim Your Daily Reward</h3>
                       <p className="text-sm text-[#95a1ad]">
-                        {claimStatus.currentStreak > 0 
-                          ? `Current streak: ${claimStatus.currentStreak} day${claimStatus.currentStreak !== 1 ? 's' : ''}` 
+                        {claimStatus.currentStreak > 0
+                          ? `Current streak: ${claimStatus.currentStreak} day${claimStatus.currentStreak !== 1 ? 's' : ''}`
                           : 'Start your streak today!'}
                       </p>
                     </div>
-                    
+
                     <div className="bg-[#202229] p-4 rounded-lg border border-white/10 max-w-md">
                       <div className="flex justify-between mb-2">
                         <span className="text-[#95a1ad]">Today's reward:</span>
                         <span className="font-medium">{claimStatus.nextReward.amount} coins</span>
                       </div>
-                      
+
                       <div className="grid grid-cols-3 gap-2 text-xs mt-3">
                         <div className="p-2 rounded bg-[#1a1c1e] flex flex-col items-center">
                           <span className="text-[#95a1ad]">Base</span>
@@ -300,7 +297,7 @@ export default function DailyRewardsPage() {
                         </div>
                       </div>
                     </div>
-                    
+
                     {claimStatus.daysSinceLastClaim > 1 && !claimStatus.streakWillMaintain && (
                       <div className="rounded-md border border-yellow-500/20 bg-yellow-500/10 text-yellow-500 p-3 max-w-md">
                         <div className="flex items-start">
@@ -311,7 +308,7 @@ export default function DailyRewardsPage() {
                         </div>
                       </div>
                     )}
-                    
+
                     {claimStatus.willUseProtection && (
                       <div className="rounded-md border border-blue-500/20 bg-blue-500/10 text-blue-500 p-3 max-w-md">
                         <div className="flex items-start">
@@ -322,7 +319,7 @@ export default function DailyRewardsPage() {
                         </div>
                       </div>
                     )}
-                    
+
                     <button
                       className="px-6 py-3 bg-white text-black hover:bg-white/90 rounded-md font-medium text-sm transition active:scale-95 flex items-center justify-center gap-2"
                       onClick={handleClaim}
@@ -347,16 +344,16 @@ export default function DailyRewardsPage() {
                         Current streak: {claimStatus.currentStreak} day{claimStatus.currentStreak !== 1 ? 's' : ''}
                       </p>
                     </div>
-                    
+
                     <div className="bg-[#202229] p-4 rounded-lg border border-white/10 max-w-md">
                       <p className="text-[#95a1ad] mb-2">Come back tomorrow to continue your streak</p>
                       <p className="font-medium">Next reward: {claimStatus.nextReward.amount} coins</p>
                     </div>
-                    
+
                     <div className="text-sm text-[#95a1ad]">
                       <p>Last claimed: {formatDate(claimStatus.lastClaimTimestamp)}</p>
                     </div>
-                    
+
                     <button
                       className="px-6 py-3 bg-white/20 text-white/60 cursor-not-allowed rounded-md font-medium text-sm flex items-center justify-center gap-2"
                       disabled
@@ -368,7 +365,7 @@ export default function DailyRewardsPage() {
                 )}
               </div>
             </div>
-            
+
             {/* Upcoming rewards preview */}
             <div className="border border-[#2e3337] rounded-lg bg-transparent">
               <div className="p-4 pb-3 border-b border-[#2e3337]">
@@ -381,11 +378,11 @@ export default function DailyRewardsPage() {
                     const futureStreak = (claimStatus?.projectedStreak || 0) + offset - 1;
                     // Calculate reward for this future streak day
                     const baseAmount = 25; // Same as backend calculation
-                    
+
                     let multiplier = 1.0;
                     let milestoneBonus = 0;
                     let isMilestone = false;
-                    
+
                     // Simple multiplier calculation (should match backend logic)
                     if (futureStreak <= 6) multiplier = [1.0, 1.0, 1.1, 1.1, 1.2, 1.2][futureStreak - 1];
                     else if (futureStreak === 7) { multiplier = 1.5; milestoneBonus = 50; isMilestone = true; }
@@ -397,17 +394,16 @@ export default function DailyRewardsPage() {
                     else if (futureStreak === 28) { multiplier = 2.5; milestoneBonus = 200; isMilestone = true; }
                     else if (futureStreak === 30) { multiplier = 2.0; milestoneBonus = 300; isMilestone = true; }
                     else multiplier = 2.0;
-                    
+
                     const amount = Math.floor((baseAmount * multiplier) + milestoneBonus);
-                    
+
                     return (
-                      <div 
-                        key={offset} 
-                        className={`border rounded-lg p-3 ${
-                          isMilestone 
-                            ? 'border-yellow-500/30 bg-yellow-500/5' 
+                      <div
+                        key={offset}
+                        className={`border rounded-lg p-3 ${isMilestone
+                            ? 'border-yellow-500/30 bg-yellow-500/5'
                             : 'border-[#2e3337] bg-[#202229]'
-                        }`}
+                          }`}
                       >
                         <div className="flex justify-between items-center mb-2">
                           <span className="text-xs text-[#95a1ad]">Day {futureStreak}</span>
@@ -427,7 +423,7 @@ export default function DailyRewardsPage() {
               </div>
             </div>
           </div>
-          
+
           {/* Streak info sidebar */}
           <div className="lg:col-span-1 space-y-6">
             <div className="border border-[#2e3337] rounded-lg bg-transparent">
@@ -448,7 +444,7 @@ export default function DailyRewardsPage() {
                       <p className="text-xs text-[#95a1ad]">days</p>
                     </div>
                   </div>
-                  
+
                   <div className="w-full border-t border-[#2e3337] pt-3 mt-2">
                     <div className="flex justify-between text-sm">
                       <span className="text-[#95a1ad]">Total Claims:</span>
@@ -464,25 +460,24 @@ export default function DailyRewardsPage() {
                     </div>
                   </div>
                 </div>
-                
+
                 {/* Streak protection section */}
                 <div>
                   <div className="flex items-center justify-between mb-3">
                     <h4 className="font-medium text-sm">Streak Protection</h4>
                     <div className="px-2 py-1 rounded bg-[#202229] text-xs">
-                      {claimStatus?.streakProtection > 0 
-                        ? `${claimStatus.streakProtection} day${claimStatus.streakProtection !== 1 ? 's' : ''} active` 
+                      {claimStatus?.streakProtection > 0
+                        ? `${claimStatus.streakProtection} day${claimStatus.streakProtection !== 1 ? 's' : ''} active`
                         : 'None active'}
                     </div>
                   </div>
-                  
+
                   <div className="grid grid-cols-3 gap-2">
                     <button
-                      className={`p-2 rounded text-xs flex flex-col items-center justify-center space-y-1 transition ${
-                        claimStatus?.streakProtection >= 1 
+                      className={`p-2 rounded text-xs flex flex-col items-center justify-center space-y-1 transition ${claimStatus?.streakProtection >= 1
                           ? 'bg-[#202229] text-[#95a1ad] cursor-not-allowed'
                           : 'border border-[#2e3337] hover:bg-[#202229]'
-                      }`}
+                        }`}
                       onClick={() => setConfirmDialog({
                         type: 'protection',
                         level: 'bronze',
@@ -496,13 +491,12 @@ export default function DailyRewardsPage() {
                       <span className="text-[#95a1ad]">1 day</span>
                       <span className="font-medium">100 coins</span>
                     </button>
-                    
+
                     <button
-                      className={`p-2 rounded text-xs flex flex-col items-center justify-center space-y-1 transition ${
-                        claimStatus?.streakProtection >= 3 
+                      className={`p-2 rounded text-xs flex flex-col items-center justify-center space-y-1 transition ${claimStatus?.streakProtection >= 3
                           ? 'bg-[#202229] text-[#95a1ad] cursor-not-allowed'
                           : 'border border-[#2e3337] hover:bg-[#202229]'
-                      }`}
+                        }`}
                       onClick={() => setConfirmDialog({
                         type: 'protection',
                         level: 'silver',
@@ -516,13 +510,12 @@ export default function DailyRewardsPage() {
                       <span className="text-[#95a1ad]">3 days</span>
                       <span className="font-medium">250 coins</span>
                     </button>
-                    
+
                     <button
-                      className={`p-2 rounded text-xs flex flex-col items-center justify-center space-y-1 transition ${
-                        claimStatus?.streakProtection >= 7 
+                      className={`p-2 rounded text-xs flex flex-col items-center justify-center space-y-1 transition ${claimStatus?.streakProtection >= 7
                           ? 'bg-[#202229] text-[#95a1ad] cursor-not-allowed'
                           : 'border border-[#2e3337] hover:bg-[#202229]'
-                      }`}
+                        }`}
                       onClick={() => setConfirmDialog({
                         type: 'protection',
                         level: 'gold',
@@ -537,14 +530,14 @@ export default function DailyRewardsPage() {
                       <span className="font-medium">500 coins</span>
                     </button>
                   </div>
-                  
+
                   <div className="text-xs text-[#95a1ad] mt-2">
                     <p>Streak protection prevents your streak from resetting if you miss a day.</p>
                   </div>
                 </div>
               </div>
             </div>
-            
+
             <div className="border border-[#2e3337] rounded-lg bg-transparent">
               <div className="p-4 pb-3 border-b border-[#2e3337]">
                 <h3 className="font-normal text-lg">How It Works</h3>
@@ -653,13 +646,12 @@ export default function DailyRewardsPage() {
                   <div className="col-span-3 text-center">Current Streak</div>
                   <div className="col-span-3 text-center">Longest Streak</div>
                 </div>
-                
+
                 {leaderboard.map((entry, index) => (
-                  <div 
-                    key={index} 
-                    className={`grid grid-cols-12 p-4 rounded-lg items-center ${
-                      index < 3 ? 'bg-yellow-500/5 border border-yellow-500/20' : 'bg-[#202229] border border-[#2e3337]'
-                    }`}
+                  <div
+                    key={index}
+                    className={`grid grid-cols-12 p-4 rounded-lg items-center ${index < 3 ? 'bg-yellow-500/5 border border-yellow-500/20' : 'bg-[#202229] border border-[#2e3337]'
+                      }`}
                   >
                     <div className="col-span-1 font-bold">
                       {index === 0 ? (
@@ -698,13 +690,12 @@ export default function DailyRewardsPage() {
       {/* Confirmation Dialog */}
       {isDialogVisible && (
         <div className="fixed inset-0 flex items-center justify-center z-50">
-          <div 
-            className={`fixed inset-0 transition-opacity duration-300 ${
-              dialogAnimation ? 'opacity-100' : 'opacity-0'
-            }`} 
+          <div
+            className={`fixed inset-0 transition-opacity duration-300 ${dialogAnimation ? 'opacity-100' : 'opacity-0'
+              }`}
             onClick={() => setConfirmDialog(null)}
           ></div>
-          <div 
+          <div
             className={`relative bg-[#202229] border border-white/5 rounded-lg w-full max-w-md p-6 transition-all duration-300 ${dialogAnimation}`}
           >
             <div className="mb-4">
@@ -712,24 +703,23 @@ export default function DailyRewardsPage() {
                 {confirmDialog?.type === 'protection' ? 'Purchase Streak Protection' : 'Confirm Action'}
               </h2>
               <p className="text-[#95a1ad] mt-1">
-                {confirmDialog?.type === 'protection' 
-                  ? `Are you sure you want to purchase ${confirmDialog.level} streak protection?` 
+                {confirmDialog?.type === 'protection'
+                  ? `Are you sure you want to purchase ${confirmDialog.level} streak protection?`
                   : 'Are you sure you want to perform this action?'}
               </p>
             </div>
-            
+
             {confirmDialog?.type === 'protection' && (
               <div className="space-y-4 py-4">
                 <div className="flex items-center justify-center mb-4">
                   <div className="w-16 h-16 rounded-full bg-[#1a1c1e] border border-white/5 flex items-center justify-center">
-                    <Shield className={`w-8 h-8 ${
-                      confirmDialog.level === 'bronze' ? 'text-amber-700' : 
-                      confirmDialog.level === 'silver' ? 'text-gray-400' : 
-                      'text-yellow-400'
-                    }`} />
+                    <Shield className={`w-8 h-8 ${confirmDialog.level === 'bronze' ? 'text-amber-700' :
+                        confirmDialog.level === 'silver' ? 'text-gray-400' :
+                          'text-yellow-400'
+                      }`} />
                   </div>
                 </div>
-                
+
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span className="text-[#95a1ad]">Protection Level:</span>
@@ -744,7 +734,7 @@ export default function DailyRewardsPage() {
                     <span>{confirmDialog.price} coins</span>
                   </div>
                 </div>
-                
+
                 <div className="border-t border-[#2e3337] pt-4 mt-2">
                   <p className="text-sm text-[#95a1ad]">
                     Streak protection allows you to miss days without losing your streak. It will be automatically used if you miss a day.
@@ -754,14 +744,14 @@ export default function DailyRewardsPage() {
             )}
 
             <div className="flex justify-end gap-3 mt-6">
-              <button 
+              <button
                 onClick={() => setConfirmDialog(null)}
                 className="px-4 py-2 rounded-md border border-white/5 text-[#95a1ad] hover:text-white hover:bg-white/5 font-medium text-sm transition active:scale-95"
               >
                 Cancel
               </button>
               {confirmDialog?.type === 'protection' && (
-                <button 
+                <button
                   onClick={() => handlePurchaseProtection(confirmDialog.level)}
                   disabled={purchasingProtection}
                   className="px-4 py-2 bg-white text-black hover:bg-white/90 rounded-md font-medium text-sm transition active:scale-95 flex items-center justify-center gap-2"

@@ -1,15 +1,15 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { 
-  Terminal, Power, RotateCw, Square, Cpu, MemoryStick, 
+import {
+  Terminal, Power, RotateCw, Square, Cpu, MemoryStick,
   HardDrive, Network, Server, Upload, Database, RefreshCw,
   Clock, Shield, Download, AlertTriangle, CheckCircle2,
   X, XCircle, Info, Loader2, AlertCircle, Copy, ChevronDown, InfoIcon
 } from 'lucide-react';
-import { 
-  LineChart, Line, XAxis, YAxis, Tooltip as RechartsTooltip, 
-  ResponsiveContainer, Area, AreaChart 
+import {
+  LineChart, Line, XAxis, YAxis, Tooltip as RechartsTooltip,
+  ResponsiveContainer, Area, AreaChart
 } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -17,7 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { 
+import {
   Popover,
   PopoverContent,
   PopoverTrigger
@@ -119,13 +119,13 @@ const ResourceChart = ({ data, dataKey, color, label, unit = "", domain }) => (
             <stop offset="95%" stopColor={color} stopOpacity={0} />
           </linearGradient>
         </defs>
-        <XAxis 
-          dataKey="time" 
+        <XAxis
+          dataKey="time"
           tick={{ fontSize: 10, fill: '#6B7280' }}
           stroke="#374151"
           interval="preserveStart"
         />
-        <YAxis 
+        <YAxis
           domain={domain || [0, 'auto']}
           tick={{ fontSize: 10, fill: '#6B7280' }}
           stroke="#374151"
@@ -165,13 +165,13 @@ const NetworkChart = ({ data }) => (
   <div className="h-36">
     <ResponsiveContainer width="100%" height="100%">
       <LineChart data={data} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
-        <XAxis 
-          dataKey="time" 
+        <XAxis
+          dataKey="time"
           tick={{ fontSize: 10, fill: '#6B7280' }}
           stroke="#374151"
           interval="preserveStart"
         />
-        <YAxis 
+        <YAxis
           tick={{ fontSize: 10, fill: '#6B7280' }}
           stroke="#374151"
           width={40}
@@ -237,10 +237,10 @@ const ResourceStat = ({ icon: Icon, title, value, secondaryValue, chartData, dat
     </CardHeader>
     <CardContent className="p-4 pt-2">
       {chartData?.length > 0 && (
-        <Chart 
-          data={chartData} 
-          dataKey={dataKey} 
-          color={color} 
+        <Chart
+          data={chartData}
+          dataKey={dataKey}
+          color={color}
           label={title}
           unit={unit}
           domain={domain}
@@ -252,10 +252,10 @@ const ResourceStat = ({ icon: Icon, title, value, secondaryValue, chartData, dat
 
 const formatConsoleOutput = (line) => {
   let processedLine = line;
-  
+
   const replacements = [
     // Handle [m reset marker
-    { 
+    {
       pattern: /\[m/g,
       replacement: '</span>'
     },
@@ -324,11 +324,11 @@ const formatConsoleOutput = (line) => {
       replacement: ''
     }
   ];
-  
+
   for (const { pattern, replacement } of replacements) {
     processedLine = processedLine.replace(pattern, replacement);
   }
-  
+
   // Handle ANSI color codes after other replacements
   processedLine = processedLine
     .replace(/\u001b\[(\d+)m/g, (match, code) => {
@@ -346,12 +346,12 @@ const formatConsoleOutput = (line) => {
         '34;1': 'text-neutral-400 font-bold',
         '36;1': 'text-cyan-500 font-bold'
       };
-      return `<span class="font-mono ${colors[code] || ''}">`; 
+      return `<span class="font-mono ${colors[code] || ''}">`;
     })
     .replace(/\u001b\[0m/g, '</span>')
     .replace(/\[0;39m/g, '</span>')
     .replace(/\n/g, '<br>');
-    
+
   // Ensure the entire line is monospaced, including colored text
   return `<div class="font-mono">${processedLine}</div>`;
 };
@@ -385,7 +385,7 @@ export default function ConsolePage() {
     uptime: "0h 00m 0s"
   });
   const [isConnecting, setIsConnecting] = useState(true);
-  
+
   const scrollAreaRef = useRef(null);
   const mounted = useRef(true);
   const { notifications, addNotification, removeNotification } = useNotifications();
@@ -405,7 +405,7 @@ export default function ConsolePage() {
       return data;
     }
   });
-  
+
   const { data: server, error: serverError } = useQuery({
     queryKey: ['server', id],
     queryFn: async () => {
@@ -476,11 +476,11 @@ export default function ConsolePage() {
           }));
           break;
 
-          case 'status':
-            const newState = message.args[0];
-            setServerState(newState);
-            setIsInstalling(message.args[1]?.is_installing || false);
-            break;
+        case 'status':
+          const newState = message.args[0];
+          setServerState(newState);
+          setIsInstalling(message.args[1]?.is_installing || false);
+          break;
 
         case 'install started':
           setInstallationProgress({ status: 'started', message: 'Installation started...' });
@@ -552,8 +552,8 @@ export default function ConsolePage() {
       cpu: [...prev.cpu.slice(-MAX_HISTORY_POINTS), { time: timestamp, value: parseFloat(stats.cpu) }],
       memory: [...prev.memory.slice(-MAX_HISTORY_POINTS), { time: timestamp, value: parseFloat(stats.memory) }],
       disk: [...prev.disk.slice(-MAX_HISTORY_POINTS), { time: timestamp, value: parseFloat(stats.disk) }],
-      network: [...prev.network.slice(-MAX_HISTORY_POINTS), { 
-        time: timestamp, 
+      network: [...prev.network.slice(-MAX_HISTORY_POINTS), {
+        time: timestamp,
         up: parseFloat(stats.network.up) || 0,
         down: parseFloat(stats.network.down) || 0
       }]
@@ -563,37 +563,37 @@ export default function ConsolePage() {
   useEffect(() => {
     mounted.current = true;
     setIsConnecting(true);
-  
+
     const connectWebSocket = async () => {
       try {
         if (!mounted.current) return;
-  
+
         // Show connecting state while fetching websocket URL
         setIsConnecting(true);
-        
+
         const { data } = await axios.get(`/api/server/${id}/websocket`);
         const ws = new WebSocket(data.data.socket);
-  
+
         ws.onopen = () => {
           if (!mounted.current) {
             ws.close();
             return;
           }
-  
+
           setRetryCount(0);
           setIsConnecting(false);
-          
+
           ws.send(JSON.stringify({
             event: "auth",
             args: [data.data.token]
           }));
         };
-  
+
         ws.onmessage = handleWebSocketMessage;
-  
+
         ws.onclose = () => {
           if (!mounted.current) return;
-  
+
           if (retryCount < RETRY_COUNT) {
             setTimeout(() => {
               if (mounted.current) {
@@ -604,11 +604,11 @@ export default function ConsolePage() {
             }, RETRY_DELAY);
           }
         };
-  
+
         ws.onerror = () => {
           setIsConnecting(true);
         };
-  
+
         socketRef.current = ws;
       } catch (error) {
         addNotification('error', 'Failed to connect to server', 'Connection Error');
@@ -618,9 +618,9 @@ export default function ConsolePage() {
         }, 2000);
       }
     };
-  
+
     connectWebSocket();
-  
+
     return () => {
       mounted.current = false;
       if (socketRef.current) {
@@ -698,46 +698,46 @@ export default function ConsolePage() {
       }));
     }
   };
-// Update this helper function for better uptime calculation
-const formatUptime = (uptime) => {
-  // First check if it's already a formatted string
-  if (typeof uptime === 'string' && (uptime.includes('h') || uptime.includes('m'))) {
-    return uptime;
-  }
-
-  // Try to parse as a number if it's a string
-  let seconds = 0;
-  
-  if (typeof uptime === 'string') {
-    // Try to parse as number
-    const parsed = parseInt(uptime, 10);
-    if (!isNaN(parsed)) {
-      seconds = parsed;
+  // Update this helper function for better uptime calculation
+  const formatUptime = (uptime) => {
+    // First check if it's already a formatted string
+    if (typeof uptime === 'string' && (uptime.includes('h') || uptime.includes('m'))) {
+      return uptime;
     }
-  } else if (typeof uptime === 'number') {
-    seconds = uptime;
-  }
 
-  // If uptime is jumping by ~18 minutes every second, it might be reporting in deciseconds (1/10th of a second)
-  // Or it could be milliseconds (which would be 16.7 minutes per second)
-  
-  // Let's try to detect the most likely time unit based on the magnitude
-  if (seconds > 1000) {
-    // If value is very large, it's likely milliseconds
-    seconds = Math.round(seconds / 1000);
-  } else if (seconds > 100) {
-    // If the value is moderately large but not huge, it might be deciseconds
-    seconds = Math.round(seconds / 10);
-  }
-  
-  // Calculate hours, minutes, seconds
-  const hours = Math.floor(seconds / 3600);
-  const minutes = Math.floor((seconds % 3600) / 60);
-  const secs = Math.floor(seconds % 60);
-  
-  // Format with leading zeros for better readability
-  return `${hours}h ${minutes.toString().padStart(2, '0')}m ${secs.toString().padStart(2, '0')}s`;
-};
+    // Try to parse as a number if it's a string
+    let seconds = 0;
+
+    if (typeof uptime === 'string') {
+      // Try to parse as number
+      const parsed = parseInt(uptime, 10);
+      if (!isNaN(parsed)) {
+        seconds = parsed;
+      }
+    } else if (typeof uptime === 'number') {
+      seconds = uptime;
+    }
+
+    // If uptime is jumping by ~18 minutes every second, it might be reporting in deciseconds (1/10th of a second)
+    // Or it could be milliseconds (which would be 16.7 minutes per second)
+
+    // Let's try to detect the most likely time unit based on the magnitude
+    if (seconds > 1000) {
+      // If value is very large, it's likely milliseconds
+      seconds = Math.round(seconds / 1000);
+    } else if (seconds > 100) {
+      // If the value is moderately large but not huge, it might be deciseconds
+      seconds = Math.round(seconds / 10);
+    }
+
+    // Calculate hours, minutes, seconds
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = Math.floor(seconds % 60);
+
+    // Format with leading zeros for better readability
+    return `${hours}h ${minutes.toString().padStart(2, '0')}m ${secs.toString().padStart(2, '0')}s`;
+  };
 
 
   // Loading state
@@ -746,7 +746,7 @@ const formatUptime = (uptime) => {
       <div className="flex flex-col items-center justify-center min-h-[400px] gap-2">
         <RefreshCw className="w-6 h-6 text-neutral-400 animate-spin" />
         <p className="text-white/50 uppercase tracking-widest text-xs mt-2">
-        Connecting to server...
+          Connecting to server...
         </p>
         <p className="text-white text-md mt-8 font-medium">Is this taking a while?</p>
         <p className="text-white/70 text-xs">We may be experiencing high demand, which can cause high API latency and connection issues.</p>
@@ -765,273 +765,272 @@ const formatUptime = (uptime) => {
 
   return (
     <div className="space-y-6 p-6">
-      <NotificationContainer 
+      <NotificationContainer
         notifications={notifications}
         removeNotification={removeNotification}
       />
 
-{/* Server Header with updated status badge */}
-<div className="flex justify-between items-center">
-  <div className="flex items-center gap-4">
-    <h1 className="text-2xl font-bold text-white">{server?.name}</h1>
-    <Badge 
-      variant={
-        serverState === 'running' 
-          ? 'success' 
-          : serverState === 'starting' 
-            ? 'warning' 
-            : 'secondary'
-      }
-      className="rounded-md font-normal flex items-center gap-1.5 px-2.5 py-0.5"
-    >
-      <div 
-        className={`h-1.5 w-1.5 rounded-full ${
-          serverState === 'running' 
-            ? 'bg-emerald-500/80' 
-            : serverState === 'starting' 
-              ? 'bg-amber-500/80' 
-              : 'bg-neutral-400/80'
-        }`}
-      />
-      {serverState.charAt(0).toUpperCase() + serverState.slice(1)}
-    </Badge>
-  </div>
-  
-  <TooltipProvider>
-    <div className="flex gap-2">
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => sendPowerAction('start')}
-            disabled={['starting', 'running'].includes(serverState) || isInstalling}
+      {/* Server Header with updated status badge */}
+      <div className="flex justify-between items-center">
+        <div className="flex items-center gap-4">
+          <h1 className="text-2xl font-bold text-white">{server?.name}</h1>
+          <Badge
+            variant={
+              serverState === 'running'
+                ? 'success'
+                : serverState === 'starting'
+                  ? 'warning'
+                  : 'secondary'
+            }
+            className="rounded-md font-normal flex items-center gap-1.5 px-2.5 py-0.5"
           >
-            <Power className="w-4 h-4" />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent>Start Server</TooltipContent>
-      </Tooltip>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => sendPowerAction('restart')}
-            disabled={!['running'].includes(serverState) || isInstalling}
-          >
-            <RotateCw className="w-4 h-4" />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent>Restart Server</TooltipContent>
-      </Tooltip>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => {
-              // Send kill command if server is in a transitional state
-              const action = ['starting', 'stopping'].includes(serverState) ? 'kill' : 'stop';
-              sendPowerAction(action);
-            }}
-            disabled={['offline'].includes(serverState) || isInstalling}
-          >
-            <Square className="w-4 h-4" />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent>
-          {['starting', 'stopping'].includes(serverState) ? 'Kill Server' : 'Stop Server'}
-        </TooltipContent>
-      </Tooltip>
-    </div>
-  </TooltipProvider>
-</div>
-
-<MinecraftPlayerList serverIdentifier={id} />
-{isConnecting && <ConnectionOverlay />}
-
-{/* Replace the existing Card after the Server Header with this */}
-<div className="flex items-center gap-6 p-4 rounded-lg border border-white/5">
-  <div className="flex items-center gap-2">
-    <Server className="w-4 h-4 text-neutral-400" />
-    <div>
-      <p className="text-xs text-neutral-500">Node</p>
-      <p className="text-sm text-white font-medium">{server?.node}</p>
-    </div>
-  </div>
-  
-  <div className="flex items-center gap-2">
-    <Network className="w-4 h-4 text-neutral-400" />
-    <div>
-      <p className="text-xs text-neutral-500">IP Address</p>
-      <p className="text-sm text-white font-medium">
-        {server?.relationships?.allocations?.data?.[0]?.attributes?.ip_alias}:
-        {server?.relationships?.allocations?.data?.[0]?.attributes?.port}
-      </p>
-    </div>
-  </div>
-  
-  <Popover>
-    <PopoverTrigger asChild>
-      <div className="flex items-center gap-2 cursor-pointer group">
-        <Upload className="w-4 h-4 text-neutral-400" />
-        <div className="flex items-center gap-1">
-          <div>
-            <p className="text-xs text-neutral-500">SFTP</p>
-            <p className="text-sm text-white font-medium truncate max-w-[150px]">
-              {argonData?.ArgonUser?.Username}.{server?.identifier}
-            </p>
-          </div>
-          <ChevronDown className="h-4 w-4 text-neutral-500 group-hover:text-neutral-300 transition-colors" />
+            <div
+              className={`h-1.5 w-1.5 rounded-full ${serverState === 'running'
+                  ? 'bg-emerald-500/80'
+                  : serverState === 'starting'
+                    ? 'bg-amber-500/80'
+                    : 'bg-neutral-400/80'
+                }`}
+            />
+            {serverState.charAt(0).toUpperCase() + serverState.slice(1)}
+          </Badge>
         </div>
-      </div>
-    </PopoverTrigger>
-    <PopoverContent className="w-72 p-4">
-      <div className="space-y-3">
-        <h4 className="font-medium text-sm">SFTP Details</h4>
-        
-        <div className="space-y-2">
-          <div className="flex justify-between">
-            <p className="text-xs text-neutral-500">Host</p>
-            <p className="text-xs text-black">{server?.sftp_details?.ip}</p>
-          </div>
-          
-          <div className="flex justify-between">
-            <p className="text-xs text-neutral-500">Port</p>
-            <p className="text-xs text-black">{server?.sftp_details?.port}</p>
-          </div>
-          
-          <div className="flex justify-between">
-            <p className="text-xs text-neutral-500">Username</p>
-            <div className="flex items-center gap-1">
-              <p className="text-xs text-black">{argonData?.ArgonUser?.Username}.{server?.identifier}</p>
-              <TooltipProvider>
-                <Tooltip open={copySuccess}>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-5 w-5 hover:bg-neutral-800/50"
-                      onClick={() => copyToClipboard(`${argonData?.ArgonUser?.Username}.${server?.identifier}`)}
-                    >
-                      <Copy className="h-3 w-3" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>{copySuccess ? 'Copied!' : 'Copy to clipboard'}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </div>
-          </div>
-        </div>
-        
-        <div className="p-2 rounded bg-blue-100 border border-blue-200/20">
+
+        <TooltipProvider>
           <div className="flex gap-2">
-            <InfoIcon className="h-4 w-4 text-blue-800 shrink-0 mt-0.5" />
-            <p className="text-xs text-blue-800">
-              Use your SFTP password from the Account Settings page when connecting.
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => sendPowerAction('start')}
+                  disabled={['starting', 'running'].includes(serverState) || isInstalling}
+                >
+                  <Power className="w-4 h-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Start Server</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => sendPowerAction('restart')}
+                  disabled={!['running'].includes(serverState) || isInstalling}
+                >
+                  <RotateCw className="w-4 h-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Restart Server</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => {
+                    // Send kill command if server is in a transitional state
+                    const action = ['starting', 'stopping'].includes(serverState) ? 'kill' : 'stop';
+                    sendPowerAction(action);
+                  }}
+                  disabled={['offline'].includes(serverState) || isInstalling}
+                >
+                  <Square className="w-4 h-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                {['starting', 'stopping'].includes(serverState) ? 'Kill Server' : 'Stop Server'}
+              </TooltipContent>
+            </Tooltip>
+          </div>
+        </TooltipProvider>
+      </div>
+
+      <MinecraftPlayerList serverIdentifier={id} />
+      {isConnecting && <ConnectionOverlay />}
+
+      {/* Replace the existing Card after the Server Header with this */}
+      <div className="flex items-center gap-6 p-4 rounded-lg border border-white/5">
+        <div className="flex items-center gap-2">
+          <Server className="w-4 h-4 text-neutral-400" />
+          <div>
+            <p className="text-xs text-neutral-500">Node</p>
+            <p className="text-sm text-white font-medium">{server?.node}</p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Network className="w-4 h-4 text-neutral-400" />
+          <div>
+            <p className="text-xs text-neutral-500">IP Address</p>
+            <p className="text-sm text-white font-medium">
+              {server?.relationships?.allocations?.data?.[0]?.attributes?.ip_alias}:
+              {server?.relationships?.allocations?.data?.[0]?.attributes?.port}
             </p>
           </div>
         </div>
+
+        <Popover>
+          <PopoverTrigger asChild>
+            <div className="flex items-center gap-2 cursor-pointer group">
+              <Upload className="w-4 h-4 text-neutral-400" />
+              <div className="flex items-center gap-1">
+                <div>
+                  <p className="text-xs text-neutral-500">SFTP</p>
+                  <p className="text-sm text-white font-medium truncate max-w-[150px]">
+                    {argonData?.ArgonUser?.Username}.{server?.identifier}
+                  </p>
+                </div>
+                <ChevronDown className="h-4 w-4 text-neutral-500 group-hover:text-neutral-300 transition-colors" />
+              </div>
+            </div>
+          </PopoverTrigger>
+          <PopoverContent className="w-72 p-4">
+            <div className="space-y-3">
+              <h4 className="font-medium text-sm">SFTP Details</h4>
+
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <p className="text-xs text-neutral-500">Host</p>
+                  <p className="text-xs text-black">{server?.sftp_details?.ip}</p>
+                </div>
+
+                <div className="flex justify-between">
+                  <p className="text-xs text-neutral-500">Port</p>
+                  <p className="text-xs text-black">{server?.sftp_details?.port}</p>
+                </div>
+
+                <div className="flex justify-between">
+                  <p className="text-xs text-neutral-500">Username</p>
+                  <div className="flex items-center gap-1">
+                    <p className="text-xs text-black">{argonData?.ArgonUser?.Username}.{server?.identifier}</p>
+                    <TooltipProvider>
+                      <Tooltip open={copySuccess}>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-5 w-5 hover:bg-neutral-800/50"
+                            onClick={() => copyToClipboard(`${argonData?.ArgonUser?.Username}.${server?.identifier}`)}
+                          >
+                            <Copy className="h-3 w-3" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>{copySuccess ? 'Copied!' : 'Copy to clipboard'}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-2 rounded bg-blue-100 border border-blue-200/20">
+                <div className="flex gap-2">
+                  <InfoIcon className="h-4 w-4 text-blue-800 shrink-0 mt-0.5" />
+                  <p className="text-xs text-blue-800">
+                    Use your SFTP password from the Account Settings page when connecting.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </PopoverContent>
+        </Popover>
+
+        <div className="flex items-center gap-2 ml-auto">
+          <Clock className="w-4 h-4 text-neutral-400" />
+          <div>
+            <p className="text-xs text-neutral-500">Uptime</p>
+            <p className="text-sm text-white font-medium">{formatUptime(stats.uptime) || "Offline"}</p>
+          </div>
+        </div>
       </div>
-    </PopoverContent>
-  </Popover>
-  
-  <div className="flex items-center gap-2 ml-auto">
-    <Clock className="w-4 h-4 text-neutral-400" />
-    <div>
-      <p className="text-xs text-neutral-500">Uptime</p>
-      <p className="text-sm text-white font-medium">{formatUptime(stats.uptime) || "Offline"}</p>
-    </div>
-  </div>
-</div>
 
       <div>
         <div>
-{/* Console with Empty State - Fixed Vertical Centering */}
-<Card>
-  <CardContent className="p-0">
-    <ScrollArea 
-      ref={scrollAreaRef}
-      className="h-[440px] font-mono text-sm bg-transparent"
-      onScroll={handleScroll}
-    >
-      {consoleLines.length > 0 ? (
-        <div className="p-4">
-          {consoleLines.map((line, i) => (
-            <div 
-              key={i} 
-              className="py-0.5"
-              dangerouslySetInnerHTML={{ __html: formatConsoleOutput(line) }} 
-            />
-          ))}
-        </div>
-      ) : (
-        <div className="h-full flex items-center justify-center">
-          <div className="flex flex-col items-center justify-center text-center p-6">
-            <div className="bg-white/5 p-4 rounded-full mb-4 mt-8">
-              <Terminal className="h-8 w-8 text-neutral-400" />
-            </div>
-            <h3 className="text-lg font-medium text-white mb-2">Hm... there's nothing here</h3>
-            <p className="text-neutral-400 max-w-md">
-              {serverState === 'offline' 
-                ? 'Start your server to see console output here' 
-                : 'Waiting for console output...'}
-            </p>
-            {serverState === 'offline' && (
-              <Button 
-                variant="outline" 
-                className="mt-4"
-                onClick={() => sendPowerAction('start')}
-                disabled={isInstalling}
+          {/* Console with Empty State - Fixed Vertical Centering */}
+          <Card>
+            <CardContent className="p-0">
+              <ScrollArea
+                ref={scrollAreaRef}
+                className="h-[440px] font-mono text-sm bg-transparent"
+                onScroll={handleScroll}
               >
-                <Power className="w-4 h-4 mr-2" />
-                Start server
-              </Button>
-            )}
-          </div>
-        </div>
-      )}
-    </ScrollArea>
-    <div className="p-4 border-t border-white/10">
-      <form onSubmit={sendCommand} className="flex gap-2">
-        <Input
-          value={command}
-          onChange={(e) => setCommand(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder={isInstalling ? "Console commands are disabled during installation..." : "Type a command..."}
-          className="flex-1 bg-transparent border-white/10"
-          disabled={isInstalling || serverState === 'offline'}
-        />
-        <Button 
-          type="submit" 
-          disabled={isInstalling || !command.trim() || serverState === 'offline'}
-        >
-          Send
-        </Button>
-      </form>
-    </div>
-  </CardContent>
-</Card>
+                {consoleLines.length > 0 ? (
+                  <div className="p-4">
+                    {consoleLines.map((line, i) => (
+                      <div
+                        key={i}
+                        className="py-0.5"
+                        dangerouslySetInnerHTML={{ __html: formatConsoleOutput(line) }}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="h-full flex items-center justify-center">
+                    <div className="flex flex-col items-center justify-center text-center p-6">
+                      <div className="bg-white/5 p-4 rounded-full mb-4 mt-8">
+                        <Terminal className="h-8 w-8 text-neutral-400" />
+                      </div>
+                      <h3 className="text-lg font-medium text-white mb-2">Hm... there's nothing here</h3>
+                      <p className="text-neutral-400 max-w-md">
+                        {serverState === 'offline'
+                          ? 'Start your server to see console output here'
+                          : 'Waiting for console output...'}
+                      </p>
+                      {serverState === 'offline' && (
+                        <Button
+                          variant="outline"
+                          className="mt-4"
+                          onClick={() => sendPowerAction('start')}
+                          disabled={isInstalling}
+                        >
+                          <Power className="w-4 h-4 mr-2" />
+                          Start server
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </ScrollArea>
+              <div className="p-4 border-t border-white/10">
+                <form onSubmit={sendCommand} className="flex gap-2">
+                  <Input
+                    value={command}
+                    onChange={(e) => setCommand(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    placeholder={isInstalling ? "Console commands are disabled during installation..." : "Type a command..."}
+                    className="flex-1 bg-transparent border-white/10"
+                    disabled={isInstalling || serverState === 'offline'}
+                  />
+                  <Button
+                    type="submit"
+                    disabled={isInstalling || !command.trim() || serverState === 'offline'}
+                  >
+                    Send
+                  </Button>
+                </form>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
 
       {/* Resource Stats Grid */}
       <div className="grid grid-cols-2 gap-4">
-        <ResourceStat 
-  icon={Cpu}
-  title="CPU Usage"
-  value={`${stats?.cpu || 0} %`}
-  secondaryValue={`${server?.limits?.cpu || 0} % Limit`}
+        <ResourceStat
+          icon={Cpu}
+          title="CPU Usage"
+          value={`${stats?.cpu || 0} %`}
+          secondaryValue={`${server?.limits?.cpu || 0} % Limit`}
           chartData={resourceHistory.cpu}
           dataKey="value"
           color={CHART_COLORS.cpu}
           unit="%"
           domain={[0, 100]}
         />
-        <ResourceStat 
+        <ResourceStat
           icon={MemoryStick}
           title="Memory Usage"
           value={`${stats.memory || 0} MB`}
@@ -1042,7 +1041,7 @@ const formatUptime = (uptime) => {
           unit=" MB"
           domain={[0, server?.limits.memory]}
         />
-        <ResourceStat 
+        <ResourceStat
           icon={HardDrive}
           title="Storage Usage"
           value={`${stats.disk || 0} MB`}
@@ -1053,7 +1052,7 @@ const formatUptime = (uptime) => {
           unit=" MB"
           domain={server?.limits.disk ? [0, server.limits.disk] : undefined}
         />
-        <ResourceStat 
+        <ResourceStat
           icon={Network}
           title="Network Traffic"
           value={`↑${stats.network.up || 0} KB/s`}
@@ -1077,10 +1076,10 @@ const formatUptime = (uptime) => {
               </p>
               <p>
                 By clicking Accept, you agree to the{' '}
-                <a 
-                  href="https://www.minecraft.net/en-us/eula" 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
+                <a
+                  href="https://www.minecraft.net/en-us/eula"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="text-primary hover:underline"
                 >
                   Minecraft EULA

@@ -75,14 +75,14 @@ const ViewTicketDialog = ({ isOpen, onClose, ticketId, onStatusChange }) => {
   const handleSubmitReply = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
+
     try {
       await fetch(`/api/tickets/${ticketId}/messages`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ content: replyContent })
       });
-      
+
       setReplyContent('');
       refetch();
     } catch (error) {
@@ -224,7 +224,7 @@ export default function AdminSupportDashboard() {
 
   const filteredTickets = Array.isArray(tickets) ? tickets.filter(ticket => {
     if (filters.search && !ticket.subject.toLowerCase().includes(filters.search.toLowerCase()) &&
-        !ticket.user.username.toLowerCase().includes(filters.search.toLowerCase())) {
+      !ticket.user.username.toLowerCase().includes(filters.search.toLowerCase())) {
       return false;
     }
     if (filters.priority !== 'all' && ticket.priority !== filters.priority) return false;
@@ -352,22 +352,22 @@ export default function AdminSupportDashboard() {
       </div>
 
       <div className="grid grid-cols-4 gap-4">
-        <StatsCard 
-          title="Total Tickets" 
-          value={stats?.total || '-'} 
+        <StatsCard
+          title="Total Tickets"
+          value={stats?.total || '-'}
         />
-        <StatsCard 
-          title="Open Tickets" 
+        <StatsCard
+          title="Open Tickets"
           value={stats?.open || '-'}
           className="text-emerald-600"
         />
-        <StatsCard 
-          title="Avg. Response Time" 
+        <StatsCard
+          title="Avg. Response Time"
           value={stats?.averageResponseTime ? `${Math.round(stats.averageResponseTime / 60000)}m` : '-'}
           className="text-amber-600"
         />
-        <StatsCard 
-          title="Last 7 Days" 
+        <StatsCard
+          title="Last 7 Days"
           value={stats?.ticketsLastWeek || '-'}
           className="text-blue-600"
         />
@@ -387,7 +387,7 @@ export default function AdminSupportDashboard() {
               </tr>
             </thead>
             <tbody>
-            {paginatedTickets.map(ticket => (
+              {paginatedTickets.map(ticket => (
                 <tr key={ticket.id} className="border-b">
                   <td className="p-4">
                     <div>
@@ -447,7 +447,7 @@ export default function AdminSupportDashboard() {
             </tbody>
           </table>
         </div>
-        
+
         {/* Pagination */}
         <div className="flex items-center justify-between p-4 border-t">
           <div className="text-sm text-gray-500">

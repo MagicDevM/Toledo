@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import {
   Settings, Save, RefreshCw, AlignLeft, Variable, PowerOff,
-  Server, AlertTriangle, CheckCircle2, Terminal, Loader2, LogOut, 
+  Server, AlertTriangle, CheckCircle2, Terminal, Loader2, LogOut,
   Trash2, AlertCircle
 } from 'lucide-react';
 import {
@@ -70,7 +70,7 @@ const SettingsPage = () => {
   // Update variables mutation
   const updateVariables = useMutation({
     mutationFn: async (variables) => {
-      const updates = Object.entries(variables).map(([key, value]) => 
+      const updates = Object.entries(variables).map(([key, value]) =>
         axios.put(`/api/server/${id}/variables`, { key, value })
       );
       await Promise.all(updates);
@@ -165,7 +165,7 @@ const SettingsPage = () => {
   const server = serverData?.attributes;
   const variables = startupData?.data || [];
   const dockerImages = startupData?.meta?.docker_images || {};
-  
+
   const handleVariableChange = (key, value) => {
     setEditedVariables(prev => ({
       ...prev,
@@ -201,7 +201,7 @@ const SettingsPage = () => {
     }
   };
 
-  const hasStartupChanges = 
+  const hasStartupChanges =
     editedStartup.command !== server?.invocation ||
     editedStartup.image !== server?.docker_image;
 
@@ -251,8 +251,8 @@ const SettingsPage = () => {
                       onChange={(e) => setServerName(e.target.value)}
                       placeholder="Enter server name"
                     />
-                    <Button 
-                      type="submit" 
+                    <Button
+                      type="submit"
                       disabled={!serverName.trim() || serverName === server.name || renameServer.isLoading}
                     >
                       {renameServer.isLoading ? (
@@ -269,7 +269,7 @@ const SettingsPage = () => {
               <div className="pt-4 space-y-4">
                 <div className="flex flex-col space-y-4">
                   <Separator className="bg-white/5" />
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <h4 className="font-medium">Reinstall Server</h4>
@@ -290,7 +290,7 @@ const SettingsPage = () => {
                         Reinstall Server
                       </Button>
                     </div>
-                    
+
                     <div className="space-y-2">
                       <h4 className="font-medium">Delete Server</h4>
                       <p className="text-sm text-neutral-400">
@@ -329,16 +329,16 @@ const SettingsPage = () => {
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label>Startup Command</Label>
-                  <Input 
+                  <Input
                     value={editedStartup.command}
                     onChange={(e) => setEditedStartup(prev => ({ ...prev, command: e.target.value }))}
                     placeholder="Enter startup command"
                   />
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label>Docker Image</Label>
-                  <Select 
+                  <Select
                     value={editedStartup.image}
                     onValueChange={(value) => setEditedStartup(prev => ({ ...prev, image: value }))}
                   >
@@ -471,64 +471,64 @@ const SettingsPage = () => {
         </AlertDialogContent>
       </AlertDialog>
 
-{/* Delete Server Dialog */}
-<AlertDialog open={showDeleteDialog} onOpenChange={(open) => {
-  setShowDeleteDialog(open);
-  if (!open) setDeleteConfirmation('');
-}}>
-  <AlertDialogContent>
-    <AlertDialogHeader>
-      <AlertDialogTitle className="text-gray-900 flex items-center gap-2">
-        <AlertTriangle className="w-5 h-5 text-red-500" />
-        Delete Server Permanently
-      </AlertDialogTitle>
-      <AlertDialogDescription className="space-y-4 text-gray-600">
-        <p>
-          This action <span className="font-bold text-gray-900">cannot be undone</span>. This will permanently delete your server and all associated data, including worlds, configs, and plugins.
-        </p>
-        
-        <div className="p-3 bg-blue-50 border border-blue-100 rounded-md text-blue-800 text-sm">
-          <p className="font-medium text-blue-900">What happens when you delete a server:</p>
-          <ul className="list-disc list-inside mt-2 space-y-1">
-            <li>All server files and data will be permanently deleted</li>
-            <li>All allocated resources (RAM, CPU, Disk) will be returned</li>
-            <li>You can create a new server with the reclaimed resources</li>
-          </ul>
-        </div>
-        
-        <div className="pt-2">
-          <Label htmlFor="confirm" className="mb-2 block text-gray-800">
-            Type <span className="font-bold text-gray-900">{serverName}</span> to confirm:
-          </Label>
-          <Input
-            id="confirm"
-            value={deleteConfirmation}
-            onChange={(e) => setDeleteConfirmation(e.target.value)}
-            className="border-gray-300 focus:border-gray-400 focus:ring-gray-400"
-            placeholder={serverName}
-          />
-        </div>
-      </AlertDialogDescription>
-    </AlertDialogHeader>
-    <AlertDialogFooter>
-      <AlertDialogCancel className="border-gray-200 text-gray-700 hover:bg-gray-100 hover:text-gray-900">
-        Cancel
-      </AlertDialogCancel>
-      <AlertDialogAction
-        onClick={handleDeleteConfirm}
-        disabled={deleteConfirmation !== serverName || deleteServer.isLoading}
-        className="bg-red-600 hover:bg-red-700 text-white focus:ring-red-500"
-      >
-        {deleteServer.isLoading ? (
-          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-        ) : (
-          <Trash2 className="w-4 h-4 mr-2" />
-        )}
-        Delete Server
-      </AlertDialogAction>
-    </AlertDialogFooter>
-  </AlertDialogContent>
-</AlertDialog>
+      {/* Delete Server Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={(open) => {
+        setShowDeleteDialog(open);
+        if (!open) setDeleteConfirmation('');
+      }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-gray-900 flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-red-500" />
+              Delete Server Permanently
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-4 text-gray-600">
+              <p>
+                This action <span className="font-bold text-gray-900">cannot be undone</span>. This will permanently delete your server and all associated data, including worlds, configs, and plugins.
+              </p>
+
+              <div className="p-3 bg-blue-50 border border-blue-100 rounded-md text-blue-800 text-sm">
+                <p className="font-medium text-blue-900">What happens when you delete a server:</p>
+                <ul className="list-disc list-inside mt-2 space-y-1">
+                  <li>All server files and data will be permanently deleted</li>
+                  <li>All allocated resources (RAM, CPU, Disk) will be returned</li>
+                  <li>You can create a new server with the reclaimed resources</li>
+                </ul>
+              </div>
+
+              <div className="pt-2">
+                <Label htmlFor="confirm" className="mb-2 block text-gray-800">
+                  Type <span className="font-bold text-gray-900">{serverName}</span> to confirm:
+                </Label>
+                <Input
+                  id="confirm"
+                  value={deleteConfirmation}
+                  onChange={(e) => setDeleteConfirmation(e.target.value)}
+                  className="border-gray-300 focus:border-gray-400 focus:ring-gray-400"
+                  placeholder={serverName}
+                />
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="border-gray-200 text-gray-700 hover:bg-gray-100 hover:text-gray-900">
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteConfirm}
+              disabled={deleteConfirmation !== serverName || deleteServer.isLoading}
+              className="bg-red-600 hover:bg-red-700 text-white focus:ring-red-500"
+            >
+              {deleteServer.isLoading ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <Trash2 className="w-4 h-4 mr-2" />
+              )}
+              Delete Server
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

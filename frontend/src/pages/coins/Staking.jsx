@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  AlertCircle, 
-  CoinsIcon, 
-  Clock, 
-  TrendingUp, 
-  Percent, 
-  RefreshCw, 
-  Check, 
-  X, 
+import {
+  AlertCircle,
+  CoinsIcon,
+  Clock,
+  TrendingUp,
+  Percent,
+  RefreshCw,
+  Check,
+  X,
   BarChart4,
   ArrowRight,
   HelpCircle,
@@ -20,19 +20,19 @@ import axios from 'axios';
 
 export default function StakingPage() {
   const queryClient = useQueryClient();
-// Initialize all state variables with proper defaults
-const [selectedPlan, setSelectedPlan] = useState('');
-const [stakeAmount, setStakeAmount] = useState('');
-const [calculationDays, setCalculationDays] = useState('30');
-const [calculation, setCalculation] = useState(null);
-const [loading, setLoading] = useState({}); // Initialize as empty object
-const [error, setError] = useState('');
-const [success, setSuccess] = useState('');
-const [confirmDialog, setConfirmDialog] = useState(null);
-const [isDialogVisible, setIsDialogVisible] = useState(false);
-const [dialogAnimation, setDialogAnimation] = useState('');
-const [showCalculator, setShowCalculator] = useState(false);
-const [activeTab, setActiveTab] = useState('active');
+  // Initialize all state variables with proper defaults
+  const [selectedPlan, setSelectedPlan] = useState('');
+  const [stakeAmount, setStakeAmount] = useState('');
+  const [calculationDays, setCalculationDays] = useState('30');
+  const [calculation, setCalculation] = useState(null);
+  const [loading, setLoading] = useState({}); // Initialize as empty object
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [confirmDialog, setConfirmDialog] = useState(null);
+  const [isDialogVisible, setIsDialogVisible] = useState(false);
+  const [dialogAnimation, setDialogAnimation] = useState('');
+  const [showCalculator, setShowCalculator] = useState(false);
+  const [activeTab, setActiveTab] = useState('active');
 
   // Fetch staking plans
   const { data: plans, isLoading: loadingPlans, error: plansError } = useQuery({
@@ -102,9 +102,9 @@ const [activeTab, setActiveTab] = useState('active');
     try {
       const amount = parseFloat(stakeAmount);
       const days = parseInt(calculationDays) || 30;
-      
+
       if (isNaN(amount) || amount <= 0) return;
-      
+
       const response = await axios.get('/api/staking/calculate', {
         params: {
           planId: selectedPlan,
@@ -112,7 +112,7 @@ const [activeTab, setActiveTab] = useState('active');
           duration: days
         }
       });
-      
+
       setCalculation(response.data);
     } catch (error) {
       console.error('Failed to calculate earnings:', error);
@@ -121,20 +121,20 @@ const [activeTab, setActiveTab] = useState('active');
 
   const handleStake = async () => {
     if (!selectedPlan || !stakeAmount) return;
-    
+
     try {
       setLoading(prev => ({ ...prev, stake: true }));
       setError('');
       setSuccess('');
-      
+
       const response = await axios.post('/api/staking/stakes', {
         planId: selectedPlan,
         amount: parseFloat(stakeAmount)
       });
-      
+
       setSuccess('Stake created successfully!');
       setStakeAmount('');
-      
+
       // Invalidate related queries to refresh data
       await queryClient.invalidateQueries(['staking-stakes']);
       await queryClient.invalidateQueries(['staking-summary']);
@@ -153,11 +153,11 @@ const [activeTab, setActiveTab] = useState('active');
       setLoading(prev => ({ ...prev, [`claim-${stakeId}`]: true }));
       setError('');
       setSuccess('');
-      
+
       await axios.post(`/api/staking/stakes/${stakeId}/claim`);
-      
+
       setSuccess('Stake claimed successfully!');
-      
+
       // Invalidate related queries to refresh data
       await queryClient.invalidateQueries(['staking-stakes']);
       await queryClient.invalidateQueries(['staking-summary']);
@@ -173,13 +173,13 @@ const [activeTab, setActiveTab] = useState('active');
 
   const handleStakeDialogOpen = () => {
     if (!selectedPlan || !stakeAmount || !plans) return;
-    
+
     const amount = parseFloat(stakeAmount);
     if (isNaN(amount) || amount <= 0) return;
-    
+
     const plan = plans[selectedPlan];
     const calculatedReward = calculation?.totalReturn;
-    
+
     setConfirmDialog({
       type: 'stake',
       plan,
@@ -199,7 +199,7 @@ const [activeTab, setActiveTab] = useState('active');
     const date = new Date(timestamp);
     const now = new Date();
     const diff = Math.floor((now.getTime() - date.getTime()) / 1000);
-    
+
     if (diff < 60) return `${diff} sec${diff !== 1 ? 's' : ''} ago`;
     if (diff < 3600) return `${Math.floor(diff / 60)} min${Math.floor(diff / 60) !== 1 ? 's' : ''} ago`;
     if (diff < 86400) return `${Math.floor(diff / 3600)} hour${Math.floor(diff / 3600) !== 1 ? 's' : ''} ago`;
@@ -227,14 +227,14 @@ const [activeTab, setActiveTab] = useState('active');
           <div>
             <h3 className="font-medium">Error loading staking</h3>
             <p className="text-sm mt-1">
-              {plansError?.response?.data?.message || 
-               plansError?.response?.data?.error || 
-               plansError?.message || 
-               plans?.error || 
-               plans?.message || 
-               "Failed to load staking configuration. Please try again later."}
+              {plansError?.response?.data?.message ||
+                plansError?.response?.data?.error ||
+                plansError?.message ||
+                plans?.error ||
+                plans?.message ||
+                "Failed to load staking configuration. Please try again later."}
             </p>
-            <button 
+            <button
               onClick={() => {
                 queryClient.invalidateQueries(['staking-plans']);
                 queryClient.invalidateQueries(['staking-summary']);
@@ -276,7 +276,7 @@ const [activeTab, setActiveTab] = useState('active');
           <span className="text-sm">{error}</span>
         </div>
       )}
-      
+
       {success && (
         <div className="rounded-md border border-green-500/20 bg-green-500/10 text-green-500 p-3 flex items-start">
           <Check className="w-4 h-4 mt-0.5 mr-2 flex-shrink-0" />
@@ -300,7 +300,7 @@ const [activeTab, setActiveTab] = useState('active');
             <p className="text-sm text-[#95a1ad] mt-1">Across {summary?.activeStakesCount || 0} active stake{summary?.activeStakesCount !== 1 ? 's' : ''}</p>
           </div>
         </div>
-        
+
         <div className="border border-[#2e3337] rounded-lg bg-transparent">
           <div className="p-4 pb-3 border-b border-[#2e3337]">
             <div className="flex items-center gap-2">
@@ -315,7 +315,7 @@ const [activeTab, setActiveTab] = useState('active');
             <p className="text-sm text-[#95a1ad] mt-1">Ready to claim</p>
           </div>
         </div>
-        
+
         <div className="border border-[#2e3337] rounded-lg bg-transparent">
           <div className="p-4 pb-3 border-b border-[#2e3337]">
             <div className="flex items-center gap-2">
@@ -369,7 +369,7 @@ const [activeTab, setActiveTab] = useState('active');
                   </div>
                 )}
               </div>
-              
+
               <div className="space-y-2">
                 <label className="text-sm text-[#95a1ad] block">Amount to Stake</label>
                 <input
@@ -401,13 +401,13 @@ const [activeTab, setActiveTab] = useState('active');
                   </div>
                 </div>
               )}
-              
+
               <div className="flex justify-between items-center">
-                <button 
+                <button
                   onClick={() => setShowCalculator(!showCalculator)}
                   className="text-sm text-[#95a1ad] hover:text-white flex items-center gap-1"
                 >
-                  <Calculator className="w-3 h-3" /> 
+                  <Calculator className="w-3 h-3" />
                   {showCalculator ? 'Hide calculator' : 'Show calculator'}
                 </button>
               </div>
@@ -419,11 +419,10 @@ const [activeTab, setActiveTab] = useState('active');
                     {[7, 14, 30, 60].map(days => (
                       <button
                         key={days}
-                        className={`py-1 rounded-md font-medium text-sm transition active:scale-95 ${
-                          parseInt(calculationDays) === days
+                        className={`py-1 rounded-md font-medium text-sm transition active:scale-95 ${parseInt(calculationDays) === days
                             ? 'bg-white text-black'
                             : 'border border-[#2e3337] text-[#95a1ad] hover:text-white hover:bg-white/5'
-                        }`}
+                          }`}
                         onClick={() => setCalculationDays(days.toString())}
                       >
                         {days}
@@ -442,11 +441,10 @@ const [activeTab, setActiveTab] = useState('active');
             </div>
             <div className="p-4 pt-2">
               <button
-                className={`w-full py-2 flex items-center justify-center rounded-md font-medium text-sm transition active:scale-95 ${
-                  loading.stake || !selectedPlan || !stakeAmount || parseFloat(stakeAmount) <= 0 || (plans && plans[selectedPlan]?.minAmount > parseFloat(stakeAmount))
+                className={`w-full py-2 flex items-center justify-center rounded-md font-medium text-sm transition active:scale-95 ${loading.stake || !selectedPlan || !stakeAmount || parseFloat(stakeAmount) <= 0 || (plans && plans[selectedPlan]?.minAmount > parseFloat(stakeAmount))
                     ? 'bg-white/20 text-white/60 cursor-not-allowed'
                     : 'bg-white text-black hover:bg-white/90'
-                }`}
+                  }`}
                 onClick={handleStakeDialogOpen}
                 disabled={loading.stake || !selectedPlan || !stakeAmount || parseFloat(stakeAmount) <= 0 || (plans && plans[selectedPlan]?.minAmount > parseFloat(stakeAmount))}
               >
@@ -486,22 +484,20 @@ const [activeTab, setActiveTab] = useState('active');
               <div className="flex space-x-2">
                 <button
                   onClick={() => setActiveTab('active')}
-                  className={`flex items-center gap-2 px-4 py-2 border-b-2 font-medium transition ${
-                    activeTab === 'active' 
-                      ? 'border-white text-white' 
+                  className={`flex items-center gap-2 px-4 py-2 border-b-2 font-medium transition ${activeTab === 'active'
+                      ? 'border-white text-white'
                       : 'border-transparent text-[#95a1ad] hover:text-white hover:border-white/20'
-                  }`}
+                    }`}
                 >
                   <CoinsIcon className="w-4 h-4" />
                   Active Stakes
                 </button>
                 <button
                   onClick={() => setActiveTab('history')}
-                  className={`flex items-center gap-2 px-4 py-2 border-b-2 font-medium transition ${
-                    activeTab === 'history' 
-                      ? 'border-white text-white' 
+                  className={`flex items-center gap-2 px-4 py-2 border-b-2 font-medium transition ${activeTab === 'history'
+                      ? 'border-white text-white'
                       : 'border-transparent text-[#95a1ad] hover:text-white hover:border-white/20'
-                  }`}
+                    }`}
                 >
                   <BarChart4 className="w-4 h-4" />
                   History
@@ -514,8 +510,8 @@ const [activeTab, setActiveTab] = useState('active');
                 {Array.isArray(activeStakes) && activeStakes.length > 0 ? (
                   <div className="space-y-4">
                     {activeStakes.map(stake => (
-                      <div 
-                        key={stake.id} 
+                      <div
+                        key={stake.id}
                         className="flex flex-col md:flex-row md:items-center justify-between p-4 border border-[#2e3337] rounded-lg bg-[#202229]"
                       >
                         <div className="space-y-3 mb-4 md:mb-0">
@@ -551,11 +547,10 @@ const [activeTab, setActiveTab] = useState('active');
                         </div>
                         <div className="flex flex-col gap-2">
                           <button
-                            className={`py-2 px-4 rounded-md font-medium text-sm transition active:scale-95 ${
-                              loading[`claim-${stake.id}`]
+                            className={`py-2 px-4 rounded-md font-medium text-sm transition active:scale-95 ${loading[`claim-${stake.id}`]
                                 ? 'bg-white/20 text-white/60 cursor-not-allowed'
                                 : 'bg-white text-black hover:bg-white/90'
-                            }`}
+                              }`}
                             onClick={() => handleClaimDialogOpen(stake)}
                             disabled={loading[`claim-${stake.id}`]}
                           >
@@ -567,7 +562,7 @@ const [activeTab, setActiveTab] = useState('active');
                               </>
                             )}
                           </button>
-                          
+
                           {stake.planDetails?.minDuration && stake.endTime && (
                             <div className="text-xs text-center">
                               {Date.now() < stake.endTime ? (
@@ -606,8 +601,8 @@ const [activeTab, setActiveTab] = useState('active');
                 ) : (Array.isArray(claimedStakes) && claimedStakes.length > 0) || (Array.isArray(history) && history.length > 0) ? (
                   <div className="space-y-4">
                     {claimedStakes.map(stake => (
-                      <div 
-                        key={stake.id} 
+                      <div
+                        key={stake.id}
                         className="p-4 border border-[#2e3337] rounded-lg bg-[#202229]"
                       >
                         <div className="flex items-center gap-2">
@@ -621,7 +616,7 @@ const [activeTab, setActiveTab] = useState('active');
                             </p>
                           </div>
                         </div>
-                        
+
                         <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm mt-3">
                           <div>
                             <p className="text-[#95a1ad]">Plan:</p>
@@ -629,7 +624,7 @@ const [activeTab, setActiveTab] = useState('active');
                           </div>
                           <div>
                             <p className="text-[#95a1ad]">Initial Amount:</p>
-                             <p>{(stake.amount || 0).toLocaleString()} coins</p>
+                            <p>{(stake.amount || 0).toLocaleString()} coins</p>
                           </div>
                           <div>
                             <p className="text-[#95a1ad]">Earned Rewards:</p>
@@ -648,10 +643,10 @@ const [activeTab, setActiveTab] = useState('active');
                         </div>
                       </div>
                     ))}
-                    
+
                     {Array.isArray(history) && history.map(transaction => (
-                      <div 
-                        key={transaction.id} 
+                      <div
+                        key={transaction.id}
                         className="p-4 border border-[#2e3337] rounded-lg bg-[#202229]"
                       >
                         <div className="flex items-center justify-between">
@@ -693,13 +688,12 @@ const [activeTab, setActiveTab] = useState('active');
       {/* Confirmation Dialog */}
       {isDialogVisible && (
         <div className="fixed inset-0 flex items-center justify-center z-50">
-          <div 
-            className={`fixed inset-0 transition-opacity duration-300 ${
-              dialogAnimation ? 'opacity-100' : 'opacity-0'
-            }`} 
+          <div
+            className={`fixed inset-0 transition-opacity duration-300 ${dialogAnimation ? 'opacity-100' : 'opacity-0'
+              }`}
             onClick={() => setConfirmDialog(null)}
           ></div>
-          <div 
+          <div
             className={`relative bg-[#202229] border border-white/5 rounded-lg w-full max-w-md p-6 transition-all duration-300 ${dialogAnimation}`}
           >
             <div className="mb-4">
@@ -707,12 +701,12 @@ const [activeTab, setActiveTab] = useState('active');
                 {confirmDialog?.type === 'stake' ? 'Confirm Staking' : 'Confirm Claim'}
               </h2>
               <p className="text-[#95a1ad] mt-1">
-                {confirmDialog?.type === 'stake' 
-                  ? 'Are you sure you want to stake your coins?' 
+                {confirmDialog?.type === 'stake'
+                  ? 'Are you sure you want to stake your coins?'
                   : 'Are you sure you want to claim this stake?'}
               </p>
             </div>
-            
+
             <div className="space-y-4 py-4">
               {confirmDialog?.type === 'stake' && (
                 <div className="space-y-3">
@@ -759,29 +753,29 @@ const [activeTab, setActiveTab] = useState('active');
                     <span className="text-[#95a1ad]">Earned Rewards:</span>
                     <span className="text-green-500">+{confirmDialog.stake?.accruedRewards.toFixed(2)} coins</span>
                   </div>
-                  
-                  {confirmDialog.stake?.planDetails?.minDuration > 0 && 
-                   confirmDialog.stake?.endTime && 
-                   Date.now() < confirmDialog.stake.endTime && (
-                    <div className="pt-3 border-t border-[#2e3337] text-sm">
-                      <span className="text-amber-500 flex items-center gap-1">
-                        <AlertCircle className="w-4 h-4" />
-                        Early withdrawal will incur a {confirmDialog.stake.planDetails.penaltyPercent}% fee on the staked amount
-                      </span>
-                    </div>
-                  )}
+
+                  {confirmDialog.stake?.planDetails?.minDuration > 0 &&
+                    confirmDialog.stake?.endTime &&
+                    Date.now() < confirmDialog.stake.endTime && (
+                      <div className="pt-3 border-t border-[#2e3337] text-sm">
+                        <span className="text-amber-500 flex items-center gap-1">
+                          <AlertCircle className="w-4 h-4" />
+                          Early withdrawal will incur a {confirmDialog.stake.planDetails.penaltyPercent}% fee on the staked amount
+                        </span>
+                      </div>
+                    )}
                 </div>
               )}
             </div>
 
             <div className="flex justify-end gap-3 mt-6">
-              <button 
+              <button
                 onClick={() => setConfirmDialog(null)}
                 className="px-4 py-2 rounded-md border border-white/5 text-[#95a1ad] hover:text-white hover:bg-white/5 font-medium text-sm transition active:scale-95"
               >
                 Cancel
               </button>
-              <button 
+              <button
                 onClick={() => confirmDialog?.type === 'stake' ? handleStake() : handleClaim(confirmDialog?.stake?.id || '')}
                 className="px-4 py-2 bg-white text-black hover:bg-white/90 rounded-md font-medium text-sm transition active:scale-95 flex items-center justify-center gap-2"
               >

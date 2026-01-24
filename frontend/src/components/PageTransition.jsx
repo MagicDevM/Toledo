@@ -7,7 +7,7 @@ export default function PageTransition({ children }) {
 
   useEffect(() => {
     const progressTimer = setInterval(() => {
-      setProgress((prevProgress) => 
+      setProgress((prevProgress) =>
         prevProgress < 100 ? prevProgress + 10 : 100
       );
     }, 60);
@@ -25,11 +25,11 @@ export default function PageTransition({ children }) {
 
   // Updated page variants from the uploaded file
   const pageVariants = {
-    initial: { 
+    initial: {
       opacity: 0,
       y: 10
     },
-    animate: { 
+    animate: {
       opacity: 1,
       y: 0,
       transition: {
@@ -37,7 +37,7 @@ export default function PageTransition({ children }) {
         ease: [0.16, 1, 0.3, 1], // Custom ease curve for subtle, professional feel
       }
     },
-    exit: { 
+    exit: {
       opacity: 0,
       y: -10,
       transition: {
@@ -61,15 +61,15 @@ export default function PageTransition({ children }) {
             </div>
 
             {/* Spinner from first component */}
-            <div className="flex flex-col items-center">            
+            <div className="flex flex-col items-center">
               {/* Spinner */}
               <div className="relative">
-                <motion.div 
+                <motion.div
                   className="w-6 h-6 border-4 border-white/20 border-t-white rounded-full"
-                  animate={{ 
+                  animate={{
                     rotate: 360
                   }}
-                  transition={{ 
+                  transition={{
                     duration: 1.2,
                     ease: "linear",
                     repeat: Infinity

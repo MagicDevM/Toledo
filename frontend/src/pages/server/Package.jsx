@@ -3,10 +3,10 @@ import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import {
-  CpuChipIcon, 
+  CpuChipIcon,
   ArrowPathIcon,
-  ExclamationCircleIcon, 
-  CheckIcon, 
+  ExclamationCircleIcon,
+  CheckIcon,
   InformationCircleIcon
 } from '@heroicons/react/24/outline';
 import { MemoryStick, HardDrive } from 'lucide-react';
@@ -27,7 +27,7 @@ export default function ServerPackagePage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [isUpdating, setIsUpdating] = useState(false);
-  
+
   // Get server details
   const { data: server, isLoading: serverLoading } = useQuery({
     queryKey: ['server', id],
@@ -90,7 +90,7 @@ export default function ServerPackagePage() {
       });
 
       // Reload page
-        window.location.reload();
+      window.location.reload();
     } catch (err) {
       setError(err.response?.data?.error || err.message);
     } finally {
@@ -99,9 +99,9 @@ export default function ServerPackagePage() {
   };
 
   // Check if resources have changed
-  const hasChanges = 
-    ram !== server?.limits?.memory || 
-    disk !== server?.limits?.disk || 
+  const hasChanges =
+    ram !== server?.limits?.memory ||
+    disk !== server?.limits?.disk ||
     cpu !== server?.limits?.cpu;
 
   // Loading state
@@ -185,7 +185,7 @@ export default function ServerPackagePage() {
               <p className="text-sm text-[#95a1ad]">Allocate memory for your server to use</p>
             </div>
           </div>
-          
+
           <div className="space-y-5">
             <div className="flex items-center justify-between">
               <span className="text-sm text-[#95a1ad]">Min: {minRAM}MB</span>
@@ -218,14 +218,14 @@ export default function ServerPackagePage() {
               <p className="text-sm text-[#95a1ad]">Storage space for your server files</p>
             </div>
           </div>
-          
+
           <div className="space-y-5">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-[#95a1ad]">Min: {minDisk >= 1024 ? `${(minDisk/1024).toFixed(1)} GB` : `${minDisk} MB`}</span>
+              <span className="text-sm text-[#95a1ad]">Min: {minDisk >= 1024 ? `${(minDisk / 1024).toFixed(1)} GB` : `${minDisk} MB`}</span>
               <div className="flex items-center gap-2">
-                <span className="text-lg font-semibold">{disk >= 1024 ? `${(disk/1024).toFixed(1)} GB` : `${disk} MB`}</span>
+                <span className="text-lg font-semibold">{disk >= 1024 ? `${(disk / 1024).toFixed(1)} GB` : `${disk} MB`}</span>
                 <span className="text-xs px-3 py-1 rounded-full ml-2 border-white/5 border text-white/70">
-                  Current: {(server?.limits?.disk || 0) >= 1024 ? `${((server?.limits?.disk || 0)/1024).toFixed(1)} GB` : `${server?.limits?.disk || 0} MB`}
+                  Current: {(server?.limits?.disk || 0) >= 1024 ? `${((server?.limits?.disk || 0) / 1024).toFixed(1)} GB` : `${server?.limits?.disk || 0} MB`}
                 </span>
               </div>
             </div>
@@ -251,7 +251,7 @@ export default function ServerPackagePage() {
               <p className="text-sm text-[#95a1ad]">Processing power available to your server</p>
             </div>
           </div>
-          
+
           <div className="space-y-5">
             <div className="flex items-center justify-between">
               <span className="text-sm text-[#95a1ad]">Min: {minCPU}%</span>

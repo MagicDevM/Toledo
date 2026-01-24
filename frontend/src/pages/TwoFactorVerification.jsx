@@ -26,15 +26,15 @@ const TwoFactorVerification = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!verificationCode) {
       setError('Please enter a verification code');
       return;
     }
-    
+
     setIsVerifying(true);
     setError(null);
-    
+
     try {
       const response = await fetch('/auth/2fa/verify', {
         method: 'POST',
@@ -43,9 +43,9 @@ const TwoFactorVerification = () => {
         },
         body: JSON.stringify({ code: verificationCode }),
       });
-      
+
       const data = await response.json();
-      
+
       if (response.ok) {
         // Redirect to the intended page or dashboard
         const redirectUrl = location.state?.redirectUrl || '/dashboard';
@@ -103,7 +103,7 @@ const TwoFactorVerification = () => {
                 // For 6-digit codes, only allow numbers and limit to 6
                 if (e.target.value.match(/^[0-9]*$/) && e.target.value.length <= 6) {
                   setVerificationCode(e.target.value);
-                } 
+                }
                 // For backup codes in format XXXX-XXXX, allow alphanumeric and hyphen
                 else if (e.target.value.match(/^[A-Za-z0-9\-]*$/) && e.target.value.length <= 9) {
                   setVerificationCode(e.target.value.toUpperCase());
@@ -122,12 +122,11 @@ const TwoFactorVerification = () => {
           )}
 
           <div className="flex flex-col gap-3">
-            <button 
+            <button
               type="submit"
               disabled={isVerifying}
-              className={`px-4 py-2 bg-white text-black hover:bg-white/90 rounded-md font-medium text-sm transition active:scale-95 ${
-                isVerifying ? 'bg-white/20 text-white/60 cursor-not-allowed' : ''
-              }`}
+              className={`px-4 py-2 bg-white text-black hover:bg-white/90 rounded-md font-medium text-sm transition active:scale-95 ${isVerifying ? 'bg-white/20 text-white/60 cursor-not-allowed' : ''
+                }`}
             >
               {isVerifying ? (
                 <span className="flex items-center justify-center">
@@ -136,8 +135,8 @@ const TwoFactorVerification = () => {
                 </span>
               ) : 'Verify'}
             </button>
-            
-            <button 
+
+            <button
               type="button"
               onClick={handleCancel}
               className="px-4 py-2 bg-transparent border border-white/10 text-white hover:bg-white/5 rounded-md font-medium text-sm transition active:scale-95"

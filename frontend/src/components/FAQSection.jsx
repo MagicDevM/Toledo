@@ -19,7 +19,7 @@ export function FAQSection() {
   const [expanded, setExpanded] = useState(false);
   const containerRef = useRef(null);
   const [containerHeight, setContainerHeight] = useState(320);
-  
+
   // Calculate proper height for animation
   useEffect(() => {
     if (containerRef.current) {
@@ -66,15 +66,15 @@ export function FAQSection() {
   return (
     <div className="space-y-6 mt-12">
       <h2 className="text-lg font-medium">FAQ</h2>
-      
-      <div 
+
+      <div
         ref={containerRef}
         className="relative overflow-hidden transition-all duration-700 ease-in-out"
         style={{ height: containerHeight }}
       >
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {faqs.map((faq, index) => (
-            <FAQCard 
+            <FAQCard
               key={index}
               icon={faq.icon}
               title={faq.title}
@@ -82,21 +82,21 @@ export function FAQSection() {
             />
           ))}
         </div>
-        
+
         {/* Gradient overlay */}
         {!expanded && (
           <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-[#101217] to-transparent pointer-events-none" />
         )}
       </div>
-      
+
       <div className="flex justify-center">
         <button
           onClick={() => setExpanded(!expanded)}
           className="px-6 py-2.5 bg-[#202229] hover:bg-[#2e3337] border border-white/5 rounded-full font-medium text-sm transition-all duration-300 flex items-center gap-2 group"
         >
           {expanded ? 'Show less' : 'Show more'}
-          <ChevronDownIcon 
-            className={`w-4 h-4 transition-transform duration-300 ${expanded ? 'rotate-180' : ''}`} 
+          <ChevronDownIcon
+            className={`w-4 h-4 transition-transform duration-300 ${expanded ? 'rotate-180' : ''}`}
           />
         </button>
       </div>

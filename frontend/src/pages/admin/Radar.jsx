@@ -49,34 +49,34 @@ function NodeForm({ node, onSubmit, isSubmitting }) {
       <div className="grid gap-4">
         <div className="space-y-2">
           <label className="text-sm font-medium">Node Name</label>
-          <Input 
+          <Input
             value={formData.name}
-            onChange={e => setFormData({...formData, name: e.target.value})}
+            onChange={e => setFormData({ ...formData, name: e.target.value })}
             placeholder="Production Node 1"
           />
         </div>
         <div className="space-y-2">
           <label className="text-sm font-medium">FQDN / IP Address</label>
-          <Input 
+          <Input
             value={formData.fqdn}
-            onChange={e => setFormData({...formData, fqdn: e.target.value})}
+            onChange={e => setFormData({ ...formData, fqdn: e.target.value })}
             placeholder="radar.example.com"
           />
         </div>
         <div className="space-y-2">
           <label className="text-sm font-medium">Port</label>
-          <Input 
+          <Input
             type="number"
             value={formData.port}
-            onChange={e => setFormData({...formData, port: e.target.value})}
+            onChange={e => setFormData({ ...formData, port: e.target.value })}
             placeholder="8080"
           />
         </div>
         <div className="space-y-2">
           <label className="text-sm font-medium">Webhook URL (Optional)</label>
-          <Input 
+          <Input
             value={formData.webhookUrl}
-            onChange={e => setFormData({...formData, webhookUrl: e.target.value})}
+            onChange={e => setFormData({ ...formData, webhookUrl: e.target.value })}
             placeholder="https://discord.com/api/webhooks/..."
           />
         </div>
@@ -234,9 +234,9 @@ export default function RadarPage() {
     try {
       setIsSubmitting(true);
       setError('');
-      
+
       await axios.post('/api/radar/nodes', formData);
-      
+
       setIsCreateModalOpen(false);
       queryClient.invalidateQueries('radar-nodes');
       setError('success:Node created successfully');
@@ -275,7 +275,7 @@ export default function RadarPage() {
 
       {/* Error/Success Alert */}
       {error && (
-        <Alert 
+        <Alert
           variant={error.startsWith('success:') ? 'default' : 'destructive'}
           className="mb-6"
         >
@@ -326,8 +326,8 @@ export default function RadarPage() {
                     <div className="flex flex-col items-center gap-2">
                       <Shield className="w-8 h-8 text-neutral-400" />
                       <div>No Radar nodes found</div>
-                      <Button 
-                        variant="outline" 
+                      <Button
+                        variant="outline"
                         size="sm"
                         onClick={() => setIsCreateModalOpen(true)}
                       >
@@ -348,7 +348,7 @@ export default function RadarPage() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge 
+                      <Badge
                         variant={node.status === 'online' ? 'success' : 'destructive'}
                         className="capitalize"
                       >

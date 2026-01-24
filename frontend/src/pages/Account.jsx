@@ -66,7 +66,7 @@ const AccountPage = () => {
     try {
       const response = await fetch(`/claim?code=${encodeURIComponent(claimCode)}`);
       const data = await response.json();
-      
+
       if (data.error) {
         setMessage({ type: 'error', text: data.error });
       } else {
@@ -89,7 +89,7 @@ const AccountPage = () => {
     try {
       const response = await fetch(`/generate?code=${encodeURIComponent(newCode)}`);
       const data = await response.json();
-      
+
       if (data.error) {
         setMessage({ type: 'error', text: data.error });
       } else {
@@ -121,7 +121,7 @@ const AccountPage = () => {
       });
 
       const data = await response.json();
-      
+
       if (data.error) {
         setPasswordMessage({ type: 'error', text: data.error });
       } else {
@@ -157,8 +157,8 @@ const AccountPage = () => {
         <div className="p-4">
           <div className="flex items-center gap-4">
             <div className="h-20 w-20 rounded-full bg-[#202229] border border-white/5 flex items-center justify-center overflow-hidden">
-              <img 
-                src="https://i.imgur.com/YuP6YrU.png" 
+              <img
+                src="https://i.imgur.com/YuP6YrU.png"
                 alt={userData.username}
                 className="h-full w-full object-cover"
                 onError={(e) => {
@@ -198,32 +198,29 @@ const AccountPage = () => {
           <div className="flex space-x-2">
             <button
               onClick={() => setActiveTab('account')}
-              className={`flex items-center gap-2 px-4 py-2 border-b-2 font-medium transition ${
-                activeTab === 'account' 
-                  ? 'border-white text-white' 
+              className={`flex items-center gap-2 px-4 py-2 border-b-2 font-medium transition ${activeTab === 'account'
+                  ? 'border-white text-white'
                   : 'border-transparent text-[#95a1ad] hover:text-white hover:border-white/20'
-              }`}
+                }`}
             >
               Account Settings
             </button>
             <button
               onClick={() => setActiveTab('security')}
-              className={`flex items-center gap-2 px-4 py-2 border-b-2 font-medium transition ${
-                activeTab === 'security' 
-                  ? 'border-white text-white' 
+              className={`flex items-center gap-2 px-4 py-2 border-b-2 font-medium transition ${activeTab === 'security'
+                  ? 'border-white text-white'
                   : 'border-transparent text-[#95a1ad] hover:text-white hover:border-white/20'
-              }`}
+                }`}
             >
               <ShieldCheck className="w-4 h-4" />
               Security
             </button>
             <button
               onClick={() => setActiveTab('referrals')}
-              className={`flex items-center gap-2 px-4 py-2 border-b-2 font-medium transition ${
-                activeTab === 'referrals' 
-                  ? 'border-white text-white' 
+              className={`flex items-center gap-2 px-4 py-2 border-b-2 font-medium transition ${activeTab === 'referrals'
+                  ? 'border-white text-white'
                   : 'border-transparent text-[#95a1ad] hover:text-white hover:border-white/20'
-              }`}
+                }`}
             >
               Referrals
             </button>
@@ -315,7 +312,7 @@ const AccountPage = () => {
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   className="w-full px-3 py-2 bg-[#394047] border border-white/5 rounded-md text-sm focus:outline-none focus:border-white/5 focus:ring-1 focus:ring-white/20 transition-colors"
                 />
-                <button 
+                <button
                   onClick={handlePasswordChange}
                   className="px-4 py-2 bg-white text-black hover:bg-white/90 rounded-md font-medium text-sm transition active:scale-95"
                 >
@@ -377,21 +374,20 @@ const AccountPage = () => {
               </div>
               <div className="p-4 space-y-4">
                 <div className="flex gap-3">
-                <input
+                  <input
                     placeholder="Enter desired code (max 15 chars)"
                     value={newCode}
                     onChange={(e) => setNewCode(e.target.value)}
                     maxLength={15}
                     className="flex-1 px-3 py-2 bg-[#394047] border border-white/5 rounded-md text-sm focus:outline-none focus:border-white/5 focus:ring-1 focus:ring-white/20 transition-colors"
                   />
-                  <button 
+                  <button
                     onClick={handleGenerateCode}
                     disabled={isSubmitting}
-                    className={`px-4 py-2 rounded-md font-medium text-sm transition active:scale-95 ${
-                      isSubmitting
+                    className={`px-4 py-2 rounded-md font-medium text-sm transition active:scale-95 ${isSubmitting
                         ? 'bg-white/20 text-white/60 cursor-not-allowed'
                         : 'bg-white text-black hover:bg-white/90'
-                    }`}
+                      }`}
                   >
                     {isSubmitting ? 'Creating...' : 'Generate'}
                   </button>
@@ -416,23 +412,22 @@ const AccountPage = () => {
                     maxLength={15}
                     className="flex-1 px-3 py-2 bg-[#394047] border border-white/5 rounded-md text-sm focus:outline-none focus:border-white/5 focus:ring-1 focus:ring-white/20 transition-colors"
                   />
-                  <button 
-                    onClick={handleClaimCode} 
+                  <button
+                    onClick={handleClaimCode}
                     disabled={isSubmitting}
-                    className={`px-4 py-2 rounded-md font-medium text-sm transition active:scale-95 ${
-                      isSubmitting
+                    className={`px-4 py-2 rounded-md font-medium text-sm transition active:scale-95 ${isSubmitting
                         ? 'bg-white/20 text-white/60 cursor-not-allowed'
                         : 'bg-white text-black hover:bg-white/90'
-                    }`}
+                      }`}
                   >
                     {isSubmitting ? 'Claiming...' : 'Claim Code'}
                   </button>
                 </div>
-                
+
                 {message && (
                   <div className={`rounded-md p-3 flex items-start ${message.type === 'error' ? 'border border-red-500/20 bg-red-500/10 text-red-500' : 'border border-green-500/20 bg-green-500/10 text-green-500'}`}>
-                    {message.type === 'error' ? 
-                      <AlertCircle className="w-4 h-4 mt-0.5 mr-2 flex-shrink-0" /> : 
+                    {message.type === 'error' ?
+                      <AlertCircle className="w-4 h-4 mt-0.5 mr-2 flex-shrink-0" /> :
                       <HelpCircle className="w-4 h-4 mt-0.5 mr-2 flex-shrink-0" />
                     }
                     <span className="text-sm">{message.text}</span>

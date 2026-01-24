@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  AlertCircle, 
-  Server, 
-  Cpu, 
-  MemoryStick, 
-  HardDrive, 
-  Plus, 
-  RefreshCw, 
+import {
+  AlertCircle,
+  Server,
+  Cpu,
+  MemoryStick,
+  HardDrive,
+  Plus,
+  RefreshCw,
   Coins,
   X,
   Check,
@@ -28,14 +28,14 @@ export default function StorePage() {
   const [confirmDialog, setConfirmDialog] = useState(null);
   const [isDialogVisible, setIsDialogVisible] = useState(false);
   const [dialogAnimation, setDialogAnimation] = useState('');
-  
+
   // For boost purchases
   const [selectedServer, setSelectedServer] = useState('');
   const [selectedBoostType, setSelectedBoostType] = useState('');
   const [selectedDuration, setSelectedDuration] = useState('');
   const [isScheduled, setIsScheduled] = useState(false);
   const [scheduledTime, setScheduledTime] = useState('');
-  
+
   // Get store configuration
   const { data: storeConfig, isLoading: loadingConfig, error: configError } = useQuery({
     queryKey: ['storeConfig'],
@@ -45,7 +45,7 @@ export default function StorePage() {
     },
     retry: false
   });
-  
+
   // Get available boost types
   const { data: boostTypes, isLoading: loadingBoosts } = useQuery({
     queryKey: ['boostTypes'],
@@ -56,7 +56,7 @@ export default function StorePage() {
     retry: false,
     enabled: activeTab === 'boosts'
   });
-  
+
   // Get user servers
   const { data: servers, isLoading: loadingServers } = useQuery({
     queryKey: ['servers'],
@@ -67,7 +67,7 @@ export default function StorePage() {
     retry: false,
     enabled: activeTab === 'boosts'
   });
-  
+
   // Handle dialog animations
   useEffect(() => {
     if (confirmDialog) {
@@ -78,36 +78,36 @@ export default function StorePage() {
       setTimeout(() => setIsDialogVisible(false), 300);
     }
   }, [confirmDialog]);
-  
+
   // Set default values when data is loaded
   useEffect(() => {
     if (boostTypes && Object.keys(boostTypes).length > 0 && !selectedBoostType) {
       setSelectedBoostType(Object.keys(boostTypes)[0]);
     }
-    
+
     if (Array.isArray(servers) && servers.length > 0 && !selectedServer) {
       setSelectedServer(servers[0]?.attributes?.id || '');
     }
-    
+
     if (boostTypes && selectedBoostType && !selectedDuration) {
       // Set default duration to 1h
       setSelectedDuration('1h');
     }
   }, [boostTypes, servers, selectedBoostType, selectedServer]);
-  
+
   // Configure initial scheduled time (1 hour from now) when scheduled mode is enabled
   useEffect(() => {
     if (isScheduled) {
       const oneHourFromNow = new Date();
       oneHourFromNow.setHours(oneHourFromNow.getHours() + 1);
-      
+
       // Format to YYYY-MM-DDThh:mm
       const year = oneHourFromNow.getFullYear();
       const month = String(oneHourFromNow.getMonth() + 1).padStart(2, '0');
       const day = String(oneHourFromNow.getDate()).padStart(2, '0');
       const hours = String(oneHourFromNow.getHours()).padStart(2, '0');
       const minutes = String(oneHourFromNow.getMinutes()).padStart(2, '0');
-      
+
       setScheduledTime(`${year}-${month}-${day}T${hours}:${minutes}`);
     }
   }, [isScheduled]);
@@ -130,7 +130,7 @@ export default function StorePage() {
         resourceType: type,
         amount: parseInt(amount)
       });
-      
+
       setSuccess(`Successfully purchased ${amount} units of ${type}!`);
       await queryClient.invalidateQueries(['storeConfig']);
       setConfirmDialog(null);
@@ -140,41 +140,41 @@ export default function StorePage() {
       setLoading(prev => ({ ...prev, [type]: false }));
     }
   };
-  
+
   // Boost purchase handler
   const purchaseBoost = async () => {
     if (!selectedServer || !selectedBoostType || !selectedDuration) {
       setError('Please select a server, boost type, and duration');
       return;
     }
-    
+
     try {
       setLoading(prev => ({ ...prev, 'boost': true }));
       setError('');
       setSuccess('');
-      
+
       if (isScheduled) {
         if (!scheduledTime) {
           setError('Please select a scheduled time');
           setLoading(prev => ({ ...prev, 'boost': false }));
           return;
         }
-        
+
         const scheduledTimeMs = new Date(scheduledTime).getTime();
-        
+
         if (isNaN(scheduledTimeMs) || scheduledTimeMs <= Date.now()) {
           setError('Scheduled time must be in the future');
           setLoading(prev => ({ ...prev, 'boost': false }));
           return;
         }
-        
+
         await axios.post('/api/boosts/schedule', {
           serverId: selectedServer,
           boostType: selectedBoostType,
           duration: selectedDuration,
           scheduledTime: scheduledTimeMs
         });
-        
+
         setSuccess(`Successfully scheduled a ${boostTypes[selectedBoostType].name} boost for your server!`);
       } else {
         await axios.post('/api/boosts/apply', {
@@ -182,10 +182,10 @@ export default function StorePage() {
           boostType: selectedBoostType,
           duration: selectedDuration
         });
-        
+
         setSuccess(`Successfully applied a ${boostTypes[selectedBoostType].name} boost to your server!`);
       }
-      
+
       await queryClient.invalidateQueries(['storeConfig']);
       setConfirmDialog(null);
     } catch (err) {
@@ -194,7 +194,7 @@ export default function StorePage() {
       setLoading(prev => ({ ...prev, 'boost': false }));
     }
   };
-  
+
   // Open confirmation dialog for resource purchase
   const handleResourcePurchaseClick = (type, amount, resourceAmount, totalPrice, title, unit) => {
     setConfirmDialog({
@@ -207,23 +207,23 @@ export default function StorePage() {
       unit
     });
   };
-  
+
   // Open confirmation dialog for boost purchase
   const handleBoostPurchaseClick = () => {
     if (!selectedServer || !selectedBoostType || !selectedDuration) {
       setError('Please select a server, boost type, and duration');
       return;
     }
-    
+
     const selectedServerObj = Array.isArray(servers) ? servers.find(s => s.attributes.id === selectedServer) : null;
     const boostTypeObj = boostTypes?.[selectedBoostType];
     const price = boostTypeObj?.prices?.[selectedDuration] || 0;
-    
+
     if (isScheduled && (!scheduledTime || new Date(scheduledTime).getTime() <= Date.now())) {
       setError('Scheduled time must be in the future');
       return;
     }
-    
+
     setConfirmDialog({
       type: 'boost',
       server: selectedServerObj?.attributes?.name || 'Unknown server',
@@ -237,7 +237,7 @@ export default function StorePage() {
       resourceMultipliers: boostTypeObj.resourceMultiplier
     });
   };
-  
+
   // Resource card component
   const ResourceCard = ({ title, icon: Icon, type, description, pricePerUnit }) => {
     const [amount, setAmount] = useState(1);
@@ -281,12 +281,11 @@ export default function StorePage() {
           </div>
         </div>
         <div className="p-4 pt-2">
-          <button 
-            className={`w-full py-2 flex items-center justify-center rounded-md font-medium text-sm transition active:scale-95 ${
-              !canAfford || loading[type]
+          <button
+            className={`w-full py-2 flex items-center justify-center rounded-md font-medium text-sm transition active:scale-95 ${!canAfford || loading[type]
                 ? 'bg-white/20 text-white/60 cursor-not-allowed'
                 : 'bg-white text-black hover:bg-white/90'
-            }`}
+              }`}
             onClick={() => handleResourcePurchaseClick(type, amount, resourceAmount, totalPrice, title, resourceLabels[type])}
             disabled={!canAfford || loading[type]}
           >
@@ -303,7 +302,7 @@ export default function StorePage() {
       </div>
     );
   };
-  
+
   // Boost type card with icon mapping
   const BoostCard = ({ boostType, isSelected, onClick }) => {
     const getIcon = (iconName) => {
@@ -316,14 +315,13 @@ export default function StorePage() {
         default: return <Zap className="w-4 h-4 text-[#95a1ad]" />;
       }
     };
-    
+
     return (
-      <div 
-        className={`border rounded-lg p-4 cursor-pointer transition-all ${
-          isSelected 
-            ? 'border-white/30 bg-white/5' 
+      <div
+        className={`border rounded-lg p-4 cursor-pointer transition-all ${isSelected
+            ? 'border-white/30 bg-white/5'
             : 'border-[#2e3337] hover:bg-[#202229]/50'
-        }`}
+          }`}
         onClick={onClick}
       >
         <h1 className="font-medium text-white text-sm">{boostType.name}</h1>
@@ -368,14 +366,14 @@ export default function StorePage() {
           <div>
             <h3 className="font-medium">Error loading store</h3>
             <p className="text-sm mt-1">
-              {configError?.response?.data?.message || 
-               configError?.response?.data?.error || 
-               configError?.message || 
-               storeConfig?.error || 
-               storeConfig?.message || 
-               "Failed to load store configuration. Please try again later."}
+              {configError?.response?.data?.message ||
+                configError?.response?.data?.error ||
+                configError?.message ||
+                storeConfig?.error ||
+                storeConfig?.message ||
+                "Failed to load store configuration. Please try again later."}
             </p>
-            <button 
+            <button
               onClick={() => queryClient.invalidateQueries(['storeConfig'])}
               className="mt-3 px-3 py-1 bg-red-500 text-white rounded text-xs font-medium hover:bg-red-600 transition"
             >
@@ -410,7 +408,7 @@ export default function StorePage() {
           <span className="text-sm">{error}</span>
         </div>
       )}
-      
+
       {success && (
         <div className="rounded-md border border-green-500/20 bg-green-500/10 text-green-500 p-3 flex items-start">
           <Check className="w-4 h-4 mt-0.5 mr-2 flex-shrink-0" />
@@ -423,22 +421,20 @@ export default function StorePage() {
         <div className="flex space-x-2">
           <button
             onClick={() => setActiveTab('resources')}
-            className={`flex items-center gap-2 px-4 py-2 border-b-2 font-medium transition ${
-              activeTab === 'resources' 
-                ? 'border-white text-white' 
+            className={`flex items-center gap-2 px-4 py-2 border-b-2 font-medium transition ${activeTab === 'resources'
+                ? 'border-white text-white'
                 : 'border-transparent text-[#95a1ad] hover:text-white hover:border-white/20'
-            }`}
+              }`}
           >
             <Server className="w-4 h-4" />
             Resources
           </button>
           <button
             onClick={() => setActiveTab('boosts')}
-            className={`flex items-center gap-2 px-4 py-2 border-b-2 font-medium transition ${
-              activeTab === 'boosts' 
-                ? 'border-white text-white' 
+            className={`flex items-center gap-2 px-4 py-2 border-b-2 font-medium transition ${activeTab === 'boosts'
+                ? 'border-white text-white'
                 : 'border-transparent text-[#95a1ad] hover:text-white hover:border-white/20'
-            }`}
+              }`}
           >
             <Rocket className="w-4 h-4" />
             Boosts
@@ -486,7 +482,7 @@ export default function StorePage() {
             </div>
             <div className="p-4 space-y-2">
               <p className="text-sm text-[#95a1ad]">
-                Purchase additional resources for your servers using coins. Maximum limits per resource type: 
+                Purchase additional resources for your servers using coins. Maximum limits per resource type:
                 {storeConfig?.limits && Object.entries(storeConfig.limits).map(([type, limit]) => (
                   <span key={type} className="ml-1">
                     {type}: {limit},
@@ -511,7 +507,7 @@ export default function StorePage() {
                 <div className="p-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                     {boostTypes && typeof boostTypes === 'object' && Object.entries(boostTypes).map(([id, boostType]) => (
-                      <BoostCard 
+                      <BoostCard
                         key={id}
                         boostType={boostType}
                         isSelected={selectedBoostType === id}
@@ -521,7 +517,7 @@ export default function StorePage() {
                   </div>
                 </div>
               </div>
-              
+
               <div className="border border-[#2e3337] rounded-lg bg-transparent">
                 <div className="p-4 pb-3 border-b border-[#2e3337]">
                   <h3 className="font-normal text-lg">Server & Duration</h3>
@@ -546,18 +542,17 @@ export default function StorePage() {
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="space-y-2">
                     <label className="text-sm text-[#95a1ad] block">Duration</label>
                     <div className="grid grid-cols-5 gap-2">
                       {selectedBoostType && boostTypes?.[selectedBoostType]?.prices && Object.keys(boostTypes[selectedBoostType].prices).map(duration => (
                         <button
                           key={duration}
-                          className={`py-2 rounded-md font-medium text-sm transition active:scale-95 ${
-                            selectedDuration === duration
+                          className={`py-2 rounded-md font-medium text-sm transition active:scale-95 ${selectedDuration === duration
                               ? 'bg-white text-black'
                               : 'border border-[#2e3337] text-[#95a1ad] hover:text-white hover:bg-white/5'
-                          }`}
+                            }`}
                           onClick={() => setSelectedDuration(duration)}
                         >
                           {duration}
@@ -565,18 +560,18 @@ export default function StorePage() {
                       ))}
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center gap-2 mt-4">
-                    <input 
-                      type="checkbox" 
-                      id="schedule-boost" 
+                    <input
+                      type="checkbox"
+                      id="schedule-boost"
                       checked={isScheduled}
                       onChange={(e) => setIsScheduled(e.target.checked)}
                       className="rounded-sm bg-[#394047] border-white/5 focus:ring-white/20 focus:ring-offset-0 text-white"
                     />
                     <label htmlFor="schedule-boost" className="text-sm">Schedule for later</label>
                   </div>
-                  
+
                   {isScheduled && (
                     <div className="space-y-2">
                       <label className="text-sm text-[#95a1ad] block">Scheduled Time</label>
@@ -592,7 +587,7 @@ export default function StorePage() {
                 </div>
               </div>
             </div>
-            
+
             {/* Boost summary and purchase section */}
             <div className="lg:col-span-1 space-y-6">
               <div className="border border-[#2e3337] rounded-lg bg-transparent">
@@ -608,7 +603,7 @@ export default function StorePage() {
                           <p className="text-xs text-[#95a1ad]">{boostTypes[selectedBoostType].description}</p>
                         </div>
                       </div>
-                      
+
                       <div className="space-y-2">
                         <div className="flex justify-between text-sm">
                           <span className="text-[#95a1ad]">Server:</span>
@@ -641,7 +636,7 @@ export default function StorePage() {
                           </span>
                         </div>
                       </div>
-                      
+
                       <div className="pt-3 border-t border-[#2e3337]">
                         <div className="space-y-3">
                           <p className="text-sm font-medium">Resource Multipliers:</p>
@@ -671,21 +666,20 @@ export default function StorePage() {
                 </div>
                 <div className="p-4 pt-2">
                   <button
-                    className={`w-full py-2 flex items-center justify-center rounded-md font-medium text-sm transition active:scale-95 ${
-                      !selectedServer || !selectedBoostType || !selectedDuration || 
-                      (isScheduled && (!scheduledTime || new Date(scheduledTime).getTime() <= Date.now())) ||
-                      loading.boost ||
-                      (selectedBoostType && selectedDuration && boostTypes && 
-                       (storeConfig?.userBalance || 0) < boostTypes[selectedBoostType].prices[selectedDuration])
+                    className={`w-full py-2 flex items-center justify-center rounded-md font-medium text-sm transition active:scale-95 ${!selectedServer || !selectedBoostType || !selectedDuration ||
+                        (isScheduled && (!scheduledTime || new Date(scheduledTime).getTime() <= Date.now())) ||
+                        loading.boost ||
+                        (selectedBoostType && selectedDuration && boostTypes &&
+                          (storeConfig?.userBalance || 0) < boostTypes[selectedBoostType].prices[selectedDuration])
                         ? 'bg-white/20 text-white/60 cursor-not-allowed'
                         : 'bg-white text-black hover:bg-white/90'
-                    }`}
+                      }`}
                     onClick={handleBoostPurchaseClick}
-                    disabled={!selectedServer || !selectedBoostType || !selectedDuration || 
-                              (isScheduled && (!scheduledTime || new Date(scheduledTime).getTime() <= Date.now())) ||
-                              loading.boost ||
-                              (selectedBoostType && selectedDuration && boostTypes && 
-                               (storeConfig?.userBalance || 0) < boostTypes[selectedBoostType].prices[selectedDuration])}
+                    disabled={!selectedServer || !selectedBoostType || !selectedDuration ||
+                      (isScheduled && (!scheduledTime || new Date(scheduledTime).getTime() <= Date.now())) ||
+                      loading.boost ||
+                      (selectedBoostType && selectedDuration && boostTypes &&
+                        (storeConfig?.userBalance || 0) < boostTypes[selectedBoostType].prices[selectedDuration])}
                   >
                     {loading.boost ? (
                       <RefreshCw className="w-4 h-4 animate-spin mr-2" />
@@ -694,9 +688,9 @@ export default function StorePage() {
                     ) : (
                       <Zap className="w-4 h-4 mr-2" />
                     )}
-                    {!(boostTypes?.[selectedBoostType]?.prices?.[selectedDuration]) ? 'Select options' : 
+                    {!(boostTypes?.[selectedBoostType]?.prices?.[selectedDuration]) ? 'Select options' :
                       (storeConfig?.userBalance || 0) < boostTypes[selectedBoostType].prices[selectedDuration] ? 'Insufficient balance' :
-                     isScheduled ? 'Schedule Boost' : 'Apply Boost Now'}
+                        isScheduled ? 'Schedule Boost' : 'Apply Boost Now'}
                   </button>
                 </div>
               </div>
@@ -732,13 +726,12 @@ export default function StorePage() {
       {/* Confirmation Dialog */}
       {isDialogVisible && (
         <div className="fixed inset-0 flex items-center justify-center z-50">
-          <div 
-            className={`fixed inset-0 transition-opacity duration-300 ${
-              dialogAnimation ? 'opacity-100' : 'opacity-0'
-            }`} 
+          <div
+            className={`fixed inset-0 transition-opacity duration-300 ${dialogAnimation ? 'opacity-100' : 'opacity-0'
+              }`}
             onClick={() => setConfirmDialog(null)}
           ></div>
-          <div 
+          <div
             className={`relative bg-[#202229] border border-white/5 rounded-lg w-full max-w-md p-6 transition-all duration-300 ${dialogAnimation}`}
           >
             <div className="mb-4">
@@ -746,14 +739,14 @@ export default function StorePage() {
                 {confirmDialog?.type === 'resource' ? 'Confirm Purchase' : 'Confirm Boost'}
               </h2>
               <p className="text-[#95a1ad] mt-1">
-                {confirmDialog?.type === 'resource' 
-                  ? 'Are you sure you want to purchase:' 
+                {confirmDialog?.type === 'resource'
+                  ? 'Are you sure you want to purchase:'
                   : confirmDialog?.isScheduled
                     ? 'Are you sure you want to schedule this boost?'
                     : 'Are you sure you want to apply this boost?'}
               </p>
             </div>
-            
+
             <div className="space-y-4 py-4">
               {confirmDialog?.type === 'resource' && (
                 <div className="space-y-2">
@@ -775,7 +768,7 @@ export default function StorePage() {
                   </div>
                 </div>
               )}
-              
+
               {confirmDialog?.type === 'boost' && (
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
@@ -804,7 +797,7 @@ export default function StorePage() {
                     <span className="text-[#95a1ad]">Balance after purchase:</span>
                     <span>{(storeConfig?.userBalance || 0) - (confirmDialog?.price || 0)} coins</span>
                   </div>
-                  
+
                   <div className="pt-3 border-t border-[#2e3337] mt-2">
                     <p className="text-sm font-medium mb-2">Resource Multipliers:</p>
                     <div className="grid grid-cols-3 gap-2">
@@ -827,14 +820,14 @@ export default function StorePage() {
             </div>
 
             <div className="flex justify-end gap-3 mt-6">
-              <button 
+              <button
                 onClick={() => setConfirmDialog(null)}
                 className="px-4 py-2 rounded-md border border-white/5 text-[#95a1ad] hover:text-white hover:bg-white/5 font-medium text-sm transition active:scale-95"
               >
                 Cancel
               </button>
-              <button 
-                onClick={() => confirmDialog?.type === 'resource' 
+              <button
+                onClick={() => confirmDialog?.type === 'resource'
                   ? buyResource(confirmDialog.resourceType, confirmDialog.amount)
                   : purchaseBoost()
                 }

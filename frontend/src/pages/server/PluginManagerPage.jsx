@@ -6,8 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Download, Search, RefreshCw, Star, Loader2, Gem, 
+import {
+  Download, Search, RefreshCw, Star, Loader2, Gem,
   Filter, ExternalLink, Package, Check, Info,
   CheckCircle2, AlertCircle, X
 } from 'lucide-react';
@@ -128,52 +128,52 @@ const PluginsPage = () => {
     }
   };
 
-// When fetching installed plugins, ensure we always have an array
-const fetchInstalledPlugins = async (withScan = false) => {
-  try {
-    if (withScan) {
-      await scanForPlugins();
-      return;
-    }
+  // When fetching installed plugins, ensure we always have an array
+  const fetchInstalledPlugins = async (withScan = false) => {
+    try {
+      if (withScan) {
+        await scanForPlugins();
+        return;
+      }
 
-    const response = await axios.get(`/api/plugins/installed/${id}`);
-    setInstalledPlugins(Array.isArray(response.data) ? response.data : []);
-  } catch (err) {
-    console.error('Failed to fetch installed plugins:', err);
-    setInstalledPlugins([]);
-  }
-};
+      const response = await axios.get(`/api/plugins/installed/${id}`);
+      setInstalledPlugins(Array.isArray(response.data) ? response.data : []);
+    } catch (err) {
+      console.error('Failed to fetch installed plugins:', err);
+      setInstalledPlugins([]);
+    }
+  };
 
   // Fetch plugins from the backend
   const fetchPlugins = async (page = 1, loadMore = false) => {
     setLoading(true);
     setError(null);
-    
+
     try {
-      const params = { 
+      const params = {
         platform: selectedPlatform,
         page,
         size: 20,
         sort: sortOption
       };
-      
+
       if (selectedCategory) {
         params.category = selectedCategory;
       }
-      
+
       const endpoint = searchQuery ? '/api/plugins/search' : '/api/plugins/list';
       if (searchQuery) {
         params.query = searchQuery;
       }
-      
+
       const response = await axios.get(endpoint, { params });
-      
+
       if (loadMore) {
         setPlugins(prev => [...prev, ...response.data]);
       } else {
         setPlugins(response.data);
       }
-      
+
       setHasMorePages(response.data.length === 20); // If we got fewer than requested, no more pages
       setPage(page);
     } catch (err) {
@@ -195,12 +195,12 @@ const fetchInstalledPlugins = async (withScan = false) => {
   const handleSearchChange = (e) => {
     const query = e.target.value;
     setSearchQuery(query);
-    
+
     // Clear any existing timeout
     if (searchTimeoutRef.current) {
       clearTimeout(searchTimeoutRef.current);
     }
-    
+
     // Set a new timeout
     searchTimeoutRef.current = setTimeout(() => {
       setPage(1); // Reset to first page
@@ -266,26 +266,26 @@ const fetchInstalledPlugins = async (withScan = false) => {
   const handleInstall = async (pluginId, platform) => {
     setIsInstalling(true);
     setModalView('install');
-    
+
     try {
-      const response = await axios.post(`/api/plugins/install/${id}`, { 
+      const response = await axios.post(`/api/plugins/install/${id}`, {
         pluginId,
         platform
       });
-      
-      setInstallStatus({ 
-        success: true, 
+
+      setInstallStatus({
+        success: true,
         message: response.data.message,
         pluginName: response.data.pluginName
       });
-      
+
       // Update installed plugins list
       fetchInstalledPlugins();
       setModalView('success');
     } catch (err) {
-      setInstallStatus({ 
-        success: false, 
-        message: err.response?.data?.error || 'Failed to install plugin.' 
+      setInstallStatus({
+        success: false,
+        message: err.response?.data?.error || 'Failed to install plugin.'
       });
       setModalView('error');
       console.error(err);
@@ -347,19 +347,19 @@ const fetchInstalledPlugins = async (withScan = false) => {
   };
 
   // Check if a plugin is already installed
-// Check if a plugin is already installed
-const isPluginInstalled = (pluginId, platform) => {
-  // Make sure installedPlugins is an array before using .some()
-  return Array.isArray(installedPlugins) && 
-    installedPlugins.some(p => p && p.id === pluginId && p.platform === platform);
-};
+  // Check if a plugin is already installed
+  const isPluginInstalled = (pluginId, platform) => {
+    // Make sure installedPlugins is an array before using .some()
+    return Array.isArray(installedPlugins) &&
+      installedPlugins.some(p => p && p.id === pluginId && p.platform === platform);
+  };
 
   // Render plugin card for grid view
   const renderPluginCard = (plugin) => {
     const installed = isPluginInstalled(plugin.id, plugin.platform);
-    
+
     return (
-      <Card 
+      <Card
         key={`${plugin.platform}-${plugin.id}`}
         className="flex flex-col h-full cursor-pointer hover:bg-neutral-800/50 transition-colors"
         onClick={() => handlePluginClick(plugin)}
@@ -393,8 +393,8 @@ const isPluginInstalled = (pluginId, platform) => {
             </div>
             <Badge variant="secondary" className="flex items-center">
               <Download className="w-3 h-3 mr-1" />
-              {plugin.downloads > 999 
-                ? `${(plugin.downloads / 1000).toFixed(1)}K` 
+              {plugin.downloads > 999
+                ? `${(plugin.downloads / 1000).toFixed(1)}K`
                 : plugin.downloads}
             </Badge>
           </div>
@@ -433,8 +433,8 @@ const isPluginInstalled = (pluginId, platform) => {
                 <DropdownMenuContent align="start" className="w-56">
                   <div className="p-2">
                     <p className="text-sm font-medium mb-2">Platform</p>
-                    <Select 
-                      value={selectedPlatform} 
+                    <Select
+                      value={selectedPlatform}
                       onValueChange={handlePlatformChange}
                     >
                       <SelectTrigger>
@@ -451,29 +451,29 @@ const isPluginInstalled = (pluginId, platform) => {
                   </div>
                   <DropdownMenuSeparator />
                   <div className="p-2">
-  <p className="text-sm font-medium mb-2">Category</p>
-  <Select 
-    value={selectedCategory || ''}
-    onValueChange={val => handleCategoryChange(val || null)}
-  >
-    <SelectTrigger>
-      <SelectValue placeholder="All Categories" />
-    </SelectTrigger>
-    <SelectContent>
-      <SelectItem value="all">All Categories</SelectItem>
-      {categories.map(category => (
-        <SelectItem key={category.id} value={String(category.id)}>
-          {category.name}
-        </SelectItem>
-      ))}
-    </SelectContent>
-  </Select>
-</div>
+                    <p className="text-sm font-medium mb-2">Category</p>
+                    <Select
+                      value={selectedCategory || ''}
+                      onValueChange={val => handleCategoryChange(val || null)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="All Categories" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Categories</SelectItem>
+                        {categories.map(category => (
+                          <SelectItem key={category.id} value={String(category.id)}>
+                            {category.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                   <DropdownMenuSeparator />
                   <div className="p-2">
                     <p className="text-sm font-medium mb-2">Sort By</p>
-                    <Select 
-                      value={sortOption} 
+                    <Select
+                      value={sortOption}
                       onValueChange={handleSortChange}
                     >
                       <SelectTrigger>
@@ -538,9 +538,9 @@ const isPluginInstalled = (pluginId, platform) => {
                   </Button>
                 </Badge>
               )}
-              <Button 
-                variant="ghost" 
-                size="sm" 
+              <Button
+                variant="ghost"
+                size="sm"
                 className="h-7 text-xs"
                 onClick={() => {
                   setSelectedCategory(null);
@@ -575,12 +575,12 @@ const isPluginInstalled = (pluginId, platform) => {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {plugins.map(renderPluginCard)}
               </div>
-              
+
               {/* Load More Button */}
               {hasMorePages && (
                 <div className="flex justify-center mt-6">
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     onClick={loadMorePlugins}
                     disabled={loading}
                   >
@@ -602,29 +602,29 @@ const isPluginInstalled = (pluginId, platform) => {
         {/* Installed Plugins Tab */}
         <TabsContent value="installed" className="mt-0">
           <Card className="border-neutral-800/50">
-          <CardHeader>
-  <div className="flex justify-between items-center">
-    <CardTitle className="text-base">Installed Plugins</CardTitle>
-    <div className="flex gap-2">
-      <Button 
-        variant="ghost" 
-        size="sm"
-        onClick={() => fetchInstalledPlugins(false)}
-      >
-        <RefreshCw className="w-4 h-4" />
-      </Button>
-      <Button 
-        variant="outline" 
-        size="sm"
-        onClick={() => fetchInstalledPlugins(true)}
-        disabled={loading}
-      >
-        <Search className="w-4 h-4 mr-2" />
-        Scan Directory
-      </Button>
-    </div>
-  </div>
-</CardHeader>
+            <CardHeader>
+              <div className="flex justify-between items-center">
+                <CardTitle className="text-base">Installed Plugins</CardTitle>
+                <div className="flex gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => fetchInstalledPlugins(false)}
+                  >
+                    <RefreshCw className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => fetchInstalledPlugins(true)}
+                    disabled={loading}
+                  >
+                    <Search className="w-4 h-4 mr-2" />
+                    Scan Directory
+                  </Button>
+                </div>
+              </div>
+            </CardHeader>
             <CardContent>
               {installedPlugins.length === 0 ? (
                 <div className="flex flex-col items-center justify-center p-12 text-center">
@@ -633,7 +633,7 @@ const isPluginInstalled = (pluginId, platform) => {
                   <p className="text-neutral-400 mt-2">
                     Browse and install plugins to enhance your server
                   </p>
-                  <Button 
+                  <Button
                     className="mt-4"
                     onClick={() => setActiveTab('browse')}
                   >
@@ -687,7 +687,7 @@ const isPluginInstalled = (pluginId, platform) => {
                 </div>
                 <DialogDescription>{selectedPlugin.tag}</DialogDescription>
               </DialogHeader>
-              
+
               {!pluginDetails ? (
                 <div className="flex items-center justify-center py-8">
                   <RefreshCw className="w-6 h-6 text-neutral-400 animate-spin" />
@@ -727,16 +727,16 @@ const isPluginInstalled = (pluginId, platform) => {
                   </div>
                 </div>
               )}
-              
+
               <DialogFooter className="flex gap-2 sm:gap-0">
-                      <Button 
-                        variant="outline" 
-                        size="icon"
-                        onClick={() => window.open(pluginDetails?.external_url, '_blank')}
-                      >
-                        <ExternalLink className="w-4 h-4" />
-                      </Button>
-                
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => window.open(pluginDetails?.external_url, '_blank')}
+                >
+                  <ExternalLink className="w-4 h-4" />
+                </Button>
+
                 {selectedPlugin.premium ? (
                   <Button
                     variant="outline"

@@ -114,8 +114,8 @@ export default function AFKPage() {
         </div>
         <div className="px-4 py-3">
           <div className="h-2 bg-[#202229] rounded-full overflow-hidden">
-            <div 
-              className="h-full bg-neutral-300 rounded-full" 
+            <div
+              className="h-full bg-neutral-300 rounded-full"
               style={{ width: `${((60000 - nextReward) / 60000) * 100}%` }}
             ></div>
           </div>

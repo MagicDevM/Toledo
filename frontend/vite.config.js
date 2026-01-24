@@ -14,7 +14,7 @@ export default defineConfig({
   base: '/',
   build: {
     commonjsOptions: {
-      onwarn: () => {}
+      onwarn: () => { }
     },
     outDir: 'dist',
     assetsDir: 'assets',
@@ -45,7 +45,7 @@ export default defineConfig({
       '@layouts': path.resolve(__dirname, './src/layouts'),
       '@pages': path.resolve(__dirname, './src/pages'),
       '@lib': path.resolve(__dirname, './src/lib'),
-       '@heroicons/react/24/outline': '@heroicons/react/24/outline/index.js'
+      '@heroicons/react/24/outline': '@heroicons/react/24/outline/index.js'
     }
   }
 })

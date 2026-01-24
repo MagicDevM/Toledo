@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Fingerprint, 
-  KeyRound, 
-  Plus, 
-  Trash2, 
-  AlertCircle, 
-  RefreshCw, 
+import {
+  Fingerprint,
+  KeyRound,
+  Plus,
+  Trash2,
+  AlertCircle,
+  RefreshCw,
   CheckCircle2,
   Shield
 } from 'lucide-react';
@@ -21,7 +21,7 @@ const PasskeysPage = () => {
   const [isDeleting, setIsDeleting] = useState(null);
 
   // Check if browser supports WebAuthn
-  const supportsWebAuthn = typeof window !== 'undefined' && 
+  const supportsWebAuthn = typeof window !== 'undefined' &&
     window.PublicKeyCredential !== undefined;
 
   // Fetch passkey status
@@ -33,7 +33,7 @@ const PasskeysPage = () => {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Failed to fetch passkey status');
       }
-      
+
       const data = await response.json();
       setPasskeys(data.passkeys || []);
       setIsPasskeyEnabled(data.enabled || false);
@@ -60,22 +60,22 @@ const PasskeysPage = () => {
     const binary = window.atob(base64);
     const buffer = new ArrayBuffer(binary.length);
     const bytes = new Uint8Array(buffer);
-    
+
     for (let i = 0; i < binary.length; i++) {
       bytes[i] = binary.charCodeAt(i);
     }
-    
+
     return buffer;
   };
 
   const bufferToBase64url = (buffer) => {
     const bytes = new Uint8Array(buffer);
     let binary = '';
-    
+
     for (let i = 0; i < bytes.byteLength; i++) {
       binary += String.fromCharCode(bytes[i]);
     }
-    
+
     const base64 = window.btoa(binary);
     return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
   };
@@ -83,31 +83,31 @@ const PasskeysPage = () => {
   // Register new passkey
   const registerPasskey = async (e) => {
     e.preventDefault();
-    
+
     if (!newPasskeyName.trim()) {
       setError('Please provide a name for this passkey');
       return;
     }
-    
+
     try {
       setIsRegistering(true);
       setError(null);
       setSuccess(null);
-      
+
       // 1. Get registration options from server
       const optionsResponse = await fetch('/api/passkey/registration-options', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: newPasskeyName.trim() })
       });
-      
+
       if (!optionsResponse.ok) {
         const errorData = await optionsResponse.json();
         throw new Error(errorData.error || 'Failed to start registration');
       }
-      
+
       const options = await optionsResponse.json();
-      
+
       // 2. Create credential with browser API
       options.user.id = base64urlToBuffer(options.user.id);
       options.challenge = base64urlToBuffer(options.challenge);
@@ -117,7 +117,7 @@ const PasskeysPage = () => {
           id: base64urlToBuffer(cred.id)
         }));
       }
-      
+
       let credential;
       try {
         credential = await navigator.credentials.create({
@@ -130,7 +130,7 @@ const PasskeysPage = () => {
           throw new Error(`Passkey creation failed: ${credError.message}`);
         }
       }
-      
+
       // 3. Send credential to server for verification
       const attestationResponse = {
         id: credential.id,
@@ -142,18 +142,18 @@ const PasskeysPage = () => {
         type: credential.type,
         transports: credential.response.getTransports ? credential.response.getTransports() : undefined
       };
-      
+
       const verificationResponse = await fetch('/api/passkey/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(attestationResponse)
       });
-      
+
       if (!verificationResponse.ok) {
         const errorData = await verificationResponse.json();
         throw new Error(errorData.error || 'Failed to register passkey');
       }
-      
+
       const verificationData = await verificationResponse.json();
       setPasskeys(verificationData.passkeys);
       setIsPasskeyEnabled(true);
@@ -172,21 +172,21 @@ const PasskeysPage = () => {
     if (!confirm('Are you sure you want to remove this passkey?')) {
       return;
     }
-    
+
     try {
       setIsDeleting(passkeyId);
       setError(null);
       setSuccess(null);
-      
+
       const response = await fetch(`/api/passkey/${passkeyId}`, {
         method: 'DELETE'
       });
-      
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Failed to remove passkey');
       }
-      
+
       const data = await response.json();
       setPasskeys(data.passkeys);
       setIsPasskeyEnabled(data.passkeys.length > 0);
@@ -229,7 +229,7 @@ const PasskeysPage = () => {
             <p className="text-[#95a1ad]">Use biometrics or security keys to sign in without passwords</p>
           </div>
         </div>
-        
+
         <div className="bg-amber-500/10 border border-amber-500/20 text-amber-500 p-4 rounded-md flex items-start">
           <AlertCircle className="w-5 h-5 mr-3 mt-0.5 flex-shrink-0" />
           <div>
@@ -251,7 +251,7 @@ const PasskeysPage = () => {
             <p className="text-[#95a1ad]">Use biometrics or security keys to sign in without passwords</p>
           </div>
           <div className="rounded-lg flex items-center gap-2">
-            {isPasskeyEnabled ? 
+            {isPasskeyEnabled ?
               <CheckCircle2 className="w-5 h-5 text-green-500" /> :
               <AlertCircle className="w-5 h-5 text-amber-500" />
             }
@@ -290,8 +290,8 @@ const PasskeysPage = () => {
                       className="p-1.5 text-red-500 rounded-md hover:bg-red-500/10 transition active:scale-95 disabled:opacity-50 disabled:hover:bg-transparent disabled:active:scale-100"
                       title="Remove passkey"
                     >
-                      {isDeleting === passkey.id ? 
-                        <RefreshCw className="w-4 h-4 animate-spin" /> : 
+                      {isDeleting === passkey.id ?
+                        <RefreshCw className="w-4 h-4 animate-spin" /> :
                         <Trash2 className="w-4 h-4" />
                       }
                     </button>
@@ -329,15 +329,14 @@ const PasskeysPage = () => {
                   className="w-full px-3 py-2 bg-[#394047] border border-white/5 rounded-md text-sm focus:outline-none focus:border-white/5 focus:ring-1 focus:ring-white/20 transition-colors"
                 />
               </div>
-              
+
               <button
                 type="submit"
                 disabled={isRegistering || !newPasskeyName.trim()}
-                className={`px-4 py-2 rounded-md font-medium text-sm transition active:scale-95 flex items-center gap-2 ${
-                  isRegistering || !newPasskeyName.trim()
+                className={`px-4 py-2 rounded-md font-medium text-sm transition active:scale-95 flex items-center gap-2 ${isRegistering || !newPasskeyName.trim()
                     ? 'bg-white/20 text-white/60 cursor-not-allowed'
                     : 'bg-white text-black hover:bg-white/90'
-                }`}
+                  }`}
               >
                 {isRegistering ? (
                   <>
@@ -357,13 +356,12 @@ const PasskeysPage = () => {
 
         {/* Status Messages */}
         {(error || success) && (
-          <div className={`rounded-md p-3 flex items-start ${
-            error 
-              ? 'border border-red-500/20 bg-red-500/10 text-red-500' 
+          <div className={`rounded-md p-3 flex items-start ${error
+              ? 'border border-red-500/20 bg-red-500/10 text-red-500'
               : 'border border-green-500/20 bg-green-500/10 text-green-500'
-          }`}>
-            {error 
-              ? <AlertCircle className="w-4 h-4 mt-0.5 mr-2 flex-shrink-0" /> 
+            }`}>
+            {error
+              ? <AlertCircle className="w-4 h-4 mt-0.5 mr-2 flex-shrink-0" />
               : <CheckCircle2 className="w-4 h-4 mt-0.5 mr-2 flex-shrink-0" />
             }
             <span className="text-sm">{error || success}</span>

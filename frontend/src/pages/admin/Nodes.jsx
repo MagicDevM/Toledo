@@ -110,14 +110,14 @@ function NodeDetailsModal({ node, isOpen, onClose }) {
                     <MemoryStick className="w-4 h-4" />
                     Memory
                   </div>
-                  <div>{node?.attributes?.memory/1024 || 0} GB</div>
+                  <div>{node?.attributes?.memory / 1024 || 0} GB</div>
                 </div>
                 <div className="space-y-1">
                   <div className="flex items-center gap-2 text-sm font-medium text-neutral-400">
                     <HardDrive className="w-4 h-4" />
                     Storage
                   </div>
-                  <div>{node?.attributes?.disk/1024 || 0} GB</div>
+                  <div>{node?.attributes?.disk / 1024 || 0} GB</div>
                 </div>
               </div>
             </CardContent>
@@ -165,7 +165,7 @@ export default function NodesPage() {
     }
   });
 
-  const filteredNodes = Array.isArray(nodes) ? nodes.filter(node => 
+  const filteredNodes = Array.isArray(nodes) ? nodes.filter(node =>
     node.attributes.name.toLowerCase().includes(search.toLowerCase()) ||
     node.attributes.fqdn.toLowerCase().includes(search.toLowerCase())
   ) : [];
@@ -237,10 +237,10 @@ export default function NodesPage() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      {node.attributes.memory/1024 || 0} GB
+                      {node.attributes.memory / 1024 || 0} GB
                     </TableCell>
                     <TableCell>
-                      {node.attributes.disk/1024 || 0} GB
+                      {node.attributes.disk / 1024 || 0} GB
                     </TableCell>
                     <TableCell className="text-right">
                       <Button
@@ -295,7 +295,7 @@ export default function NodesPage() {
       </Card>
 
       {/* Node Details Modal */}
-      <NodeDetailsModal 
+      <NodeDetailsModal
         node={selectedNode}
         isOpen={!!selectedNode}
         onClose={() => setSelectedNode(null)}

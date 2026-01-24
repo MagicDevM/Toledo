@@ -238,8 +238,8 @@ const BackupsPage = () => {
             <Button variant="secondary" onClick={() => setIsDeleteModalOpen(false)}>
               Cancel
             </Button>
-            <Button 
-              variant="destructive" 
+            <Button
+              variant="destructive"
               onClick={handleDeleteBackup}
               disabled={deleteLoading}
             >

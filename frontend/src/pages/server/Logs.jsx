@@ -31,7 +31,7 @@ const LogsPage = () => {
       const response = await axios.get(`/api/server/${id}/logs`, {
         params: { page, limit }
       });
-      
+
       // Handle the API response structure
       if (response.data && Array.isArray(response.data.data)) {
         setLogs(response.data.data);
@@ -73,13 +73,13 @@ const LogsPage = () => {
   const handleDownloadLogs = () => {
     // Create CSV content from logs
     const headers = ['Timestamp', 'Action', 'Details'];
-    
+
     const csvContent = [
       headers.join(','),
       ...logs.map(log => [
         new Date(log.timestamp).toLocaleString(),
         log.action || 'Unknown Action',
-        log.details && typeof log.details === 'object' 
+        log.details && typeof log.details === 'object'
           ? `"${JSON.stringify(log.details).replace(/"/g, '""')}"`
           : (log.details ? `"${log.details.toString().replace(/"/g, '""')}"` : '')
       ].join(','))
@@ -104,7 +104,7 @@ const LogsPage = () => {
       'server.stop': 'text-red-500',
       'server.restart': 'text-yellow-500',
       'server.kill': 'text-red-600',
-      
+
       // File operations
       'files.upload': 'text-blue-500',
       'files.download': 'text-blue-400',
@@ -112,24 +112,24 @@ const LogsPage = () => {
       'files.create': 'text-green-400',
       'files.edit': 'text-yellow-400',
       'Write File': 'text-blue-400',
-      
+
       // Backup operations
       'backup.create': 'text-green-500',
       'backup.delete': 'text-red-500',
       'backup.download': 'text-blue-500',
-      
+
       // User actions
       'user.login': 'text-purple-500',
       'user.logout': 'text-purple-400',
       'user.failed_login': 'text-orange-500',
-      
+
       // Settings changes
       'settings.update': 'text-cyan-500',
-      
+
       // Default
       'default': 'text-gray-400'
     };
-    
+
     return logColors[action] || logColors.default;
   };
 
@@ -146,14 +146,14 @@ const LogsPage = () => {
   // Format details for display
   const formatDetails = (details) => {
     if (!details) return '—';
-    
+
     if (typeof details === 'object') {
       try {
         // Check if it's a file operation
         if (details.file) {
           return `File: ${details.file}`;
         }
-        
+
         // For other object types, stringify
         return JSON.stringify(details);
       } catch (error) {
@@ -161,25 +161,25 @@ const LogsPage = () => {
         return 'Error displaying details';
       }
     }
-    
+
     return details.toString();
   };
 
   // Filter logs based on search query and filter type
   const filteredLogs = logs.filter(log => {
-    const matchesSearch = searchQuery === '' || 
+    const matchesSearch = searchQuery === '' ||
       (log.action && log.action.toLowerCase().includes(searchQuery.toLowerCase())) ||
       (typeof log.details === 'object' && JSON.stringify(log.details).toLowerCase().includes(searchQuery.toLowerCase())) ||
       (typeof log.details === 'string' && log.details.toLowerCase().includes(searchQuery.toLowerCase()));
-    
+
     const actionLower = (log.action || '').toLowerCase();
-    const matchesFilter = filterType === 'all' || 
+    const matchesFilter = filterType === 'all' ||
       (filterType === 'server' && actionLower.includes('server')) ||
       (filterType === 'files' && (actionLower.includes('file') || actionLower.includes('write'))) ||
       (filterType === 'backup' && actionLower.includes('backup')) ||
       (filterType === 'user' && actionLower.includes('user')) ||
       (filterType === 'settings' && actionLower.includes('settings'));
-    
+
     return matchesSearch && matchesFilter;
   });
 
@@ -249,8 +249,8 @@ const LogsPage = () => {
                     ) : filteredLogs.length === 0 ? (
                       <TableRow>
                         <TableCell colSpan={3} className="h-24 text-center text-muted-foreground">
-                          {searchQuery || filterType !== 'all' 
-                            ? 'No matching logs found.' 
+                          {searchQuery || filterType !== 'all'
+                            ? 'No matching logs found.'
                             : 'No activity logs available.'}
                         </TableCell>
                       </TableRow>
@@ -274,7 +274,7 @@ const LogsPage = () => {
                   </TableBody>
                 </Table>
               </ScrollArea>
-              
+
               {/* Pagination controls */}
               {pagination.total_pages > 1 && (
                 <div className="flex items-center justify-between space-x-2 mt-4">

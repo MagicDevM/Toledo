@@ -32,7 +32,7 @@ const TwoFactorAuth = () => {
   const startSetup = async () => {
     setIsSettingUp(true);
     setMessage(null);
-    
+
     try {
       const response = await fetch('/api/2fa/setup', { method: 'POST' });
       if (response.ok) {
@@ -136,7 +136,7 @@ const TwoFactorAuth = () => {
             <p className="text-[#95a1ad]">
               Two-factor authentication adds an additional layer of security to your account by requiring a code from your phone in addition to your password.
             </p>
-            <button 
+            <button
               onClick={startSetup}
               className="px-4 py-2 bg-white text-black hover:bg-white/90 rounded-md font-medium text-sm transition active:scale-95 self-start"
             >
@@ -149,13 +149,13 @@ const TwoFactorAuth = () => {
           <div className="space-y-4">
             <div className="flex flex-col md:flex-row gap-6 items-start">
               <div className="bg-white p-4 rounded-lg inline-block flex-shrink-0">
-                <img 
-                  src={setupData.qrCodeUrl} 
-                  alt="QR Code for 2FA" 
+                <img
+                  src={setupData.qrCodeUrl}
+                  alt="QR Code for 2FA"
                   className="w-48 h-48 object-contain"
                 />
               </div>
-              
+
               <div className="space-y-4 flex-1">
                 <div>
                   <h4 className="font-medium text-sm mb-1">Setup Instructions:</h4>
@@ -165,7 +165,7 @@ const TwoFactorAuth = () => {
                     <li>Enter the 6-digit code from your app below</li>
                   </ol>
                 </div>
-                
+
                 <div>
                   <p className="text-sm text-[#95a1ad] mb-1">Manual setup key:</p>
                   <div className="flex items-center gap-2">
@@ -196,13 +196,13 @@ const TwoFactorAuth = () => {
                 </div>
 
                 <div className="flex gap-3">
-                  <button 
+                  <button
                     onClick={verifyAndEnable}
                     className="px-4 py-2 bg-white text-black hover:bg-white/90 rounded-md font-medium text-sm transition active:scale-95"
                   >
                     Verify and Enable
                   </button>
-                  <button 
+                  <button
                     onClick={() => {
                       setIsSettingUp(false);
                       setSetupData(null);
@@ -226,7 +226,7 @@ const TwoFactorAuth = () => {
                 Store these recovery codes in a safe place. If you lose your 2FA device, you can use one of these codes to regain access to your account.
                 <strong className="block mt-1 text-white">Each code can only be used once.</strong>
               </p>
-              
+
               <div className="bg-[#202229] border border-[#2e3337] rounded-lg p-4 mb-3">
                 <div className="grid grid-cols-2 gap-2">
                   {backupCodes.map((code, index) => (
@@ -236,8 +236,8 @@ const TwoFactorAuth = () => {
                   ))}
                 </div>
               </div>
-              
-              <button 
+
+              <button
                 onClick={copyBackupCodes}
                 className="px-4 py-2 bg-[#394047] text-white hover:bg-[#394047]/70 rounded-md font-medium text-sm transition active:scale-95 flex items-center gap-2"
               >
@@ -245,9 +245,9 @@ const TwoFactorAuth = () => {
                 <span>Copy All Codes</span>
               </button>
             </div>
-            
+
             <div className="border-t border-[#2e3337] pt-4 mt-4">
-              <button 
+              <button
                 onClick={() => {
                   setShowBackupCodes(false);
                   setIsSettingUp(false);

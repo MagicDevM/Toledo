@@ -77,7 +77,7 @@ import axios from 'axios';
 function ResourceInfo({ label, icon: Icon, used, total, unit }) {
   const percentage = total > 0 ? (used / total) * 100 : 0;
   const color = percentage > 90 ? 'bg-red-500' : percentage > 70 ? 'bg-yellow-500' : 'bg-green-500';
-  
+
   return (
     <div className="space-y-1 w-48">
       <div className="flex items-center justify-between text-sm">
@@ -132,17 +132,17 @@ function UserForm({ user, onSubmit, isSubmitting }) {
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <label className="text-sm font-medium">Email</label>
-          <Input 
+          <Input
             value={formData.email}
-            onChange={e => setFormData({...formData, email: e.target.value})}
+            onChange={e => setFormData({ ...formData, email: e.target.value })}
             placeholder="user@example.com"
           />
         </div>
         <div className="space-y-2">
           <label className="text-sm font-medium">Username</label>
-          <Input 
+          <Input
             value={formData.username}
-            onChange={e => setFormData({...formData, username: e.target.value})}
+            onChange={e => setFormData({ ...formData, username: e.target.value })}
             placeholder="username"
           />
         </div>
@@ -151,17 +151,17 @@ function UserForm({ user, onSubmit, isSubmitting }) {
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <label className="text-sm font-medium">First Name</label>
-          <Input 
+          <Input
             value={formData.first_name}
-            onChange={e => setFormData({...formData, first_name: e.target.value})}
+            onChange={e => setFormData({ ...formData, first_name: e.target.value })}
             placeholder="John"
           />
         </div>
         <div className="space-y-2">
           <label className="text-sm font-medium">Last Name</label>
-          <Input 
+          <Input
             value={formData.last_name}
-            onChange={e => setFormData({...formData, last_name: e.target.value})}
+            onChange={e => setFormData({ ...formData, last_name: e.target.value })}
             placeholder="Doe"
           />
         </div>
@@ -171,10 +171,10 @@ function UserForm({ user, onSubmit, isSubmitting }) {
         <label className="text-sm font-medium">
           {user ? 'New Password (leave empty to keep unchanged)' : 'Password'}
         </label>
-        <Input 
+        <Input
           type="password"
           value={formData.password}
-          onChange={e => setFormData({...formData, password: e.target.value})}
+          onChange={e => setFormData({ ...formData, password: e.target.value })}
           placeholder="••••••••"
         />
       </div>
@@ -184,23 +184,23 @@ function UserForm({ user, onSubmit, isSubmitting }) {
           <TabsTrigger value="resources">Resources</TabsTrigger>
           <TabsTrigger value="permissions">Permissions</TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="resources" className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">Coins</label>
-              <Input 
+              <Input
                 type="number"
                 value={formData.coins}
-                onChange={e => setFormData({...formData, coins: parseInt(e.target.value) || 0})}
+                onChange={e => setFormData({ ...formData, coins: parseInt(e.target.value) || 0 })}
               />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">Server Limit</label>
-              <Input 
+              <Input
                 type="number"
                 value={formData.servers}
-                onChange={e => setFormData({...formData, servers: parseInt(e.target.value) || 0})}
+                onChange={e => setFormData({ ...formData, servers: parseInt(e.target.value) || 0 })}
               />
             </div>
           </div>
@@ -208,26 +208,26 @@ function UserForm({ user, onSubmit, isSubmitting }) {
           <div className="grid grid-cols-3 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">RAM (MB)</label>
-              <Input 
+              <Input
                 type="number"
                 value={formData.ram}
-                onChange={e => setFormData({...formData, ram: parseInt(e.target.value) || 0})}
+                onChange={e => setFormData({ ...formData, ram: parseInt(e.target.value) || 0 })}
               />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">Disk (MB)</label>
-              <Input 
+              <Input
                 type="number"
                 value={formData.disk}
-                onChange={e => setFormData({...formData, disk: parseInt(e.target.value) || 0})}
+                onChange={e => setFormData({ ...formData, disk: parseInt(e.target.value) || 0 })}
               />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">CPU (%)</label>
-              <Input 
+              <Input
                 type="number"
                 value={formData.cpu}
-                onChange={e => setFormData({...formData, cpu: parseInt(e.target.value) || 0})}
+                onChange={e => setFormData({ ...formData, cpu: parseInt(e.target.value) || 0 })}
               />
             </div>
           </div>
@@ -240,7 +240,7 @@ function UserForm({ user, onSubmit, isSubmitting }) {
                 type="checkbox"
                 id="admin"
                 checked={formData.admin}
-                onChange={e => setFormData({...formData, admin: e.target.checked})}
+                onChange={e => setFormData({ ...formData, admin: e.target.checked })}
                 className="rounded border-neutral-300"
               />
               <label htmlFor="admin" className="text-sm font-medium">
@@ -299,7 +299,7 @@ export default function UsersPage() {
     queryKey: ['users'],
     queryFn: async () => {
       const { data: usersData } = await axios.get('/api/users');
-      
+
       const usersWithData = await Promise.all(usersData.data.map(async (user) => {
         try {
           const [coinsRes, resourcesRes] = await Promise.all([
@@ -340,8 +340,8 @@ export default function UsersPage() {
   // Filter and sort users
   const filteredUsers = useMemo(() => {
     if (!users) return [];
-    
-    return users.filter(user => 
+
+    return users.filter(user =>
       user.attributes.username.toLowerCase().includes(search.toLowerCase()) ||
       user.attributes.email.toLowerCase().includes(search.toLowerCase()) ||
       user.attributes.first_name.toLowerCase().includes(search.toLowerCase()) ||
@@ -399,7 +399,7 @@ export default function UsersPage() {
 
       setIsCreateModalOpen(false);
       queryClient.invalidateQueries('users');
-      
+
       // Show success message
       setError('success:User created successfully');
     } catch (err) {
@@ -451,7 +451,7 @@ export default function UsersPage() {
       setIsEditModalOpen(false);
       setSelectedUser(null);
       queryClient.invalidateQueries('users');
-      
+
       // Show success message
       setError('success:User updated successfully');
     } catch (err) {
@@ -489,7 +489,7 @@ export default function UsersPage() {
 
       {/* Error/Success Alert */}
       {error && (
-        <Alert 
+        <Alert
           variant={error.startsWith('success:') ? 'default' : 'destructive'}
           className="mb-6"
         >
@@ -711,7 +711,7 @@ export default function UsersPage() {
               Create a new user account with specified permissions and resources.
             </DialogDescription>
           </DialogHeader>
-          <UserForm 
+          <UserForm
             onSubmit={handleCreateUser}
             isSubmitting={isSubmitting}
           />
@@ -727,7 +727,7 @@ export default function UsersPage() {
               Modify user account settings, permissions, and resources.
             </DialogDescription>
           </DialogHeader>
-          <UserForm 
+          <UserForm
             user={selectedUser}
             onSubmit={handleEditUser}
             isSubmitting={isSubmitting}

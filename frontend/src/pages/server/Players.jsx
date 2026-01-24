@@ -35,17 +35,17 @@ const PlayerActions = ({ player, onAction }) => {
   return (
     <>
       <div className="flex gap-2">
-        <Button 
-          variant="destructive" 
-          size="sm" 
+        <Button
+          variant="destructive"
+          size="sm"
           onClick={() => handleAction('ban')}
         >
           <Ban className="w-4 h-4 mr-2" />
           Ban
         </Button>
-        <Button 
-          variant="default" 
-          size="sm" 
+        <Button
+          variant="default"
+          size="sm"
           onClick={() => handleAction('op')}
         >
           <Crown className="w-4 h-4 mr-2" />
@@ -60,7 +60,7 @@ const PlayerActions = ({ player, onAction }) => {
               {actionType === 'ban' ? 'Ban Player' : 'Make Player OP'}
             </AlertDialogTitle>
             <AlertDialogDescription>
-              {actionType === 'ban' 
+              {actionType === 'ban'
                 ? `Are you sure you want to ban ${player.name}? This action can be undone later.`
                 : `Are you sure you want to give ${player.name} operator privileges?`
               }
@@ -68,7 +68,7 @@ const PlayerActions = ({ player, onAction }) => {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction 
+            <AlertDialogAction
               onClick={confirmAction}
               variant={actionType === 'ban' ? 'destructive' : 'default'}
             >
@@ -94,10 +94,10 @@ export default function PlayersPage() {
     try {
       // First get the server info from your API
       const { data: serverInfo } = await axios.get(`/api/server/${id}`);
-      
+
       // Then query mcsrvstat.us API
       const { data: status } = await axios.get(`https://api.mcsrvstat.us/3/${serverInfo?.attributes.relationships?.allocations?.data?.[0]?.attributes?.ip_alias}:${serverInfo?.attributes.relationships?.allocations?.data?.[0]?.attributes?.port}`);
-      
+
       if (mounted.current) {
         setServerState(status);
         setError(null);
@@ -206,9 +206,9 @@ export default function PlayersPage() {
           <p className="text-neutral-500">
             Unable to query the Minecraft server. This might mean the server is offline or not running Minecraft: Java Edition.
           </p>
-          <Button 
-            variant="outline" 
-            size="sm" 
+          <Button
+            variant="outline"
+            size="sm"
             onClick={handleRefresh}
             className="mt-4"
           >
@@ -233,9 +233,9 @@ export default function PlayersPage() {
           <p className="text-neutral-500">
             The Minecraft server is currently offline.
           </p>
-          <Button 
-            variant="outline" 
-            size="sm" 
+          <Button
+            variant="outline"
+            size="sm"
             onClick={handleRefresh}
             className="mt-4"
           >
@@ -258,9 +258,9 @@ export default function PlayersPage() {
             Minecraft version {serverState.version}
           </p>
         </div>
-        <Button 
-          variant="outline" 
-          size="sm" 
+        <Button
+          variant="outline"
+          size="sm"
           onClick={handleRefresh}
         >
           <RefreshCw className="w-4 h-4 mr-2" />
@@ -277,14 +277,14 @@ export default function PlayersPage() {
                 <Card key={player.uuid} className="bg-neutral-950/50">
                   <CardContent className="flex items-center justify-between p-4">
                     <div className="flex items-center gap-3">
-                      <img 
+                      <img
                         src={`https://minotar.net/avatar/${player.name}/64`}
                         alt={`${player.name}'s skin`}
                         className="w-10 h-10 rounded"
                       />
                       <div>
                         <h3 className="font-medium">{player.name}</h3>
-                        <a 
+                        <a
                           href={`https://namemc.com/profile/${player.uuid}`}
                           target="_blank"
                           rel="noopener noreferrer"
@@ -295,8 +295,8 @@ export default function PlayersPage() {
                         </a>
                       </div>
                     </div>
-                    <PlayerActions 
-                      player={player} 
+                    <PlayerActions
+                      player={player}
                       onAction={handlePlayerAction}
                     />
                   </CardContent>

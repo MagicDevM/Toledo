@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Editor } from '@monaco-editor/react';
 import { useParams } from 'react-router-dom';
-import { 
-  File, 
+import {
+  File,
   Folder,
   ArrowLeft,
   Plus,
@@ -62,13 +62,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
 } from "@/components/ui/table";
 import { Progress } from "@/components/ui/progress";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -131,34 +131,34 @@ const getFileLanguage = (filename) => {
 
 const getFileIcon = (file) => {
   if (!file?.is_file) return <Folder className="h-4 w-4 text-blue-500" />;
-  
+
   const ext = file.name.split('.').pop()?.toLowerCase();
   const codeExts = ['js', 'jsx', 'ts', 'tsx', 'py', 'java', 'php', 'rb', 'go', 'rs', 'c', 'cpp', 'cs'];
   const archiveExts = ['zip', 'tar', 'gz', 'rar', '7z'];
-  
+
   if (codeExts.includes(ext)) return <FileCode className="h-4 w-4 text-violet-500" />;
   if (archiveExts.includes(ext)) return <Archive className="h-4 w-4 text-yellow-500" />;
   if (file.mimetype?.includes('json')) return <FileJson className="h-4 w-4 text-green-500" />;
   if (file.mimetype?.includes('text')) return <FileText className="h-4 w-4 text-orange-500" />;
   if (['jar', 'exe', 'bin', 'dll'].includes(ext)) return <Binary className="h-4 w-4 text-purple-500" />;
-  
+
   return <File className="h-4 w-4 text-gray-500" />;
 };
 
 const FileManagerPage = () => {
   const { id } = useParams();
-  
+
   // Core state
   const [files, setFiles] = useState([]);
   const [currentPath, setCurrentPath] = useState('/');
   const [breadcrumbs, setBreadcrumbs] = useState(['/']);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-  
+
   // Selection state
   const [selectedFile, setSelectedFile] = useState(null);
   const [selectedFiles, setSelectedFiles] = useState([]);
-  
+
   // Dialog states
   const [showNewDialog, setShowNewDialog] = useState(false);
   const [newItemType, setNewItemType] = useState(null);
@@ -168,7 +168,7 @@ const FileManagerPage = () => {
   const [showRenameDialog, setShowRenameDialog] = useState(false);
   const [renameData, setRenameData] = useState({ oldName: '', newName: '' });
   const [showArchiveDialog, setShowArchiveDialog] = useState(false);
-  
+
   // Editor states
   const [editorContent, setEditorContent] = useState('');
   const [editorLanguage, setEditorLanguage] = useState('plaintext');
@@ -214,16 +214,16 @@ const FileManagerPage = () => {
     try {
       const normalizedPath = normalizePath(directory);
       const response = await fetch(`/api/server/${id}/files/list?directory=${encodeURIComponent(normalizedPath)}`);
-      
+
       if (!response.ok) throw new Error(`Failed to fetch files: ${response.statusText}`);
-      
+
       const data = await response.json();
-      
+
       if (data.object === 'list') {
         setFiles(data.data.map(item => item.attributes));
         setCurrentPath(normalizedPath);
-        
-        const newBreadcrumbs = normalizedPath === '/' 
+
+        const newBreadcrumbs = normalizedPath === '/'
           ? ['/']
           : ['/', ...normalizedPath.split('/').filter(Boolean)];
         setBreadcrumbs(newBreadcrumbs);
@@ -242,9 +242,9 @@ const FileManagerPage = () => {
       setIsLoading(true);
       const filePath = joinPaths(currentPath, file.name);
       const response = await fetch(`/api/server/${id}/files/contents?file=${encodeURIComponent(filePath)}`);
-      
+
       if (!response.ok) throw new Error(`Failed to fetch file contents: ${response.statusText}`);
-      
+
       const content = await response.text();
       setEditorLanguage(getFileLanguage(file.name));
       setEditorContent(content);
@@ -259,7 +259,7 @@ const FileManagerPage = () => {
 
   const handleFileSave = async () => {
     if (!selectedFile) return;
-    
+
     try {
       setIsSaving(true);
       const filePath = joinPaths(currentPath, selectedFile.name);
@@ -267,9 +267,9 @@ const FileManagerPage = () => {
         method: 'POST',
         body: editorContent // Send raw content directly
       });
-  
+
       if (!response.ok) throw new Error(`Failed to save file: ${response.statusText}`);
-      
+
       handleSuccess('File saved successfully');
       setIsEditorDirty(false);
     } catch (err) {
@@ -278,16 +278,16 @@ const FileManagerPage = () => {
       setIsSaving(false);
     }
   };
-  
+
   const handleNewItem = async () => {
     if (!newItemName.trim()) {
       handleError(new Error('Name cannot be empty'));
       return;
     }
-  
+
     try {
       const normalizedPath = normalizePath(currentPath);
-      
+
       if (newItemType === 'folder') {
         const response = await fetch(`/api/server/${id}/files/create-folder`, {
           method: 'POST',
@@ -299,7 +299,7 @@ const FileManagerPage = () => {
             name: newItemName
           })
         });
-  
+
         if (!response.ok) throw new Error(`Failed to create folder: ${response.statusText}`);
       } else {
         // Create new file by writing a space to it
@@ -308,10 +308,10 @@ const FileManagerPage = () => {
           method: 'POST',
           body: ' ' // Send a single space as content
         });
-  
+
         if (!response.ok) throw new Error(`Failed to create file: ${response.statusText}`);
       }
-      
+
       handleSuccess(`${newItemType === 'folder' ? 'Folder' : 'File'} created successfully`);
       fetchFiles(normalizedPath);
       setShowNewDialog(false);
@@ -344,7 +344,7 @@ const FileManagerPage = () => {
       });
 
       if (!response.ok) throw new Error(`Failed to rename file: ${response.statusText}`);
-      
+
       handleSuccess('File renamed successfully');
       fetchFiles(normalizedPath);
       setShowRenameDialog(false);
@@ -356,7 +356,7 @@ const FileManagerPage = () => {
 
   const handleFileDelete = async (files) => {
     const fileList = Array.isArray(files) ? files : [files];
-    
+
     try {
       const normalizedPath = normalizePath(currentPath);
       const response = await fetch(`/api/server/${id}/files/delete`, {
@@ -371,7 +371,7 @@ const FileManagerPage = () => {
       });
 
       if (!response.ok) throw new Error(`Failed to delete files: ${response.statusText}`);
-      
+
       handleSuccess(fileList.length > 1 ? `${fileList.length} files deleted` : 'File deleted successfully');
       fetchFiles(normalizedPath);
       setSelectedFiles([]);
@@ -382,7 +382,7 @@ const FileManagerPage = () => {
 
   const handleArchive = async (files) => {
     const fileList = Array.isArray(files) ? files : [files];
-    
+
     try {
       const normalizedPath = normalizePath(currentPath);
       const response = await fetch(`/api/server/${id}/files/compress`, {
@@ -397,7 +397,7 @@ const FileManagerPage = () => {
       });
 
       if (!response.ok) throw new Error(`Failed to create archive: ${response.statusText}`);
-      
+
       handleSuccess('Files archived successfully');
       fetchFiles(normalizedPath);
       setShowArchiveDialog(false);
@@ -422,7 +422,7 @@ const FileManagerPage = () => {
       });
 
       if (!response.ok) throw new Error(`Failed to unarchive file: ${response.statusText}`);
-      
+
       handleSuccess('File unarchived successfully');
       fetchFiles(normalizedPath);
     } catch (err) {
@@ -430,431 +430,431 @@ const FileManagerPage = () => {
     }
   };
 
-const downloadFile = async (file) => {
-  try {
-    const normalizedPath = normalizePath(currentPath);
-    const filePath = joinPaths(normalizedPath, file.name);
-    
-    const response = await fetch(`/api/server/${id}/files/download?file=${encodeURIComponent(filePath)}`, {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
-      }
-    });
+  const downloadFile = async (file) => {
+    try {
+      const normalizedPath = normalizePath(currentPath);
+      const filePath = joinPaths(normalizedPath, file.name);
 
-    if (!response.ok) throw new Error(`Failed to get download URL: ${response.statusText}`);
-    
-    const data = await response.json();
-    
-    if (data.object === 'signed_url') {
-      const link = document.createElement('a');
-      link.href = data.attributes.url;
-      link.download = file.name;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      handleSuccess('Download started');
-    } else {
-      throw new Error('Invalid download URL response');
-    }
-  } catch (err) {
-    handleError(err, 'Failed to download file');
-  }
-};
+      const response = await fetch(`/api/server/${id}/files/download?file=${encodeURIComponent(filePath)}`, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        }
+      });
 
-const handleFileUpload = async (event) => {
-  const files = Array.from(event.target.files);
-  if (files.length === 0) return;
+      if (!response.ok) throw new Error(`Failed to get download URL: ${response.statusText}`);
 
-  try {
-    setUploadProgress(0);
-    const normalizedPath = normalizePath(currentPath);
-    
-    // Get signed upload URL from panel
-    const uploadUrlResponse = await fetch(`/api/server/${id}/files/upload`, {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
-      }
-    });
+      const data = await response.json();
 
-    if (!uploadUrlResponse.ok) throw new Error(`Failed to get upload URL: ${uploadUrlResponse.statusText}`);
-    
-    const uploadUrlData = await uploadUrlResponse.json();
-    
-    if (uploadUrlData.object !== 'signed_url') {
-      throw new Error('Invalid upload URL response');
-    }
-
-    // Append directory parameter to the Wings upload URL
-    const uploadUrl = new URL(uploadUrlData.attributes.url);
-    uploadUrl.searchParams.append('directory', normalizedPath);
-
-    // Create FormData
-    const formData = new FormData();
-    files.forEach(file => formData.append('files', file));
-
-    // Upload with progress tracking
-    const xhr = new XMLHttpRequest();
-    xhr.open('POST', uploadUrl.toString());
-    
-    xhr.upload.onprogress = (event) => {
-      if (event.lengthComputable) {
-        const progress = Math.round((event.loaded / event.total) * 100);
-        setUploadProgress(progress);
-      }
-    };
-    
-    xhr.onload = () => {
-      if (xhr.status === 200) {
-        handleSuccess(`${files.length} file(s) uploaded successfully`);
-        fetchFiles(normalizedPath);
-        setShowUploadDialog(false);
-        setUploadProgress(0);
+      if (data.object === 'signed_url') {
+        const link = document.createElement('a');
+        link.href = data.attributes.url;
+        link.download = file.name;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        handleSuccess('Download started');
       } else {
-        throw new Error(`Upload failed with status: ${xhr.status}`);
+        throw new Error('Invalid download URL response');
       }
-    };
-    
-    xhr.onerror = () => {
-      throw new Error('Upload failed');
-    };
-    
-    xhr.send(formData);
-  } catch (err) {
-    handleError(err, 'Failed to upload file(s)');
-    setUploadProgress(0);
-  }
-};
-
-// Navigation
-const handleNavigateToPath = useCallback((path) => {
-  if (isEditorDirty) {
-    if (window.confirm('You have unsaved changes. Are you sure you want to navigate away?')) {
-      setSelectedFile(null);
-      setEditorContent('');
-      setIsEditorDirty(false);
-      fetchFiles(path);
-    }
-  } else {
-    fetchFiles(path);
-  }
-}, [isEditorDirty, fetchFiles]);
-
-const handleNavigateUp = useCallback(() => {
-  if (currentPath === '/') return;
-  const parentPath = currentPath.split('/').slice(0, -2).join('/') || '/';
-  handleNavigateToPath(parentPath);
-}, [currentPath, handleNavigateToPath]);
-
-// Initial load
-useEffect(() => {
-  fetchFiles();
-}, [fetchFiles]);
-
-// Keyboard shortcuts
-useEffect(() => {
-  const handleKeyDown = (e) => {
-    if ((e.ctrlKey || e.metaKey) && e.key === 's' && selectedFile) {
-      e.preventDefault();
-      handleFileSave();
+    } catch (err) {
+      handleError(err, 'Failed to download file');
     }
   };
 
-  document.addEventListener('keydown', handleKeyDown);
-  return () => document.removeEventListener('keydown', handleKeyDown);
-}, [selectedFile, handleFileSave]);
+  const handleFileUpload = async (event) => {
+    const files = Array.from(event.target.files);
+    if (files.length === 0) return;
 
-// Render helpers
-const renderFileActions = useCallback((file) => (
-  <DropdownMenu>
-    <DropdownMenuTrigger asChild>
-      <Button variant="ghost" size="icon">
-        <Ellipsis className="h-4 w-4" />
-      </Button>
-    </DropdownMenuTrigger>
-    <DropdownMenuContent align="end" className="w-48">
-      <DropdownMenuLabel>Actions</DropdownMenuLabel>
-      {file.is_file && (
-        <>
-          <DropdownMenuItem onClick={() => handleFileView(file)}>
-            <FileText className="mr-2 h-4 w-4" /> View/Edit
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => downloadFile(file)}>
-            <Download className="mr-2 h-4 w-4" /> Download
-          </DropdownMenuItem>
-          {file.name.match(/\.(zip|tar|gz|rar|7z)$/i) ? (
-            <DropdownMenuItem onClick={() => handleUnarchive(file)}>
-              <Archive className="mr-2 h-4 w-4" /> Extract
-            </DropdownMenuItem>
-          ) : (
-            <DropdownMenuItem onClick={() => handleArchive(file.name)}>
-              <Archive className="mr-2 h-4 w-4" /> Archive
-            </DropdownMenuItem>
-          )}
-          <DropdownMenuSeparator />
-        </>
-      )}
-      <DropdownMenuItem
-        onClick={() => {
-          setRenameData({
-            oldName: file.name,
-            newName: file.name
-          });
-          setShowRenameDialog(true);
-        }}
-      >
-        <Edit2 className="mr-2 h-4 w-4" /> Rename
-      </DropdownMenuItem>
-      <DropdownMenuItem
-        className="text-destructive focus:text-destructive"
-        onClick={() => handleFileDelete(file.name)}
-      >
-        <Trash2 className="mr-2 h-4 w-4" /> Delete
-      </DropdownMenuItem>
-    </DropdownMenuContent>
-  </DropdownMenu>
-), [handleFileView, downloadFile, handleUnarchive, handleArchive, handleFileDelete]);
+    try {
+      setUploadProgress(0);
+      const normalizedPath = normalizePath(currentPath);
 
-return (
-  <div className="min-h-screen">
-    <Card className="max-w-[1600px] mx-auto">
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          {/* Navigation Controls */}
-          <div className="flex items-center space-x-2">
-            {currentPath !== '/' && (
+      // Get signed upload URL from panel
+      const uploadUrlResponse = await fetch(`/api/server/${id}/files/upload`, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!uploadUrlResponse.ok) throw new Error(`Failed to get upload URL: ${uploadUrlResponse.statusText}`);
+
+      const uploadUrlData = await uploadUrlResponse.json();
+
+      if (uploadUrlData.object !== 'signed_url') {
+        throw new Error('Invalid upload URL response');
+      }
+
+      // Append directory parameter to the Wings upload URL
+      const uploadUrl = new URL(uploadUrlData.attributes.url);
+      uploadUrl.searchParams.append('directory', normalizedPath);
+
+      // Create FormData
+      const formData = new FormData();
+      files.forEach(file => formData.append('files', file));
+
+      // Upload with progress tracking
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', uploadUrl.toString());
+
+      xhr.upload.onprogress = (event) => {
+        if (event.lengthComputable) {
+          const progress = Math.round((event.loaded / event.total) * 100);
+          setUploadProgress(progress);
+        }
+      };
+
+      xhr.onload = () => {
+        if (xhr.status === 200) {
+          handleSuccess(`${files.length} file(s) uploaded successfully`);
+          fetchFiles(normalizedPath);
+          setShowUploadDialog(false);
+          setUploadProgress(0);
+        } else {
+          throw new Error(`Upload failed with status: ${xhr.status}`);
+        }
+      };
+
+      xhr.onerror = () => {
+        throw new Error('Upload failed');
+      };
+
+      xhr.send(formData);
+    } catch (err) {
+      handleError(err, 'Failed to upload file(s)');
+      setUploadProgress(0);
+    }
+  };
+
+  // Navigation
+  const handleNavigateToPath = useCallback((path) => {
+    if (isEditorDirty) {
+      if (window.confirm('You have unsaved changes. Are you sure you want to navigate away?')) {
+        setSelectedFile(null);
+        setEditorContent('');
+        setIsEditorDirty(false);
+        fetchFiles(path);
+      }
+    } else {
+      fetchFiles(path);
+    }
+  }, [isEditorDirty, fetchFiles]);
+
+  const handleNavigateUp = useCallback(() => {
+    if (currentPath === '/') return;
+    const parentPath = currentPath.split('/').slice(0, -2).join('/') || '/';
+    handleNavigateToPath(parentPath);
+  }, [currentPath, handleNavigateToPath]);
+
+  // Initial load
+  useEffect(() => {
+    fetchFiles();
+  }, [fetchFiles]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 's' && selectedFile) {
+        e.preventDefault();
+        handleFileSave();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [selectedFile, handleFileSave]);
+
+  // Render helpers
+  const renderFileActions = useCallback((file) => (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="icon">
+          <Ellipsis className="h-4 w-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-48">
+        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+        {file.is_file && (
+          <>
+            <DropdownMenuItem onClick={() => handleFileView(file)}>
+              <FileText className="mr-2 h-4 w-4" /> View/Edit
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => downloadFile(file)}>
+              <Download className="mr-2 h-4 w-4" /> Download
+            </DropdownMenuItem>
+            {file.name.match(/\.(zip|tar|gz|rar|7z)$/i) ? (
+              <DropdownMenuItem onClick={() => handleUnarchive(file)}>
+                <Archive className="mr-2 h-4 w-4" /> Extract
+              </DropdownMenuItem>
+            ) : (
+              <DropdownMenuItem onClick={() => handleArchive(file.name)}>
+                <Archive className="mr-2 h-4 w-4" /> Archive
+              </DropdownMenuItem>
+            )}
+            <DropdownMenuSeparator />
+          </>
+        )}
+        <DropdownMenuItem
+          onClick={() => {
+            setRenameData({
+              oldName: file.name,
+              newName: file.name
+            });
+            setShowRenameDialog(true);
+          }}
+        >
+          <Edit2 className="mr-2 h-4 w-4" /> Rename
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          className="text-destructive focus:text-destructive"
+          onClick={() => handleFileDelete(file.name)}
+        >
+          <Trash2 className="mr-2 h-4 w-4" /> Delete
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  ), [handleFileView, downloadFile, handleUnarchive, handleArchive, handleFileDelete]);
+
+  return (
+    <div className="min-h-screen">
+      <Card className="max-w-[1600px] mx-auto">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            {/* Navigation Controls */}
+            <div className="flex items-center space-x-2">
+              {currentPath !== '/' && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={handleNavigateUp}
+                      >
+                        <ArrowLeft className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Go up</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
+              <div className="flex items-center space-x-1">
+                {breadcrumbs.map((crumb, index) => (
+                  <React.Fragment key={index}>
+                    <Button
+                      variant="ghost"
+                      className="h-8 text-sm px-2 hover:bg-accent"
+                      onClick={() => {
+                        const path = breadcrumbs.slice(0, index + 1).join('');
+                        handleNavigateToPath(path);
+                      }}
+                    >
+                      {crumb === '/' ? 'Root' : crumb}
+                    </Button>
+                    {index < breadcrumbs.length - 1 && (
+                      <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                    )}
+                  </React.Fragment>
+                ))}
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex items-center space-x-2">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline">
+                    <Plus className="mr-2 h-4 w-4" /> New
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      setNewItemType('file');
+                      setShowNewDialog(true);
+                    }}
+                  >
+                    <FilePlus className="mr-2 h-4 w-4" /> New File
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      setNewItemType('folder');
+                      setShowNewDialog(true);
+                    }}
+                  >
+                    <Folder className="mr-2 h-4 w-4" /> New Folder
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              <Button
+                variant="outline"
+                onClick={() => setShowUploadDialog(true)}
+              >
+                <UploadCloud className="mr-2 h-4 w-4" /> Upload
+              </Button>
+
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
-                      variant="ghost"
+                      variant="outline"
                       size="icon"
-                      onClick={handleNavigateUp}
+                      onClick={() => fetchFiles(currentPath)}
+                      disabled={isLoading}
                     >
-                      <ArrowLeft className="h-4 w-4" />
+                      <RefreshCcw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent>Go up</TooltipContent>
+                  <TooltipContent>Refresh</TooltipContent>
                 </Tooltip>
               </TooltipProvider>
-            )}
-            <div className="flex items-center space-x-1">
-              {breadcrumbs.map((crumb, index) => (
-                <React.Fragment key={index}>
-                  <Button
-                    variant="ghost"
-                    className="h-8 text-sm px-2 hover:bg-accent"
-                    onClick={() => {
-                      const path = breadcrumbs.slice(0, index + 1).join('');
-                      handleNavigateToPath(path);
-                    }}
-                  >
-                    {crumb === '/' ? 'Root' : crumb}
-                  </Button>
-                  {index < breadcrumbs.length - 1 && (
-                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                  )}
-                </React.Fragment>
-              ))}
             </div>
           </div>
-          
-          {/* Action Buttons */}
-          <div className="flex items-center space-x-2">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline">
-                  <Plus className="mr-2 h-4 w-4" /> New
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem
-                  onClick={() => {
-                    setNewItemType('file');
-                    setShowNewDialog(true);
-                  }}
-                >
-                  <FilePlus className="mr-2 h-4 w-4" /> New File
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => {
-                    setNewItemType('folder');
-                    setShowNewDialog(true);
-                  }}
-                >
-                  <Folder className="mr-2 h-4 w-4" /> New Folder
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+        </CardHeader>
 
-            <Button
-              variant="outline"
-              onClick={() => setShowUploadDialog(true)}
-            >
-              <UploadCloud className="mr-2 h-4 w-4" /> Upload
-            </Button>
+        <CardContent>
+          {/* Error Alert */}
+          {error && (
+            <Alert variant="destructive" className="mb-4">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertTitle>Error</AlertTitle>
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
 
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => fetchFiles(currentPath)}
-                    disabled={isLoading}
-                  >
-                    <RefreshCcw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Refresh</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
-        </div>
-      </CardHeader>
-
-      <CardContent>
-        {/* Error Alert */}
-        {error && (
-          <Alert variant="destructive" className="mb-4">
-            <AlertTriangle className="h-4 w-4" />
-            <AlertTitle>Error</AlertTitle>
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
-
-        {/* File Table */}
-        <ScrollArea className="h-[600px] rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-12">
-                  <Checkbox
-                    checked={files.length > 0 && selectedFiles.length === files.length}
-                    onCheckedChange={(checked) => {
-                      setSelectedFiles(checked ? files.map(f => f.name) : []);
-                    }}
-                  />
-                </TableHead>
-                <TableHead>Name</TableHead>
-                <TableHead>Size</TableHead>
-                <TableHead>Modified</TableHead>
-                <TableHead>Permissions</TableHead>
-                <TableHead className="w-[100px]">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {files.map((file) => (
-                <TableRow 
-                  key={file.name}
-                  className={selectedFiles.includes(file.name) ? 'bg-accent' : ''}
-                >
-                  <TableCell>
+          {/* File Table */}
+          <ScrollArea className="h-[600px] rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-12">
                     <Checkbox
-                      checked={selectedFiles.includes(file.name)}
+                      checked={files.length > 0 && selectedFiles.length === files.length}
                       onCheckedChange={(checked) => {
-                        setSelectedFiles(
-                          checked 
-                            ? [...selectedFiles, file.name]
-                            : selectedFiles.filter(f => f !== file.name)
-                        );
+                        setSelectedFiles(checked ? files.map(f => f.name) : []);
                       }}
                     />
-                  </TableCell>
-                  <TableCell>
-                    <div 
-                      className="flex items-center space-x-2 cursor-pointer hover:text-primary"
-                      onClick={() => {
-                        if (file.is_file) {
-                          handleFileView(file);
-                        } else {
-                          handleNavigateToPath(joinPaths(currentPath, file.name));
-                        }
-                      }}
-                    >
-                      {getFileIcon(file)}
-                      <span className="font-medium">{file.name}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>{formatBytes(file.size)}</TableCell>
-                  <TableCell>{formatDate(file.modified_at)}</TableCell>
-                  <TableCell>
-                    <code className="text-xs bg-muted px-1 py-0.5 rounded">
-                      {file.mode}
-                    </code>
-                  </TableCell>
-                  <TableCell>
-                    {renderFileActions(file)}
-                  </TableCell>
+                  </TableHead>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Size</TableHead>
+                  <TableHead>Modified</TableHead>
+                  <TableHead>Permissions</TableHead>
+                  <TableHead className="w-[100px]">Actions</TableHead>
                 </TableRow>
-              ))}
-              {files.length === 0 && !isLoading && (
-                <TableRow>
-                  <TableCell colSpan={6} className="h-32 text-center text-muted-foreground">
-                    This folder is empty
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </ScrollArea>
-      </CardContent>
-    </Card>
+              </TableHeader>
+              <TableBody>
+                {files.map((file) => (
+                  <TableRow
+                    key={file.name}
+                    className={selectedFiles.includes(file.name) ? 'bg-accent' : ''}
+                  >
+                    <TableCell>
+                      <Checkbox
+                        checked={selectedFiles.includes(file.name)}
+                        onCheckedChange={(checked) => {
+                          setSelectedFiles(
+                            checked
+                              ? [...selectedFiles, file.name]
+                              : selectedFiles.filter(f => f !== file.name)
+                          );
+                        }}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <div
+                        className="flex items-center space-x-2 cursor-pointer hover:text-primary"
+                        onClick={() => {
+                          if (file.is_file) {
+                            handleFileView(file);
+                          } else {
+                            handleNavigateToPath(joinPaths(currentPath, file.name));
+                          }
+                        }}
+                      >
+                        {getFileIcon(file)}
+                        <span className="font-medium">{file.name}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>{formatBytes(file.size)}</TableCell>
+                    <TableCell>{formatDate(file.modified_at)}</TableCell>
+                    <TableCell>
+                      <code className="text-xs bg-muted px-1 py-0.5 rounded">
+                        {file.mode}
+                      </code>
+                    </TableCell>
+                    <TableCell>
+                      {renderFileActions(file)}
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {files.length === 0 && !isLoading && (
+                  <TableRow>
+                    <TableCell colSpan={6} className="h-32 text-center text-muted-foreground">
+                      This folder is empty
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </ScrollArea>
+        </CardContent>
+      </Card>
 
-    {/* New Item Dialog */}
-    <Dialog open={showNewDialog} onOpenChange={setShowNewDialog}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Create New {newItemType === 'folder' ? 'Folder' : 'File'}</DialogTitle>
-          <DialogDescription>
-            Enter a name for the new {newItemType}
-          </DialogDescription>
-        </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="grid gap-2">
-            <Label htmlFor="name">Name</Label>
-            <Input
-              id="name"
-              value={newItemName}
-              onChange={(e) => setNewItemName(e.target.value)}
-              placeholder={newItemType === 'folder' ? 'New Folder' : 'file.txt'}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  handleNewItem();
-                }
-              }}
-            />
+      {/* New Item Dialog */}
+      <Dialog open={showNewDialog} onOpenChange={setShowNewDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create New {newItemType === 'folder' ? 'Folder' : 'File'}</DialogTitle>
+            <DialogDescription>
+              Enter a name for the new {newItemType}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="name">Name</Label>
+              <Input
+                id="name"
+                value={newItemName}
+                onChange={(e) => setNewItemName(e.target.value)}
+                placeholder={newItemType === 'folder' ? 'New Folder' : 'file.txt'}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleNewItem();
+                  }
+                }}
+              />
+            </div>
           </div>
-        </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => {
-            setShowNewDialog(false);
-            setNewItemName('');
-            setNewItemType(null);
-          }}>
-            Cancel
-          </Button>
-          <Button 
-            onClick={handleNewItem}
-            disabled={!newItemName.trim()}
-          >
-            Create
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => {
+              setShowNewDialog(false);
+              setNewItemName('');
+              setNewItemType(null);
+            }}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleNewItem}
+              disabled={!newItemName.trim()}
+            >
+              Create
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
-    {/* Upload Dialog */}
-    <Dialog open={showUploadDialog} onOpenChange={setShowUploadDialog}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Upload Files</DialogTitle>
-          <DialogDescription>
-            Drag and drop or select file(s) to upload to the current directory
-          </DialogDescription>
+      {/* Upload Dialog */}
+      <Dialog open={showUploadDialog} onOpenChange={setShowUploadDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Upload Files</DialogTitle>
+            <DialogDescription>
+              Drag and drop or select file(s) to upload to the current directory
+            </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div
@@ -904,8 +904,8 @@ return (
       </Dialog>
 
       {/* File Editor Dialog */}
-      <Dialog 
-        open={selectedFile !== null} 
+      <Dialog
+        open={selectedFile !== null}
         onOpenChange={(open) => {
           if (!open && isEditorDirty) {
             const willClose = window.confirm('You have unsaved changes. Are you sure you want to close?');
@@ -970,7 +970,7 @@ return (
               </div>
             </DialogTitle>
           </DialogHeader>
-          
+
           <div className="h-[calc(80vh-8rem)]">
             <Editor
               height="100%"
@@ -1035,7 +1035,7 @@ return (
             }}>
               Cancel
             </Button>
-            <Button 
+            <Button
               onClick={handleFileRename}
               disabled={!renameData.newName.trim() || renameData.newName === renameData.oldName}
             >
@@ -1060,7 +1060,7 @@ return (
             }}>
               Cancel
             </Button>
-            <Button 
+            <Button
               onClick={handleArchive}
             >
               Create Archive
