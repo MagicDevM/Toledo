@@ -537,6 +537,21 @@ class DailyRewardsManager {
    */
   async logDailyRewardClaim(userId, details) {
     try {
+      // Log to wallet transactions
+      const walletTransaction = {
+        id: `txn_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        type: 'daily_claim',
+        details: {
+          description: `Daily Reward (Streak: ${details.streak})`,
+          streak: details.streak
+        },
+        amount: details.reward,
+        timestamp: new Date().toISOString()
+      };
+      const history = await this.db.get(`transactions-${userId}`) || [];
+      history.push(walletTransaction);
+      await this.db.set(`transactions-${userId}`, history);
+
       const logs = await this.db.get(`daily-claims-${userId}`) || [];
       logs.unshift(details); // Add to beginning
 

@@ -214,6 +214,22 @@ class Store {
       timestamp: Date.now()
     };
 
+    // Log to wallet transactions
+    const walletTransaction = {
+      id: `txn_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      type: 'store_purchase',
+      details: {
+        description: `Bought ${amount} ${resourceType}`,
+        resource: resourceType,
+        amount: amount
+      },
+      amount: -cost, // Negative for spending
+      timestamp: new Date().toISOString()
+    };
+    const walletHistory = await this.db.get(`transactions-${userId}`) || [];
+    walletHistory.push(walletTransaction);
+    await this.db.set(`transactions-${userId}`, walletHistory);
+
     const history = await this.db.get(`purchases-${userId}`) || [];
     history.push(purchase);
     await this.db.set(`purchases-${userId}`, history);

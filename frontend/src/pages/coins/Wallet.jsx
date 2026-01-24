@@ -393,21 +393,20 @@ export default function WalletPage() {
                           {txn.type.replace('_', ' ')}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-[#95a1ad]">
+                       <td className="px-4 py-3 text-[#95a1ad]">
                         {txn.type === 'credit_purchase' ? 'Stripe Top-up' : 
                          txn.type === 'coin_purchase' ? `${txn.details.package_amount} Coins` :
-                         txn.type === 'credit_spend' ? txn.details.description :
                          txn.type === 'transfer_sent' ? `Sent to ${txn.details.to}` :
                          txn.type === 'transfer_received' ? `Received from ${txn.details.from}` :
-                         JSON.stringify(txn.details)}
+                         txn.details.description || JSON.stringify(txn.details)}
                       </td>
                       <td className={`px-4 py-3 text-right font-medium ${
-                        ['credit_purchase', 'transfer_received', 'coin_purchase'].includes(txn.type) ? 'text-emerald-400' : 'text-red-400'
+                        txn.amount > 0 ? 'text-emerald-400' : 'text-red-400'
                       }`}>
-                        {['credit_purchase', 'transfer_received', 'coin_purchase'].includes(txn.type) ? '+' : '-'}
+                        {txn.amount > 0 ? '+' : ''}
                         {['credit_purchase', 'bundle_purchase', 'credit_spend'].includes(txn.type) ? '$' : ''}
                         {txn.amount}
-                        {['coin_purchase', 'transfer_sent', 'transfer_received'].includes(txn.type) ? ' Coins' : ''}
+                        {['coin_purchase', 'transfer_sent', 'transfer_received', 'daily_claim', 'stake_create', 'stake_claim', 'store_purchase', 'boost_purchase', 'boost_refund', 'boost_extend'].includes(txn.type) ? ' Coins' : ''}
                       </td>
                     </tr>
                   ))

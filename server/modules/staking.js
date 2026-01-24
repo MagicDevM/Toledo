@@ -222,6 +222,10 @@ class StakingManager {
     await this.db.set(`coins-${userId}`, newBalance);
 
     // Return new stake and updated balance
+    
+    // Log wallet transaction
+    await this.logWalletTransaction(userId, 'stake_create', `Staked in ${plan.name}`, -amount);
+    
     return {
       stake,
       balance: newBalance
@@ -282,6 +286,9 @@ class StakingManager {
       totalReturned: totalReward
     });
 
+    // Log wallet transaction
+    await this.logWalletTransaction(userId, 'stake_claim', `Claimed Stake (Reward: ${stake.accruedRewards.toFixed(2)})`, totalReward);
+
     return {
       stake,
       balance: newBalance
@@ -337,6 +344,19 @@ class StakingManager {
     await this.db.set(`staking-history-${userId}`, history);
 
     return transaction;
+  }
+
+  async logWalletTransaction(userId, type, description, amount) {
+      const walletTransaction = {
+        id: `txn_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        type,
+        details: { description },
+        amount,
+        timestamp: new Date().toISOString()
+      };
+      const history = await this.db.get(`transactions-${userId}`) || [];
+      history.push(walletTransaction);
+      await this.db.set(`transactions-${userId}`, history);
   }
 }
 

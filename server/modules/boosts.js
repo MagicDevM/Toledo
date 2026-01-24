@@ -621,6 +621,41 @@ class BoostManager {
         timestamp: Date.now()
       };
 
+      // Log to wallet transactions if it involves coins
+      let walletType = null;
+      let walletAmount = 0;
+      let walletDesc = '';
+
+      if (type === 'applied' || type === 'scheduled') {
+        walletType = 'boost_purchase';
+        walletAmount = -(details.price || 0);
+        walletDesc = `Boost: ${details.boostType} (${details.duration})`;
+      } else if (type === 'extended') {
+        walletType = 'boost_extend';
+        walletAmount = -(details.price || 0);
+        walletDesc = `Boost Extend: ${details.boostType} (+${details.additionalDuration})`;
+      } else if (type === 'cancelled' || type === 'scheduled_cancelled' || type === 'scheduled_failed') {
+        walletType = 'boost_refund';
+        walletAmount = details.refundAmount || 0;
+        walletDesc = `Boost Refund: ${details.boostType}`;
+      }
+
+      if (walletType && walletAmount !== 0) {
+        const walletTransaction = {
+          id: `txn_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          type: walletType,
+          details: {
+            description: walletDesc,
+            ...details
+          },
+          amount: walletAmount,
+          timestamp: new Date().toISOString()
+        };
+        const walletHistory = await this.db.get(`transactions-${userId}`) || [];
+        walletHistory.push(walletTransaction);
+        await this.db.set(`transactions-${userId}`, walletHistory);
+      }
+
       const history = await this.db.get(`boost-history-${userId}`) || [];
       history.unshift(entry); // Add to beginning (newest first)
 
