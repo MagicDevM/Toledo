@@ -65,7 +65,7 @@
     "yamljs": "^0.3.0"
   },
   "scripts": {
-    "mono:build": "cd panel && npm run build",
+    "mono:build": "cd ../frontend && pnpm run build",
     "db:build:macos": "cd Heliactyl Nextdb && cargo build --release && cp target/release/libHeliactyl Nextdb.dylib ../ffi/libHeliactyl Nextdb.dylib",
     "db:build:linux": "cd Heliactyl Nextdb && cargo build --release && cp target/release/libHeliactyl Nextdb.so ../ffi/libHeliactyl Nextdb.so",
     "db:build:windows": "cd Heliactyl Nextdb && cargo build --release && cp target/release/Heliactyl Nextdb.dll ../ffi/Heliactyl Nextdb.dll",

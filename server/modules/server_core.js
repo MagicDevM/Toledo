@@ -90,9 +90,6 @@ const ownsServer = async (req, res, next) => {
       // Check if user owns the server directly
       isOwner = ownedServers.some(s => {
         const serverId = s.attributes?.identifier;
-        console.log(`checking server ${serverId}`);
-        console.log(`unnormalized server ID: ${serverId}`);
-        console.log(`normalized target ID: ${normalizedTargetId}`);
 
         return normalizeId(serverId) === normalizedTargetId;
       });
@@ -173,9 +170,6 @@ const ownsServer = async (req, res, next) => {
       console.error('Error checking server subusers via API:', error);
     }
 
-    // Log why we don't have access
-    console.log(`User ${req.session.pterodactyl.username} (${req.session.userinfo.id}) does not have access to server ${serverId}`);
-
     // If we get here, user doesn't have access
     return res.status(403).json({ error: 'You do not have permission to access this server' });
   } catch (error) {
@@ -235,7 +229,6 @@ async function withServerWebSocket(serverId, callback) {
       });
 
       ws.on('open', () => {
-        console.log('WebSocket connection established');
         // Authenticate
         ws.send(JSON.stringify({
           event: "auth",

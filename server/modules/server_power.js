@@ -34,15 +34,6 @@ const HeliactylModule = {
 module.exports.HeliactylModule = HeliactylModule;
 module.exports.load = async function (app, db) {
   if (HeliactylModule.target_platform !== settings.version) {
-    console.log(
-      "Module " +
-      HeliactylModule.name +
-      " does not support this platform release of Heliactyl Next. The module was built for platform " +
-      HeliactylModule.target_platform +
-      " but is attempting to run on version " +
-      settings.version +
-      "."
-    );
     process.exit();
   }
 

@@ -36,7 +36,6 @@ module.exports.load = async function (app, db) {
   // POST /api/server/:id/files/write
   router.post("/server/:id/files/write", isAuthenticated, ownsServer, async (req, res) => {
     try {
-      console.log('Saving ' + req.query.file + ' to server ' + req.params.id);
       const serverId = req.params.id;
       const file = req.query.file;
       const content = req.body;

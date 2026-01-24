@@ -580,7 +580,6 @@ export default function ConsolePage() {
             return;
           }
   
-          console.log('WebSocket connected');
           setRetryCount(0);
           setIsConnecting(false);
           
@@ -595,7 +594,6 @@ export default function ConsolePage() {
         ws.onclose = () => {
           if (!mounted.current) return;
   
-          console.log('WebSocket disconnected');
           if (retryCount < RETRY_COUNT) {
             setTimeout(() => {
               if (mounted.current) {
@@ -741,12 +739,6 @@ const formatUptime = (uptime) => {
   return `${hours}h ${minutes.toString().padStart(2, '0')}m ${secs.toString().padStart(2, '0')}s`;
 };
 
-// Add a debug log to track the uptime values
-useEffect(() => {
-  if (stats?.uptime) {
-    console.log('Raw uptime value:', stats.uptime);
-  }
-}, [stats.uptime]);
 
   // Loading state
   if (!server) {

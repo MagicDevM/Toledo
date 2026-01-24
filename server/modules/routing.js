@@ -22,7 +22,7 @@ const HeliactylModule = {
 };
 
 module.exports.HeliactylModule = HeliactylModule;
-module.exports.load = async function(app, db) {
+module.exports.load = async function (app, db) {
   const distPath = path.join(__dirname, '../../frontend/dist');
 
   app.use('/', express.static(distPath, {
@@ -30,7 +30,8 @@ module.exports.load = async function(app, db) {
     index: false
   }));
 
-  app.get('/*', (req, res) => {
+  app.get('/*', (req, res, next) => {
+    if (req.path.startsWith('/api/')) return next();
     res.sendFile(path.join(distPath, 'index.html'));
   });
 };

@@ -41,15 +41,15 @@ import PasskeyManager from './pages/Passkeys';
 class ErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { 
+    this.state = {
       hasError: false,
       error: null,
-      countdown: 1
+      countdown: 15
     };
   }
 
   static getDerivedStateFromError(error) {
-    return { 
+    return {
       hasError: true,
       error: error
     };
@@ -106,7 +106,7 @@ class ErrorBoundary extends React.Component {
               <div className="bg-muted/50 rounded-lg p-4 text-sm font-mono overflow-auto max-h-[200px]">
                 {this.state.error?.message || 'Unknown error'}
               </div>
-              
+
               <Accordion type="single" collapsible className="w-full">
                 <AccordionItem value="system-info">
                   <AccordionTrigger className="text-sm">
@@ -155,17 +155,17 @@ class ErrorBoundary extends React.Component {
 const RootRedirect = () => {
   // Get the current hostname
   const hostname = window.location.hostname;
-  
+
   // Check if it's the console subdomain
   if (hostname === 'console.altare.pro') {
     return <Navigate to="/dashboard" replace />;
   }
-  
+
   // If it's the main domain or www subdomain, show the website
   if (hostname === 'altare.pro' || hostname === 'www.altare.pro') {
     return <Website />;
   }
-  
+
   // Default to dashboard for any other domain/subdomain
   return <Navigate to="/dashboard" replace />;
 };
@@ -182,22 +182,22 @@ const ProtectedRoute = ({ children }) => {
         const response = await fetch('/api/v5/state', {
           credentials: 'include',
         });
-        
+
         if (!response.ok) {
           throw new Error('Unauthorized');
         }
-        
+
         const data = await response.json();
         if (data.twoFactorPending) {
           setRequires2FA(true);
-          navigate('/auth/2fa', { 
-            state: { 
-              redirectUrl: window.location.pathname 
+          navigate('/auth/2fa', {
+            state: {
+              redirectUrl: window.location.pathname
             }
           });
           return;
         }
-        
+
         setIsChecking(false);
       } catch (error) {
         console.error('Auth check failed:', error);
@@ -215,7 +215,7 @@ const ProtectedRoute = ({ children }) => {
       </div>
     );
   }
-  
+
   if (requires2FA) {
     return null; // Will redirect to 2FA page
   }
@@ -226,12 +226,12 @@ const ProtectedRoute = ({ children }) => {
 export default function App() {
   // Get hostname to determine if we need to render the console or website
   const [isWebsite, setIsWebsite] = useState(false);
-  
+
   useEffect(() => {
     const hostname = window.location.hostname;
     setIsWebsite(hostname === 'altare.pro' || hostname === 'www.altare.pro');
   }, []);
-  
+
   // If it's the main website domain, render the Website component directly
   if (isWebsite) {
     return (
@@ -242,7 +242,7 @@ export default function App() {
       </ErrorBoundary>
     );
   }
-  
+
   // Otherwise render the console application
   return (
     <ErrorBoundary>
@@ -250,13 +250,13 @@ export default function App() {
         <Routes>
           {/* Root route with conditional redirect */}
           <Route path="/" element={<RootRedirect />} />
-          
+
           {/* Auth routes */}
           <Route path="/auth" element={<Auth />} />
           <Route path="/auth/2fa" element={<TwoFactorVerification />} />
-          
+
           {/* Protected routes with MainLayout */}
-          <Route 
+          <Route
             element={
               <ProtectedRoute>
                 <MainLayout />
@@ -285,10 +285,10 @@ export default function App() {
             <Route path="/account" element={<AccountPage />} />
             <Route path="/passkeys" element={<PasskeyManager />} />
 
-            {/* Others */}s
+            {/* Others */}
             <Route path="/boosts" element={<Boosts />} />
           </Route>
-          
+
           {/* 404 catch-all route */}
           <Route path="*" element={<NotFound />} />
           <Route path="/website" element={<Website />} />

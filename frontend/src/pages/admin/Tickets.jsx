@@ -222,7 +222,7 @@ export default function AdminSupportDashboard() {
     }
   });
 
-  const filteredTickets = tickets?.filter(ticket => {
+  const filteredTickets = Array.isArray(tickets) ? tickets.filter(ticket => {
     if (filters.search && !ticket.subject.toLowerCase().includes(filters.search.toLowerCase()) &&
         !ticket.user.username.toLowerCase().includes(filters.search.toLowerCase())) {
       return false;
@@ -231,7 +231,7 @@ export default function AdminSupportDashboard() {
     if (filters.category !== 'all' && ticket.category !== filters.category) return false;
     if (filters.status !== 'all' && ticket.status !== filters.status) return false;
     return true;
-  }) || [];
+  }) : [];
 
   const paginatedTickets = filteredTickets.slice(
     (currentPage - 1) * perPage,

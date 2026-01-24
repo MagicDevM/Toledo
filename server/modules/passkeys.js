@@ -83,15 +83,12 @@ module.exports.load = async function (app, db) {
       const userId = req.session.userinfo.id;
       const { name } = req.body;
       
-      console.log(`Creating registration options for user ${userId}`);
-      
       if (!name) {
         return res.status(400).json({ error: 'You must provide a name for this passkey' });
       }
 
       // Get existing passkeys for this user
       const passkeyData = await db.get(`passkey-${userId}`);
-      console.log(`Current passkey data for user ${userId}:`, passkeyData);
       
       // Create user ID for WebAuthn - must be a Buffer now, not a string
       const userIdBuffer = Buffer.from(`user-${userId}`, 'utf8');
@@ -145,11 +142,6 @@ module.exports.load = async function (app, db) {
       // Make sure we're using the same userId from the registration process
       const registrationUserId = userId || req.session.userinfo.id;
       
-      console.log(`Processing registration for user ${registrationUserId} with passkey name "${name}"`);
-      
-      // Log the request payload for debugging
-      console.log('Verification request payload:', JSON.stringify(req.body));
-      
       // Update verification parameters to match our registration options
       const verification = await verifyRegistrationResponse({
         response: req.body,
@@ -162,18 +154,6 @@ module.exports.load = async function (app, db) {
       if (!verification.verified || !verification.registrationInfo) {
         return res.status(400).json({ error: 'Passkey registration failed' });
       }
-      
-      // Log the verification info for debugging
-      console.log('Verification registrationInfo:', JSON.stringify(verification.registrationInfo, (key, value) => {
-        // Convert ArrayBuffer to string for logging
-        if (value && value.constructor === ArrayBuffer) {
-          return "ArrayBuffer";
-        }
-        if (value && value.buffer && value.buffer.constructor === ArrayBuffer) {
-          return "TypedArray";
-        }
-        return value;
-      }));
       
       // Get the important information from the verification
       const { credentialID, credentialPublicKey, counter } = verification.registrationInfo;
@@ -189,7 +169,6 @@ module.exports.load = async function (app, db) {
       
       // Get existing passkey data
       const existingPasskeyData = await db.get(`passkey-${registrationUserId}`);
-      console.log(`Existing passkey data for user ${registrationUserId}:`, existingPasskeyData);
       
       // Create the new passkey data structure
       const passkeyData = {
@@ -215,16 +194,9 @@ module.exports.load = async function (app, db) {
       
       passkeyData.passkeys.push(newPasskey);
       
-      console.log(`Saving passkey data for user ${registrationUserId}:`, passkeyData);
-      
       // Save to database (explicit try/catch to ensure we catch any database errors)
       try {
         await db.set(`passkey-${registrationUserId}`, passkeyData);
-        console.log(`Passkey data saved successfully for user ${registrationUserId}`);
-        
-        // Double-check that the data was saved
-        const verificationRead = await db.get(`passkey-${registrationUserId}`);
-        console.log(`Verification read of passkey data for user ${registrationUserId}:`, verificationRead);
       } catch (dbError) {
         console.error(`Database error while saving passkey data for user ${registrationUserId}:`, dbError);
         throw new Error(`Failed to save passkey to database: ${dbError.message}`);
@@ -331,31 +303,17 @@ module.exports.load = async function (app, db) {
       const credentialIDBuffer = Buffer.from(req.body.rawId, 'base64url');
       const credentialID = credentialIDBuffer.toString('base64url');
       
-      console.log('Looking for credentialID:', credentialID);
-      
       // Search for a user with this credential
       const users = await db.get("users") || [];
       
-      console.log('Available users:', users);
       let userId = null;
       let authenticator = null;
       
       // First, try to find by direct comparison
       for (const id of users) {
-        console.log(`Checking user with ID: ${id}`);
         const passkeyData = await db.get(`passkey-${id}`);
         
-        // Log passkey data for this user
-        console.log(`User ${id} passkey data:`, passkeyData);
-        
         if (passkeyData && passkeyData.enabled && Array.isArray(passkeyData.passkeys)) {
-          console.log(`User ${id} has ${passkeyData.passkeys.length} passkeys`);
-          
-          // Log all credential IDs for comparison
-          passkeyData.passkeys.forEach((pk, index) => {
-            console.log(`Passkey ${index} credentialID: "${pk.credentialID}"`);
-          });
-          
           const foundPasskey = passkeyData.passkeys.find(passkey => 
             passkey.credentialID === credentialID
           );
@@ -363,29 +321,24 @@ module.exports.load = async function (app, db) {
           if (foundPasskey) {
             userId = id;
             authenticator = foundPasskey;
-            console.log(`Found matching passkey for user ${id}`);
             break;
           }
         }
       }
       
       if (!userId || !authenticator) {
-        console.log('No exact match found, trying case-insensitive comparison');
-        
         // Try a case-insensitive match as a fallback
         for (const id of users) {
           const passkeyData = await db.get(`passkey-${id}`);
           if (passkeyData && passkeyData.enabled && Array.isArray(passkeyData.passkeys)) {
             const foundPasskey = passkeyData.passkeys.find(passkey => {
               const matches = passkey.credentialID.toLowerCase() === credentialID.toLowerCase();
-              console.log(`Case-insensitive comparison "${passkey.credentialID}" vs "${credentialID}": ${matches ? 'MATCH' : 'no match'}`);
               return matches;
             });
             
             if (foundPasskey) {
               userId = id;
               authenticator = foundPasskey;
-              console.log(`Found case-insensitive match for user ${id}`);
               break;
             }
           }

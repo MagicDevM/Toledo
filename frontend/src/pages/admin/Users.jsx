@@ -86,7 +86,7 @@ function ResourceInfo({ label, icon: Icon, used, total, unit }) {
           {label}
         </div>
         <span>
-          {total.toLocaleString()}{unit}
+          {(total || 0).toLocaleString()}{unit}
         </span>
       </div>
     </div>

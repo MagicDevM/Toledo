@@ -119,13 +119,7 @@ async function createPterodactylAccount(userId, username, email, retryCount = 0)
       
       // If we got JSON but it's an error response
       if (!response.ok) {
-        console.log('Pterodactyl error response:', {
-          status: response.status,
-          data: data
-        });
-        
         if (response.status === 422 && retryCount < 3) {
-          console.log(`Username/email conflicts, retrying with suffix: ${retryCount + 1}`);
           return createPterodactylAccount(userId, username, email, retryCount + 1);
         }
         throw new Error(`API error: ${response.status} ${JSON.stringify(data.errors)}`);
@@ -217,7 +211,6 @@ async function addDiscordServerMember(userId, accessToken, username) {
     }
     return true;
   } catch (error) {
-    console.log(`Failed to add user ${userId} to Discord server:`, error);
     return false;
   }
 }
@@ -445,7 +438,6 @@ module.exports.load = async function (app, db) {
 
       res.json({ message: 'Token refreshed successfully' });
     } catch (error) {
-      console.log('Token refresh error:', error);
       res.status(500).json({ error: 'Failed to refresh token' });
     }
   });

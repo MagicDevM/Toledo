@@ -95,7 +95,7 @@ function CreateServerModal({ isOpen, onClose }) {
     }
   });
 
-  const selectedEgg = eggs?.find(e => e.id === egg);
+  const selectedEgg = Array.isArray(eggs) ? eggs.find(e => e.id === egg) : null;
 
   // Handle clicks outside dropdowns
   useEffect(() => {
@@ -175,7 +175,7 @@ function CreateServerModal({ isOpen, onClose }) {
                 onClick={() => setShowEggDropdown(!showEggDropdown)}
               >
                 <span className={egg ? "text-white" : "text-[#95a1ad]"}>
-                  {selectedEgg?.name || "Select Server Type"}
+                  {Array.isArray(eggs) ? eggs.find(e => e.id === egg)?.name : "Select Server Type"}
                 </span>
                 <svg className="h-5 w-5 text-[#95a1ad]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" />
@@ -184,7 +184,7 @@ function CreateServerModal({ isOpen, onClose }) {
               
               {showEggDropdown && (
                 <div className="absolute z-10 mt-1 w-full bg-[#202229] border border-white/5 rounded-md shadow-lg max-h-60 overflow-auto">
-                  {eggs?.map(eggItem => (
+                  {Array.isArray(eggs) && eggs.map(eggItem => (
                     <button
                       key={eggItem.id}
                       className="block w-full text-left px-4 py-2 text-sm hover:bg-white/5 transition-colors"
@@ -210,7 +210,7 @@ function CreateServerModal({ isOpen, onClose }) {
                 onClick={() => setShowLocationDropdown(!showLocationDropdown)}
               >
                 <span className={location ? "text-white" : "text-[#95a1ad]"}>
-                  {locations?.find(loc => loc.id === location)?.name || "Select Location"}
+                  {Array.isArray(locations) ? locations.find(loc => loc.id === location)?.name : "Select Location"}
                 </span>
                 <svg className="h-5 w-5 text-[#95a1ad]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" />
@@ -219,7 +219,7 @@ function CreateServerModal({ isOpen, onClose }) {
               
               {showLocationDropdown && (
                 <div className="absolute z-10 mt-1 w-full bg-[#202229] border border-white/5 rounded-md shadow-lg max-h-60 overflow-auto">
-                  {locations?.map(locationItem => (
+                  {Array.isArray(locations) && locations.map(locationItem => (
                     <button
                       key={locationItem.id}
                       className="block w-full text-left px-4 py-2 text-sm hover:bg-white/5 transition-colors"
@@ -478,18 +478,22 @@ export default function Dashboard() {
     if (!servers && !subuserServers) return;
 
     // Connect WebSockets for owned servers
-    servers?.forEach(server => {
-      if (!socketsRef.current[server.attributes.identifier]) {
-        connectWebSocket(server);
-      }
-    });
+    if (Array.isArray(servers)) {
+      servers.forEach(server => {
+        if (!socketsRef.current[server.attributes.identifier]) {
+          connectWebSocket(server);
+        }
+      });
+    }
 
     // Connect WebSockets for subuser servers
-    subuserServers?.forEach(server => {
-      if (!socketsRef.current[server.id]) {
-        connectWebSocket(server);
-      }
-    });
+    if (Array.isArray(subuserServers)) {
+      subuserServers.forEach(server => {
+        if (!socketsRef.current[server.id]) {
+          connectWebSocket(server);
+        }
+      });
+    }
 
     return () => {
       Object.values(socketsRef.current).forEach(ws => ws.close());
@@ -567,8 +571,8 @@ export default function Dashboard() {
     return <LoadingSkeleton />;
   }
 
-  const hasSubuserServers = subuserServers?.length > 0;
-  const hasOwnedServers = servers?.length > 0;
+  const hasSubuserServers = Array.isArray(subuserServers) && subuserServers.length > 0;
+  const hasOwnedServers = Array.isArray(servers) && servers.length > 0;
 
   return (
     <div className="space-y-8 p-6 max-w-screen-2xl mx-auto">
@@ -618,7 +622,7 @@ export default function Dashboard() {
       <div className="space-y-4">
         <h2 className="text-lg font-medium">Your servers</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {servers?.map(server => (
+          {Array.isArray(servers) && servers.map(server => (
             <ServerCard
               key={server.attributes.id}
               server={server}
@@ -643,7 +647,7 @@ export default function Dashboard() {
             Servers you can access
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {subuserServers.map(server => (
+            {Array.isArray(subuserServers) && subuserServers.map(server => (
               <ServerCard
                 key={server.id}
                 server={server}

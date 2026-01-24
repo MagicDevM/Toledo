@@ -165,10 +165,10 @@ export default function NodesPage() {
     }
   });
 
-  const filteredNodes = nodes?.filter(node => 
+  const filteredNodes = Array.isArray(nodes) ? nodes.filter(node => 
     node.attributes.name.toLowerCase().includes(search.toLowerCase()) ||
     node.attributes.fqdn.toLowerCase().includes(search.toLowerCase())
-  ) || [];
+  ) : [];
 
   const paginatedNodes = filteredNodes.slice(
     (currentPage - 1) * parseInt(perPage),

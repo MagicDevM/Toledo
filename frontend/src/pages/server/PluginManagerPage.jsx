@@ -509,7 +509,7 @@ const isPluginInstalled = (pluginId, platform) => {
             <div className="flex flex-wrap gap-2">
               {selectedCategory && (
                 <Badge variant="outline" className="flex items-center gap-1">
-                  Category: {categories.find(c => c.id.toString() === selectedCategory)?.name || selectedCategory}
+                  Category: {(Array.isArray(categories) ? categories.find(c => c.id.toString() === selectedCategory)?.name : null) || selectedCategory}
                   <Button
                     variant="ghost"
                     size="icon"
@@ -698,7 +698,7 @@ const isPluginInstalled = (pluginId, platform) => {
                   <div className="flex flex-wrap gap-3">
                     <Badge variant="secondary" className="flex items-center">
                       <Download className="w-3 h-3 mr-1" />
-                      {pluginDetails.downloads.toLocaleString()} downloads
+                      {(pluginDetails.downloads || 0).toLocaleString()} downloads
                     </Badge>
                     <div className="flex items-center gap-1">
                       <Star className="w-4 h-4 text-amber-400" />

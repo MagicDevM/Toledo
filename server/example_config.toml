@@ -43,11 +43,11 @@ domain = "http://localhost:17000"
 [api.client]
 accountSwitcher = true
 
-# ---------------------------------
-# Stripe
-# ---------------------------------
-[api.client.stripe]
-secret_key = "sk_live_"
+  # ---------------------------------
+  # Stripe
+  # ---------------------------------
+  [api.client.stripe]
+  secret_key = "sk_live_"
 
   [api.client.discord]
   client_id = ""

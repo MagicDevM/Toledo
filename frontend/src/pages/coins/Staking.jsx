@@ -35,7 +35,7 @@ const [showCalculator, setShowCalculator] = useState(false);
 const [activeTab, setActiveTab] = useState('active');
 
   // Fetch staking plans
-  const { data: plans, isLoading: loadingPlans } = useQuery({
+  const { data: plans, isLoading: loadingPlans, error: plansError } = useQuery({
     queryKey: ['staking-plans'],
     queryFn: async () => {
       const response = await axios.get('/api/staking/plans');
@@ -44,7 +44,7 @@ const [activeTab, setActiveTab] = useState('active');
   });
 
   // Fetch user's stakes
-  const { data: stakes, isLoading: loadingStakes } = useQuery({
+  const { data: stakes, isLoading: loadingStakes, error: stakesError } = useQuery({
     queryKey: ['staking-stakes'],
     queryFn: async () => {
       const response = await axios.get('/api/staking/stakes');
@@ -53,7 +53,7 @@ const [activeTab, setActiveTab] = useState('active');
   });
 
   // Fetch staking summary
-  const { data: summary, isLoading: loadingSummary } = useQuery({
+  const { data: summary, isLoading: loadingSummary, error: summaryError } = useQuery({
     queryKey: ['staking-summary'],
     queryFn: async () => {
       const response = await axios.get('/api/staking/summary');
@@ -62,7 +62,7 @@ const [activeTab, setActiveTab] = useState('active');
   });
 
   // Fetch transaction history
-  const { data: history, isLoading: loadingHistory } = useQuery({
+  const { data: history, isLoading: loadingHistory, error: historyError } = useQuery({
     queryKey: ['staking-history'],
     queryFn: async () => {
       const response = await axios.get('/api/staking/history');
@@ -206,7 +206,10 @@ const [activeTab, setActiveTab] = useState('active');
     return `${Math.floor(diff / 86400)} day${Math.floor(diff / 86400) !== 1 ? 's' : ''} ago`;
   };
 
-  if (loadingPlans || loadingSummary || loadingStakes) {
+  const isActuallyLoading = loadingPlans || loadingSummary || loadingStakes;
+  const hasError = plansError || summaryError || stakesError || plans?.error || summary?.error || stakes?.error || (!loadingPlans && !plans);
+
+  if (isActuallyLoading && !hasError) {
     return (
       <div className="p-6">
         <div className="flex items-center justify-center h-64">
@@ -216,8 +219,39 @@ const [activeTab, setActiveTab] = useState('active');
     );
   }
 
-  const activeStakes = stakes?.filter(stake => stake.status === 'active') || [];
-  const claimedStakes = stakes?.filter(stake => stake.status === 'claimed') || [];
+  if (hasError && !plans) {
+    return (
+      <div className="p-6">
+        <div className="rounded-md border border-red-500/20 bg-red-500/10 text-red-500 p-4 flex items-start">
+          <AlertCircle className="w-5 h-5 mr-3 flex-shrink-0" />
+          <div>
+            <h3 className="font-medium">Error loading staking</h3>
+            <p className="text-sm mt-1">
+              {plansError?.response?.data?.message || 
+               plansError?.response?.data?.error || 
+               plansError?.message || 
+               plans?.error || 
+               plans?.message || 
+               "Failed to load staking configuration. Please try again later."}
+            </p>
+            <button 
+              onClick={() => {
+                queryClient.invalidateQueries(['staking-plans']);
+                queryClient.invalidateQueries(['staking-summary']);
+                queryClient.invalidateQueries(['staking-stakes']);
+              }}
+              className="mt-3 px-3 py-1 bg-red-500 text-white rounded text-xs font-medium hover:bg-red-600 transition"
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const activeStakes = Array.isArray(stakes) ? stakes.filter(stake => stake.status === 'active') : [];
+  const claimedStakes = Array.isArray(stakes) ? stakes.filter(stake => stake.status === 'claimed') : [];
 
   return (
     <div className="space-y-6 p-6 max-w-screen-2xl mx-auto">
@@ -230,7 +264,7 @@ const [activeTab, setActiveTab] = useState('active');
         <div className="flex items-center gap-4 hidden">
           <div className="py-2 px-4 border border-[#2e3337] rounded-md flex items-center">
             <Wallet className="w-4 h-4 mr-2 text-[#95a1ad]" />
-            <span>{summary?.availableBalance.toLocaleString() || 0} coins</span>
+            <span>{(summary?.availableBalance || 0).toLocaleString()} coins</span>
           </div>
         </div>
       </div>
@@ -262,7 +296,7 @@ const [activeTab, setActiveTab] = useState('active');
             </div>
           </div>
           <div className="p-4">
-            <p className="text-2xl font-medium">{summary?.totalStaked.toLocaleString() || 0} coins</p>
+            <p className="text-2xl font-medium">{(summary?.totalStaked || 0).toLocaleString()} coins</p>
             <p className="text-sm text-[#95a1ad] mt-1">Across {summary?.activeStakesCount || 0} active stake{summary?.activeStakesCount !== 1 ? 's' : ''}</p>
           </div>
         </div>
@@ -277,7 +311,7 @@ const [activeTab, setActiveTab] = useState('active');
             </div>
           </div>
           <div className="p-4">
-            <p className="text-2xl font-medium">{summary?.totalRewards.toLocaleString() || 0} coins</p>
+            <p className="text-2xl font-medium">{(summary?.totalRewards || 0).toLocaleString()} coins</p>
             <p className="text-sm text-[#95a1ad] mt-1">Ready to claim</p>
           </div>
         </div>
@@ -315,7 +349,7 @@ const [activeTab, setActiveTab] = useState('active');
                     onChange={(e) => setSelectedPlan(e.target.value)}
                     className="w-full appearance-none bg-[#394047] focus:bg-[#394047]/50 border border-white/5 focus:border-white/5 focus:ring-1 focus:ring-white/20 rounded-md p-2 text-sm focus:outline-none transition-colors pr-10"
                   >
-                    {plans && Object.entries(plans).map(([id, plan]) => (
+                    {plans && typeof plans === 'object' && Object.entries(plans).map(([id, plan]) => (
                       <option key={id} value={id}>{plan.name} ({plan.apy}% APY)</option>
                     ))}
                   </select>
@@ -477,7 +511,7 @@ const [activeTab, setActiveTab] = useState('active');
 
             {activeTab === 'active' && (
               <div className="p-4">
-                {activeStakes.length > 0 ? (
+                {Array.isArray(activeStakes) && activeStakes.length > 0 ? (
                   <div className="space-y-4">
                     {activeStakes.map(stake => (
                       <div 
@@ -499,7 +533,7 @@ const [activeTab, setActiveTab] = useState('active');
                           <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
                             <div>
                               <p className="text-[#95a1ad]">Staked Amount:</p>
-                              <p>{stake.amount.toLocaleString()} coins</p>
+                              <p>{(stake.amount || 0).toLocaleString()} coins</p>
                             </div>
                             <div>
                               <p className="text-[#95a1ad]">Current Rewards:</p>
@@ -569,7 +603,7 @@ const [activeTab, setActiveTab] = useState('active');
                   <div className="flex items-center justify-center py-8">
                     <RefreshCw className="w-6 h-6 animate-spin text-[#95a1ad]" />
                   </div>
-                ) : claimedStakes.length > 0 || (history && history.length > 0) ? (
+                ) : (Array.isArray(claimedStakes) && claimedStakes.length > 0) || (Array.isArray(history) && history.length > 0) ? (
                   <div className="space-y-4">
                     {claimedStakes.map(stake => (
                       <div 
@@ -595,7 +629,7 @@ const [activeTab, setActiveTab] = useState('active');
                           </div>
                           <div>
                             <p className="text-[#95a1ad]">Initial Amount:</p>
-                            <p>{stake.amount.toLocaleString()} coins</p>
+                             <p>{(stake.amount || 0).toLocaleString()} coins</p>
                           </div>
                           <div>
                             <p className="text-[#95a1ad]">Earned Rewards:</p>
@@ -615,7 +649,7 @@ const [activeTab, setActiveTab] = useState('active');
                       </div>
                     ))}
                     
-                    {history && history.map(transaction => (
+                    {Array.isArray(history) && history.map(transaction => (
                       <div 
                         key={transaction.id} 
                         className="p-4 border border-[#2e3337] rounded-lg bg-[#202229]"
@@ -719,7 +753,7 @@ const [activeTab, setActiveTab] = useState('active');
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-[#95a1ad]">Original Amount:</span>
-                    <span>{confirmDialog.stake?.amount.toLocaleString()} coins</span>
+                    <span>{(confirmDialog.stake?.amount || 0).toLocaleString()} coins</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-[#95a1ad]">Earned Rewards:</span>

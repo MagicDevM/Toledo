@@ -338,7 +338,7 @@ export default function ServerBoostsPage() {
             ) : activeBoosts && Object.keys(activeBoosts).length > 0 ? (
               <div className="space-y-4">
                 {/* Group boosts by server */}
-                {Object.entries(activeBoosts).map(([serverId, serverBoosts]) => (
+                {activeBoosts && typeof activeBoosts === 'object' && Object.entries(activeBoosts).map(([serverId, serverBoosts]) => (
                   <div key={serverId} className="border border-[#2e3337] rounded-lg">
                     <div className="p-4 pb-3 border-b border-[#2e3337] flex items-center gap-2">
                       <Server className="w-4 h-4 text-[#95a1ad]" />
@@ -652,7 +652,7 @@ export default function ServerBoostsPage() {
               <div className="space-y-2">
                 <label className="text-sm text-[#95a1ad] block">Select extension duration:</label>
                 <div className="grid grid-cols-5 gap-2">
-                  {boostTypes && confirmDialog.boost && Object.keys(boostTypes[confirmDialog.boost.boostType].prices).map(duration => (
+                  {boostTypes && confirmDialog.boost && boostTypes[confirmDialog.boost.boostType]?.prices && Object.keys(boostTypes[confirmDialog.boost.boostType].prices).map(duration => (
                     <button
                       key={duration}
                       className={`py-2 rounded-md font-medium text-sm transition active:scale-95 ${

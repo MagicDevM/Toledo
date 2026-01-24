@@ -141,7 +141,8 @@ const MainLayout = () => {
     if (showServerSection && id) {
       setSelectedServerId(id);
       // Find server name
-      const currentServer = [...servers, ...subuserServers].find(
+      const allServers = (Array.isArray(servers) ? servers : []).concat(Array.isArray(subuserServers) ? subuserServers : []);
+      const currentServer = allServers.find(
         server => server.id === id || (server.attributes && server.attributes.identifier === id)
       );
       

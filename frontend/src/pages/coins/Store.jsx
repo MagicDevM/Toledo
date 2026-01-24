@@ -37,7 +37,7 @@ export default function StorePage() {
   const [scheduledTime, setScheduledTime] = useState('');
   
   // Get store configuration
-  const { data: storeConfig } = useQuery({
+  const { data: storeConfig, isLoading: loadingConfig, error: configError } = useQuery({
     queryKey: ['storeConfig'],
     queryFn: async () => {
       const response = await axios.get('/api/store/config');
@@ -47,7 +47,7 @@ export default function StorePage() {
   });
   
   // Get available boost types
-  const { data: boostTypes } = useQuery({
+  const { data: boostTypes, isLoading: loadingBoosts } = useQuery({
     queryKey: ['boostTypes'],
     queryFn: async () => {
       const response = await axios.get('/api/boosts/types');
@@ -58,7 +58,7 @@ export default function StorePage() {
   });
   
   // Get user servers
-  const { data: servers } = useQuery({
+  const { data: servers, isLoading: loadingServers } = useQuery({
     queryKey: ['servers'],
     queryFn: async () => {
       const response = await axios.get('/api/v5/servers');
@@ -85,8 +85,8 @@ export default function StorePage() {
       setSelectedBoostType(Object.keys(boostTypes)[0]);
     }
     
-    if (servers?.length > 0 && !selectedServer) {
-      setSelectedServer(servers[0].attributes.id);
+    if (Array.isArray(servers) && servers.length > 0 && !selectedServer) {
+      setSelectedServer(servers[0]?.attributes?.id || '');
     }
     
     if (boostTypes && selectedBoostType && !selectedDuration) {
@@ -215,9 +215,9 @@ export default function StorePage() {
       return;
     }
     
-    const selectedServerObj = servers.find(s => s.attributes.id === selectedServer);
-    const boostTypeObj = boostTypes[selectedBoostType];
-    const price = boostTypeObj.prices[selectedDuration];
+    const selectedServerObj = Array.isArray(servers) ? servers.find(s => s.attributes.id === selectedServer) : null;
+    const boostTypeObj = boostTypes?.[selectedBoostType];
+    const price = boostTypeObj?.prices?.[selectedDuration] || 0;
     
     if (isScheduled && (!scheduledTime || new Date(scheduledTime).getTime() <= Date.now())) {
       setError('Scheduled time must be in the future');
@@ -242,7 +242,7 @@ export default function StorePage() {
   const ResourceCard = ({ title, icon: Icon, type, description, pricePerUnit }) => {
     const [amount, setAmount] = useState(1);
     const totalPrice = amount * pricePerUnit;
-    const canAfford = storeConfig?.canAfford?.[type] && storeConfig.userBalance >= totalPrice;
+    const canAfford = storeConfig?.canAfford?.[type] && (storeConfig?.userBalance || 0) >= totalPrice;
     const resourceAmount = amount * (storeConfig?.multipliers?.[type] || 0);
     const maxAmount = storeConfig?.limits?.[type] || 10;
 
@@ -347,11 +347,41 @@ export default function StorePage() {
   };
 
   // Loading state
-  if (!storeConfig || (activeTab === 'boosts' && (!boostTypes || !servers))) {
+  const isActuallyLoading = loadingConfig || (activeTab === 'boosts' && (loadingBoosts || loadingServers));
+  const hasError = configError || storeConfig?.error || (activeTab === 'boosts' && (boostTypes?.error || servers?.error)) || (!loadingConfig && !storeConfig?.prices);
+
+  if (isActuallyLoading && !hasError) {
     return (
       <div className="p-6">
         <div className="flex items-center justify-center h-64">
           <RefreshCw className="w-8 h-8 animate-spin text-[#95a1ad]" />
+        </div>
+      </div>
+    );
+  }
+
+  if (hasError && !storeConfig?.prices) {
+    return (
+      <div className="p-6">
+        <div className="rounded-md border border-red-500/20 bg-red-500/10 text-red-500 p-4 flex items-start">
+          <AlertCircle className="w-5 h-5 mr-3 flex-shrink-0" />
+          <div>
+            <h3 className="font-medium">Error loading store</h3>
+            <p className="text-sm mt-1">
+              {configError?.response?.data?.message || 
+               configError?.response?.data?.error || 
+               configError?.message || 
+               storeConfig?.error || 
+               storeConfig?.message || 
+               "Failed to load store configuration. Please try again later."}
+            </p>
+            <button 
+              onClick={() => queryClient.invalidateQueries(['storeConfig'])}
+              className="mt-3 px-3 py-1 bg-red-500 text-white rounded text-xs font-medium hover:bg-red-600 transition"
+            >
+              Retry
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -368,7 +398,7 @@ export default function StorePage() {
         <div className="hidden flex items-center gap-4">
           <div className="py-2 px-4 border border-[#2e3337] rounded-md flex items-center">
             <Coins className="w-4 h-4 mr-2 text-[#95a1ad]" />
-            <span>{storeConfig.userBalance} coins</span>
+            <span>{storeConfig?.userBalance || 0} coins</span>
           </div>
         </div>
       </div>
@@ -425,28 +455,28 @@ export default function StorePage() {
               icon={MemoryStick}
               type="ram"
               description="Purchase additional RAM for your servers"
-              pricePerUnit={storeConfig.prices.resources.ram}
+              pricePerUnit={storeConfig?.prices?.resources?.ram || 0}
             />
             <ResourceCard
               title="Storage"
               icon={HardDrive}
               type="disk"
               description="Purchase additional storage space"
-              pricePerUnit={storeConfig.prices.resources.disk}
+              pricePerUnit={storeConfig?.prices?.resources?.disk || 0}
             />
             <ResourceCard
               title="CPU"
               icon={Cpu}
               type="cpu"
               description="Purchase additional CPU power"
-              pricePerUnit={storeConfig.prices.resources.cpu}
+              pricePerUnit={storeConfig?.prices?.resources?.cpu || 0}
             />
             <ResourceCard
               title="Server Slots"
               icon={Server}
               type="servers"
               description="Purchase additional server slots"
-              pricePerUnit={storeConfig.prices.resources.servers}
+              pricePerUnit={storeConfig?.prices?.resources?.servers || 0}
             />
           </div>
 
@@ -457,7 +487,7 @@ export default function StorePage() {
             <div className="p-4 space-y-2">
               <p className="text-sm text-[#95a1ad]">
                 Purchase additional resources for your servers using coins. Maximum limits per resource type: 
-                {Object.entries(storeConfig.limits).map(([type, limit]) => (
+                {storeConfig?.limits && Object.entries(storeConfig.limits).map(([type, limit]) => (
                   <span key={type} className="ml-1">
                     {type}: {limit},
                   </span>
@@ -480,7 +510,7 @@ export default function StorePage() {
                 </div>
                 <div className="p-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                    {boostTypes && Object.entries(boostTypes).map(([id, boostType]) => (
+                    {boostTypes && typeof boostTypes === 'object' && Object.entries(boostTypes).map(([id, boostType]) => (
                       <BoostCard 
                         key={id}
                         boostType={boostType}
@@ -505,7 +535,7 @@ export default function StorePage() {
                         onChange={(e) => setSelectedServer(e.target.value)}
                         className="w-full appearance-none bg-[#394047] focus:bg-[#394047]/50 border border-white/5 focus:border-white/5 focus:ring-1 focus:ring-white/20 rounded-md p-2 text-sm focus:outline-none transition-colors pr-10"
                       >
-                        {servers && servers.map(server => (
+                        {Array.isArray(servers) && servers.map(server => (
                           <option key={server.attributes.id} value={server.attributes.id}>
                             {server.attributes.name}
                           </option>
@@ -520,7 +550,7 @@ export default function StorePage() {
                   <div className="space-y-2">
                     <label className="text-sm text-[#95a1ad] block">Duration</label>
                     <div className="grid grid-cols-5 gap-2">
-                      {selectedBoostType && boostTypes && Object.keys(boostTypes[selectedBoostType].prices).map(duration => (
+                      {selectedBoostType && boostTypes?.[selectedBoostType]?.prices && Object.keys(boostTypes[selectedBoostType].prices).map(duration => (
                         <button
                           key={duration}
                           className={`py-2 rounded-md font-medium text-sm transition active:scale-95 ${
@@ -583,7 +613,7 @@ export default function StorePage() {
                         <div className="flex justify-between text-sm">
                           <span className="text-[#95a1ad]">Server:</span>
                           <span>
-                            {servers && selectedServer
+                            {Array.isArray(servers) && selectedServer
                               ? servers.find(s => s.attributes.id === selectedServer)?.attributes?.name || 'Unknown'
                               : 'Select a server'}
                           </span>
@@ -606,7 +636,7 @@ export default function StorePage() {
                           <span className="text-[#95a1ad]">Price:</span>
                           <span>
                             {selectedBoostType && selectedDuration
-                              ? `${boostTypes[selectedBoostType].prices[selectedDuration]} coins`
+                              ? `${boostTypes?.[selectedBoostType]?.prices?.[selectedDuration] || 0} coins`
                               : '0 coins'}
                           </span>
                         </div>
@@ -646,7 +676,7 @@ export default function StorePage() {
                       (isScheduled && (!scheduledTime || new Date(scheduledTime).getTime() <= Date.now())) ||
                       loading.boost ||
                       (selectedBoostType && selectedDuration && boostTypes && 
-                       storeConfig.userBalance < boostTypes[selectedBoostType].prices[selectedDuration])
+                       (storeConfig?.userBalance || 0) < boostTypes[selectedBoostType].prices[selectedDuration])
                         ? 'bg-white/20 text-white/60 cursor-not-allowed'
                         : 'bg-white text-black hover:bg-white/90'
                     }`}
@@ -655,7 +685,7 @@ export default function StorePage() {
                               (isScheduled && (!scheduledTime || new Date(scheduledTime).getTime() <= Date.now())) ||
                               loading.boost ||
                               (selectedBoostType && selectedDuration && boostTypes && 
-                               storeConfig.userBalance < boostTypes[selectedBoostType].prices[selectedDuration])}
+                               (storeConfig?.userBalance || 0) < boostTypes[selectedBoostType].prices[selectedDuration])}
                   >
                     {loading.boost ? (
                       <RefreshCw className="w-4 h-4 animate-spin mr-2" />
@@ -664,8 +694,8 @@ export default function StorePage() {
                     ) : (
                       <Zap className="w-4 h-4 mr-2" />
                     )}
-                    {!selectedBoostType || !selectedDuration || !boostTypes ? 'Select options' : 
-                     storeConfig.userBalance < boostTypes[selectedBoostType].prices[selectedDuration] ? 'Insufficient balance' :
+                    {!(boostTypes?.[selectedBoostType]?.prices?.[selectedDuration]) ? 'Select options' : 
+                      (storeConfig?.userBalance || 0) < boostTypes[selectedBoostType].prices[selectedDuration] ? 'Insufficient balance' :
                      isScheduled ? 'Schedule Boost' : 'Apply Boost Now'}
                   </button>
                 </div>
@@ -741,7 +771,7 @@ export default function StorePage() {
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-[#95a1ad]">Balance after purchase:</span>
-                    <span>{storeConfig.userBalance - (confirmDialog?.totalPrice || 0)} coins</span>
+                    <span>{(storeConfig?.userBalance || 0) - (confirmDialog?.totalPrice || 0)} coins</span>
                   </div>
                 </div>
               )}
@@ -772,7 +802,7 @@ export default function StorePage() {
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-[#95a1ad]">Balance after purchase:</span>
-                    <span>{storeConfig.userBalance - (confirmDialog?.price || 0)} coins</span>
+                    <span>{(storeConfig?.userBalance || 0) - (confirmDialog?.price || 0)} coins</span>
                   </div>
                   
                   <div className="pt-3 border-t border-[#2e3337] mt-2">

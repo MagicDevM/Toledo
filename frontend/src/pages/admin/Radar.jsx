@@ -320,7 +320,7 @@ export default function RadarPage() {
                     <TableCell><Skeleton className="h-6 w-24" /></TableCell>
                   </TableRow>
                 ))
-              ) : nodes?.length === 0 ? (
+              ) : !Array.isArray(nodes) || nodes.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={5} className="text-center text-neutral-500 py-8">
                     <div className="flex flex-col items-center gap-2">
@@ -337,7 +337,7 @@ export default function RadarPage() {
                   </TableCell>
                 </TableRow>
               ) : (
-                nodes?.map(node => (
+                Array.isArray(nodes) && nodes.map(node => (
                   <TableRow key={node.id}>
                     <TableCell>
                       <div>

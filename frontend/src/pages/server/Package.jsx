@@ -167,7 +167,7 @@ export default function ServerPackagePage() {
             {resources?.remaining?.ram === 0 && resources?.remaining?.disk === 0 && resources?.remaining?.cpu === 0 ? (
               <span>You've allocated all available resources. You can still reduce this server's resources if needed.</span>
             ) : (
-              <span>You have {resources?.remaining?.ram.toLocaleString()}MB RAM, {resources?.remaining?.disk.toLocaleString()}MB storage, and {resources?.remaining?.cpu}% CPU available to allocate.</span>
+              <span>You have {(resources?.remaining?.ram || 0).toLocaleString()}MB RAM, {(resources?.remaining?.disk || 0).toLocaleString()}MB storage, and {resources?.remaining?.cpu || 0}% CPU available to allocate.</span>
             )}
           </p>
         </div>

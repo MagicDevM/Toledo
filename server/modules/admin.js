@@ -1478,23 +1478,17 @@ module.exports.load = async function(app, db) {
 // Helper function to get Heliactyl Next user ID from Pterodactyl ID
 async function getgetHeliactylUserId(pterodactylId, db) {
   try {
-    console.log('Looking up Heliactyl Next ID for Pterodactyl ID:', pterodactylId);
-
     // Get all keys starting with users-
     const keys = await db.getAll();
-    console.log('Found database keys:', Object.keys(keys));
 
     // Look for the user mapping
     for (const [key, value] of Object.entries(keys)) {
-      console.log(`Checking key: ${key}, value: ${value}`);
       if (key.startsWith('users-') && value === parseInt(pterodactylId)) {
         const userId = key.replace('users-', '');
-        console.log('Found matching user ID:', userId);
         return userId;
       }
     }
 
-    console.log('No matching user found for Pterodactyl ID:', pterodactylId);
     return null;
   } catch (error) {
     console.error("Error getting Heliactyl Next user ID:", error);
@@ -1510,7 +1504,6 @@ app.get("/api/users/:id/coins", async (req, res) => {
 
   try {
     const pterodactylId = req.params.id;
-    console.log('Received request for Pterodactyl ID:', pterodactylId);
 
     // First check if this is already a Heliactyl Next user ID
     const directCheck = await db.get("users-" + pterodactylId);
@@ -1519,21 +1512,17 @@ app.get("/api/users/:id/coins", async (req, res) => {
     if (directCheck) {
       // The ID provided was a Heliactyl Next user ID
       userId = pterodactylId;
-      console.log('ID was already a Heliactyl Next user ID:', userId);
     } else {
       // Try to find the Heliactyl Next user ID from Pterodactyl ID
       userId = await getgetHeliactylUserId(pterodactylId, db);
-      console.log('Looked up Heliactyl Next user ID:', userId);
     }
 
     if (!userId) {
-      console.log('No user ID found for:', pterodactylId);
       return res.status(404).json({ error: "User not found" });
     }
 
     const coins = await db.get("coins-" + userId) || 0;
-    console.log('Retrieved coins for user:', userId, 'Coins:', coins);
-    res.json({ coins });
+    res.json({ coins: coins });
   } catch (error) {
     console.error("Error fetching user coins:", error);
     res.status(500).json({ error: "Internal server error" });
@@ -1557,15 +1546,12 @@ app.get("/api/users/:id/resources", async (req, res) => {
     if (directCheck) {
       // The ID provided was a Heliactyl Next user ID
       userId = pterodactylId;
-      console.log('ID was already a Heliactyl Next user ID:', userId);
     } else {
       // Try to find the Heliactyl Next user ID from Pterodactyl ID
       userId = await getgetHeliactylUserId(pterodactylId, db);
-      console.log('Looked up Heliactyl Next user ID:', userId);
     }
     
     if (!userId) {
-      console.log('No user ID found for:', pterodactylId);
       return res.status(404).json({ error: "User not found" });
     }
 
@@ -1576,7 +1562,6 @@ app.get("/api/users/:id/resources", async (req, res) => {
       servers: 0
     };
     
-    console.log('Retrieved resources for user:', userId, 'Resources:', resources);
     res.json(resources);
   } catch (error) {
     console.error("Error fetching user resources:", error);
@@ -1587,7 +1572,6 @@ app.get("/api/users/:id/resources", async (req, res) => {
 app.get("/api/users/:id/addcoins/:coins", async (req, res) => {
   try {
     const pterodactylId = req.params.id;
-    console.log('Received update coins request for Pterodactyl ID:', pterodactylId);
     
     // First check if this is already a Heliactyl Next user ID
     const directCheck = await db.get("users-" + pterodactylId);
@@ -1595,15 +1579,12 @@ app.get("/api/users/:id/addcoins/:coins", async (req, res) => {
     if (directCheck) {
       // The ID provided was a Heliactyl Next user ID
       userId = pterodactylId;
-      console.log('ID was already a Heliactyl Next user ID:', userId);
     } else {
       // Try to find the Heliactyl Next user ID from Pterodactyl ID
       userId = await getgetHeliactylUserId(pterodactylId, db);
-      console.log('Looked up Heliactyl Next user ID:', userId);
     }
     
     if (!userId) {
-      console.log('No user ID found for:', pterodactylId);
       return res.status(404).json({ error: "User not found" });
     }
 
@@ -1621,7 +1602,6 @@ app.get("/api/users/:id/addcoins/:coins", async (req, res) => {
       await db.set("coins-" + userId, current + coins);
     }
     
-    console.log('Updated coins for user:', userId, 'New amount:', current + coins);
     res.json({ success: true, coins: current + coins });
   } catch (error) {
     console.error("Error updating user coins:", error);
@@ -1646,15 +1626,12 @@ app.patch("/api/users/:id/coins", async (req, res) => {
     if (directCheck) {
       // The ID provided was a Heliactyl Next user ID
       userId = pterodactylId;
-      console.log('ID was already a Heliactyl Next user ID:', userId);
     } else {
       // Try to find the Heliactyl Next user ID from Pterodactyl ID
       userId = await getgetHeliactylUserId(pterodactylId, db);
-      console.log('Looked up Heliactyl Next user ID:', userId);
     }
     
     if (!userId) {
-      console.log('No user ID found for:', pterodactylId);
       return res.status(404).json({ error: "User not found" });
     }
 
@@ -1669,8 +1646,6 @@ app.patch("/api/users/:id/coins", async (req, res) => {
     } else {
       await db.set("coins-" + userId, coins);
     }
-
-    console.log('Updated coins for user:', userId, 'New amount:', coins);
 
     log(
       "coins updated",
@@ -1701,15 +1676,12 @@ app.patch("/api/users/:id/resources", async (req, res) => {
     if (directCheck) {
       // The ID provided was a Heliactyl Next user ID
       userId = pterodactylId;
-      console.log('ID was already a Heliactyl Next user ID:', userId);
     } else {
       // Try to find the Heliactyl Next user ID from Pterodactyl ID
       userId = await getgetHeliactylUserId(pterodactylId, db);
-      console.log('Looked up Heliactyl Next user ID:', userId);
     }
     
     if (!userId) {
-      console.log('No user ID found for:', pterodactylId);
       return res.status(404).json({ error: "User not found" });
     }
 
@@ -1734,8 +1706,6 @@ app.patch("/api/users/:id/resources", async (req, res) => {
     } else {
       await db.set("extra-" + userId, resources);
     }
-
-    console.log('Updated resources for user:', userId, 'New resources:', resources);
 
     // Handle server suspension
     await suspendIfNeeded(userId, settings, db);

@@ -94,7 +94,6 @@ export default function PlayersPage() {
     try {
       // First get the server info from your API
       const { data: serverInfo } = await axios.get(`/api/server/${id}`);
-      console.log('Server Info:', serverInfo);
       
       // Then query mcsrvstat.us API
       const { data: status } = await axios.get(`https://api.mcsrvstat.us/3/${serverInfo?.attributes.relationships?.allocations?.data?.[0]?.attributes?.ip_alias}:${serverInfo?.attributes.relationships?.allocations?.data?.[0]?.attributes?.port}`);

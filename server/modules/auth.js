@@ -70,7 +70,6 @@ async function createPterodactylAccount(username, email) {
       const newUsername = sanitizedUsername + suffix;
       const [emailName, emailDomain] = email.split('@');
       const newEmail = emailName + suffix + '@' + emailDomain;
-      console.log(`Username/email exists, trying ${newUsername} / ${newEmail}`);
       return createPterodactylAccount(newUsername, newEmail);
     }
     console.error('Full error:', error.response || error);

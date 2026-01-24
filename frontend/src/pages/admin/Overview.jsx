@@ -136,7 +136,7 @@ function SystemStats() {
                   {isLoading ? (
                     <div className="h-8 w-16 bg-neutral-800 animate-pulse rounded" />
                   ) : (
-                    stat.value.toLocaleString()
+                    {(stat.value || 0).toLocaleString()}
                   )}
                 </p>
               </div>
@@ -252,7 +252,7 @@ function BackupsDialog({ isOpen, onClose }) {
                   </TableRow>
                 ) : (
                   <>
-                    {backups?.map((backup) => (
+                    {Array.isArray(backups) && backups.map((backup) => (
                       <TableRow key={backup.name}>
                         <TableCell>{formatDate(backup.timestamp)}</TableCell>
                         <TableCell className="font-mono text-sm">{backup.name}</TableCell>

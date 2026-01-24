@@ -127,15 +127,6 @@ module.exports.load = async function(app, db) {
 
 // Helper function to update password
 async function updatePassword(userInfo, newPassword, settings, db) {
-  console.log("Updating password for user", userInfo.username);
-  console.log("New password:", newPassword);
-  console.log(JSON.stringify({ 
-    username: userInfo.username,
-    email: userInfo.email,
-    first_name: userInfo.first_name,
-    last_name: userInfo.last_name,
-    password: newPassword
-  }))
   await fetch(
     `${settings.pterodactyl.domain}/api/application/users/${userInfo.id}`,
     {

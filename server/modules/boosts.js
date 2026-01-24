@@ -971,8 +971,6 @@ module.exports.load = function(app, db) {
       const dueBoosts = scheduledBoosts.filter(boost => boost.scheduledTime <= now);
       
       if (dueBoosts.length > 0) {
-        console.log(`[BOOST] Processing ${dueBoosts.length} scheduled boosts`);
-        
         // Remove due boosts from the scheduled list
         const updatedScheduledBoosts = scheduledBoosts.filter(boost => boost.scheduledTime > now);
         await db.set("scheduled-boosts", updatedScheduledBoosts);
