@@ -175,7 +175,7 @@ const MainLayout = () => {
     { icon: CircleStackIcon, label: 'Store', path: '/coins/store' },
     { icon: GiftIcon, label: 'Daily rewards', path: '/coins/daily' },
     { icon: BoltIcon, label: 'Boosts', path: '/boosts' },
-    { icon: ArrowTrendingUpIcon, label: 'Staking', path: '/coins/staking' }
+    { icon: ArrowTrendingUpIcon, label: 'Saving', path: '/wallet?tab=saving' }
   ];
 
   const serverNavItems = [
@@ -206,12 +206,11 @@ const MainLayout = () => {
   // Initial data loading
   useEffect(() => {
     const fetchData = async () => {
+      // Fetch user and coins first/independently to ensure UI loads even if servers fail
       try {
-        const [coinsResponse, userResponse, serversResponse, subuserServersResponse, adminResponse] = await Promise.all([
-          axios.get('/api/coins'),
-          axios.get('/api/user'),
-          axios.get('/api/v5/servers'),
-          axios.get('/api/subuser-servers'),
+        const [coinsResponse, userResponse, adminResponse] = await Promise.all([
+          axios.get('/api/coins').catch(() => ({ data: { coins: 0 } })),
+          axios.get('/api/user').catch(() => ({ data: { username: 'User', email: '...', global_name: 'User' } })),
           axios.get('/api/admin').catch(() => ({ data: { admin: false } }))
         ]);
 
@@ -219,14 +218,25 @@ const MainLayout = () => {
         setUserData({
           username: userResponse.data.username || 'User',
           id: userResponse.data.id || '00000',
-          email: userResponse.data.email || '',
+          email: userResponse.data.email || '...',
           global_name: userResponse.data.global_name || userResponse.data.username || 'User'
         });
-        setServers(serversResponse.data || []);
-        setSubuserServers(subuserServersResponse.data || []);
         setIsAdmin(adminResponse.data.admin || false);
       } catch (error) {
-        console.error('Error fetching data:', error);
+        console.error('Error fetching user data:', error);
+      }
+
+      // Fetch servers separately
+      try {
+        const [serversResponse, subuserServersResponse] = await Promise.all([
+          axios.get('/api/v5/servers'),
+          axios.get('/api/subuser-servers')
+        ]);
+        setServers(serversResponse.data || []);
+        setSubuserServers(subuserServersResponse.data || []);
+      } catch (error) {
+        console.error('Error fetching servers:', error);
+        // Don't block UI if servers fail
       }
     };
 
@@ -371,14 +381,14 @@ const MainLayout = () => {
                   </div>
                   <div className="flex items-center gap-2">
                     <Link
-                      to="/wallet"
+                      to="/wallet?action=send"
                       className="flex-1 flex items-center justify-center gap-1 text-[0.65rem] rounded-l-lg rounded-r font-medium bg-[#202229]/70 hover:bg-[#202229] text-white py-1.5 px-2 transition-all duration-200 active:scale-95"
                     >
                       <PaperAirplaneIcon className="w-3 h-3 mr-0.5 text-white/70" />
                       Send
                     </Link>
                     <Link
-                      to="/wallet"
+                      to="/wallet?action=receive"
                       className="flex-1 flex items-center justify-center gap-1 text-[0.65rem] rounded-r-lg rounded-l font-medium bg-[#202229]/70 hover:bg-[#202229] text-white py-1.5 px-2 transition-all duration-200 active:scale-95"
                     >
                       <ArrowDownLeftIcon className="w-3 h-3 mr-0.5 text-white/70" />
@@ -398,7 +408,7 @@ const MainLayout = () => {
                       className="flex items-center gap-1 text-sm font-medium hover:text-white transition-all duration-200 active:scale-95"
                       onClick={() => setUserDropdownOpen(!userDropdownOpen)}
                     >
-                      <span className="truncate max-w-[120px]">{(userData.global_name).trim(4)}</span>
+                      <span className="truncate max-w-[120px]">{userData.global_name}</span>
                     </button>
                     <span className="text-[0.55rem] uppercase max-w-[120px] truncate tracking-widest text-white/30 leading-none mt-0.3">
                       {userData.email}

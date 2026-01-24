@@ -18,7 +18,7 @@ import {
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 
-export default function StakingPage() {
+export default function StakingPage({ embedded = false }) {
   const queryClient = useQueryClient();
   // Initialize all state variables with proper defaults
   const [selectedPlan, setSelectedPlan] = useState('');
@@ -254,20 +254,22 @@ export default function StakingPage() {
   const claimedStakes = Array.isArray(stakes) ? stakes.filter(stake => stake.status === 'claimed') : [];
 
   return (
-    <div className="space-y-6 p-6 max-w-screen-2xl mx-auto">
-      {/* Header section */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">Staking</h1>
-          <p className="text-[#95a1ad]">Stake your coins and earn high APY rewards over time</p>
-        </div>
-        <div className="flex items-center gap-4 hidden">
-          <div className="py-2 px-4 border border-[#2e3337] rounded-md flex items-center">
-            <Wallet className="w-4 h-4 mr-2 text-[#95a1ad]" />
-            <span>{(summary?.availableBalance || 0).toLocaleString()} coins</span>
+    <div className={`space-y-6 ${embedded ? '' : 'p-6 max-w-screen-2xl mx-auto'}`}>
+      {/* Header section - only show if not embedded */}
+      {!embedded && (
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-semibold">Staking</h1>
+            <p className="text-[#95a1ad]">Stake your coins and earn high APY rewards over time</p>
+          </div>
+          <div className="flex items-center gap-4 hidden">
+            <div className="py-2 px-4 border border-[#2e3337] rounded-md flex items-center">
+              <Wallet className="w-4 h-4 mr-2 text-[#95a1ad]" />
+              <span>{(summary?.availableBalance || 0).toLocaleString()} coins</span>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Alert messages */}
       {error && (
@@ -338,11 +340,11 @@ export default function StakingPage() {
         <div className="lg:col-span-1 space-y-6">
           <div className="border border-[#2e3337] rounded-lg bg-transparent">
             <div className="p-4 pb-3 border-b border-[#2e3337]">
-              <h3 className="font-normal text-lg">Start staking</h3>
+              <h3 className="font-normal text-lg">Start saving</h3>
             </div>
             <div className="p-4 space-y-4">
               <div className="space-y-2">
-                <label className="text-sm text-[#95a1ad] block">Staking Plan</label>
+                <label className="text-sm text-[#95a1ad] block">Saving Plan</label>
                 <div className="relative">
                   <select
                     value={selectedPlan}
@@ -371,7 +373,7 @@ export default function StakingPage() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm text-[#95a1ad] block">Amount to Stake</label>
+                <label className="text-sm text-[#95a1ad] block">Amount to Save</label>
                 <input
                   type="number"
                   placeholder="Enter amount"
@@ -453,7 +455,7 @@ export default function StakingPage() {
                 ) : (
                   <CoinsIcon className="w-4 h-4 mr-2" />
                 )}
-                Stake Coins
+                Save Coins
               </button>
             </div>
           </div>
@@ -462,14 +464,14 @@ export default function StakingPage() {
             <div className="p-4 pb-3 border-b border-[#2e3337]">
               <div className="flex items-center gap-2">
                 <HelpCircle className="w-4 h-4 text-[#95a1ad]" />
-                <h3 className="font-normal text-sm">How staking works</h3>
+                <h3 className="font-normal text-sm">How saving works</h3>
               </div>
             </div>
             <div className="p-4 space-y-4">
               <div className="text-sm text-[#95a1ad] space-y-3">
-                <p>1. Choose a staking plan based on your preferred duration and APY.</p>
-                <p>2. Stake your coins to start earning rewards immediately.</p>
-                <p>3. Rewards are calculated and added daily to your stake.</p>
+                <p>1. Choose a saving plan based on your preferred duration and APY.</p>
+                <p>2. Save your coins to start earning rewards immediately.</p>
+                <p>3. Rewards are calculated and added daily to your savings.</p>
                 <p>4. Claim your original amount plus rewards at any time.</p>
                 <p>5. Early withdrawal may incur a penalty fee based on the plan.</p>
               </div>
@@ -490,7 +492,7 @@ export default function StakingPage() {
                     }`}
                 >
                   <CoinsIcon className="w-4 h-4" />
-                  Active Stakes
+                  Active Savings
                 </button>
                 <button
                   onClick={() => setActiveTab('history')}
@@ -698,12 +700,12 @@ export default function StakingPage() {
           >
             <div className="mb-4">
               <h2 className="text-lg font-medium">
-                {confirmDialog?.type === 'stake' ? 'Confirm Staking' : 'Confirm Claim'}
+                {confirmDialog?.type === 'stake' ? 'Confirm Saving' : 'Confirm Claim'}
               </h2>
               <p className="text-[#95a1ad] mt-1">
                 {confirmDialog?.type === 'stake'
-                  ? 'Are you sure you want to stake your coins?'
-                  : 'Are you sure you want to claim this stake?'}
+                  ? 'Are you sure you want to save your coins?'
+                  : 'Are you sure you want to claim this savings?'}
               </p>
             </div>
 
@@ -711,7 +713,7 @@ export default function StakingPage() {
               {confirmDialog?.type === 'stake' && (
                 <div className="space-y-3">
                   <div className="flex justify-between text-sm">
-                    <span className="text-[#95a1ad]">Staking Plan:</span>
+                    <span className="text-[#95a1ad]">Saving Plan:</span>
                     <span>{confirmDialog.plan?.name}</span>
                   </div>
                   <div className="flex justify-between text-sm">
@@ -742,7 +744,7 @@ export default function StakingPage() {
               {confirmDialog?.type === 'claim' && (
                 <div className="space-y-3">
                   <div className="flex justify-between text-sm">
-                    <span className="text-[#95a1ad]">Staking Plan:</span>
+                    <span className="text-[#95a1ad]">Saving Plan:</span>
                     <span>{confirmDialog.stake?.planDetails?.name}</span>
                   </div>
                   <div className="flex justify-between text-sm">
@@ -784,7 +786,7 @@ export default function StakingPage() {
                 ) : (
                   <Check className="w-4 h-4" />
                 )}
-                Confirm {confirmDialog?.type === 'stake' ? 'Stake' : 'Claim'}
+                Confirm {confirmDialog?.type === 'stake' ? 'Save' : 'Claim'}
               </button>
             </div>
           </div>

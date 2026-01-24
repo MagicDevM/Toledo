@@ -1,0 +1,565 @@
+import React, { useState, useEffect } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import axios from 'axios';
+import { useLocation } from 'react-router-dom';
+import {
+  Wallet,
+  Coins,
+  History,
+  Plus,
+  AlertCircle,
+  Check,
+  RefreshCw,
+  Trophy,
+  PiggyBank,
+  LayoutDashboard,
+  Activity,
+  Send,
+  ArrowDownLeft,
+  FileText,
+  Download
+} from 'lucide-react';
+import StakingPage from './Staking';
+import { Input } from "@/components/ui/input"; // Assuming you have these or use standard inputs
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+
+export default function WalletPage() {
+  const queryClient = useQueryClient();
+  const location = useLocation();
+  const [activeTab, setActiveTab] = useState('overview');
+  const [amount, setAmount] = useState('');
+  const [loading, setLoading] = useState({ checkout: false, purchase: false, transfer: false });
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+
+  // Transfer State
+  const [isSendOpen, setIsSendOpen] = useState(false);
+  const [isReceiveOpen, setIsReceiveOpen] = useState(false);
+  const [recipientId, setRecipientId] = useState('');
+  const [transferAmount, setTransferAmount] = useState('');
+
+  // Fetch user info for Receive ID
+  const { data: userInfo } = useQuery({
+    queryKey: ['user'],
+    queryFn: async () => {
+      const response = await axios.get('/api/user');
+      return response.data;
+    }
+  });
+
+  // Handle query param for tab selection
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const tab = params.get('tab');
+    const action = params.get('action');
+
+    if (tab && ['overview', 'saving', 'activity', 'invoices', 'leaderboards'].includes(tab)) {
+      setActiveTab(tab);
+    }
+
+    // Handle actions from sidebar
+    if (action === 'send') {
+      setActiveTab('overview');
+      setIsSendOpen(true);
+    } else if (action === 'receive') {
+      setActiveTab('overview');
+      setIsReceiveOpen(true);
+    }
+  }, [location.search]);
+
+  // Fetch billing info
+  const { data: billingInfo, isLoading: loadingInfo } = useQuery({
+    queryKey: ['billingInfo'],
+    queryFn: async () => {
+      const response = await axios.get('/api/v5/billing/info');
+      return response.data;
+    }
+  });
+
+  // Fetch transactions
+  const { data: transactions, isLoading: loadingTxns } = useQuery({
+    queryKey: ['transactions'],
+    queryFn: async () => {
+      const response = await axios.get('/api/v5/billing/transactions');
+      return response.data;
+    }
+  });
+
+  // Fetch invoices
+  const { data: invoices, isLoading: loadingInvoices } = useQuery({
+    queryKey: ['invoices'],
+    queryFn: async () => {
+      const response = await axios.get('/api/v5/billing/invoices');
+      return response.data;
+    },
+    enabled: activeTab === 'invoices'
+  });
+
+  const handleTopUp = async () => {
+    try {
+      if (!amount || parseFloat(amount) < 1) {
+        setError('Minimum top-up amount is $1.00');
+        return;
+      }
+
+      setLoading(prev => ({ ...prev, checkout: true }));
+      setError('');
+      
+      const response = await axios.post('/api/v5/billing/checkout', {
+        amount_usd: parseFloat(amount)
+      });
+
+      if (response.data.url) {
+        window.location.href = response.data.url;
+      } else {
+        setError('Failed to initiate checkout: No redirect URL provided');
+      }
+    } catch (err) {
+      setError(err.response?.data?.error || 'Failed to initiate checkout');
+    } finally {
+      setLoading(prev => ({ ...prev, checkout: false }));
+    }
+  };
+  
+  const handlePurchaseCoins = async (packageId) => {
+    try {
+      setLoading(prev => ({ ...prev, purchase: true }));
+      setError('');
+      setSuccess('');
+
+      await axios.post('/api/v5/billing/purchase-coins', {
+        package_id: packageId
+      });
+
+      setSuccess('Coins purchased successfully!');
+      queryClient.invalidateQueries(['billingInfo']);
+      queryClient.invalidateQueries(['transactions']);
+      queryClient.invalidateQueries(['storeConfig']); // Update header balance
+    } catch (err) {
+      setError(err.response?.data?.error || 'Failed to purchase coins');
+    } finally {
+      setLoading(prev => ({ ...prev, purchase: false }));
+    }
+  };
+
+  const handleTransfer = async () => {
+    try {
+      if (!recipientId || !transferAmount || parseInt(transferAmount) <= 0) {
+        setError('Please enter a valid recipient ID and amount');
+        return;
+      }
+
+      setLoading(prev => ({ ...prev, transfer: true }));
+      setError('');
+      
+      await axios.post('/api/v5/billing/transfer-coins', {
+        recipientEmail: recipientId, // Using ID as email field for now based on backend logic
+        amount: parseInt(transferAmount)
+      });
+
+      setSuccess(`Successfully sent ${transferAmount} coins to ${recipientId}`);
+      setIsSendOpen(false);
+      setRecipientId('');
+      setTransferAmount('');
+      queryClient.invalidateQueries(['billingInfo']);
+      queryClient.invalidateQueries(['transactions']);
+    } catch (err) {
+      setError(err.response?.data?.error || 'Failed to transfer coins');
+    } finally {
+      setLoading(prev => ({ ...prev, transfer: false }));
+    }
+  };
+
+  const tabs = [
+    { id: 'overview', label: 'Overview', icon: LayoutDashboard },
+    { id: 'saving', label: 'Saving', icon: PiggyBank },
+    { id: 'activity', label: 'Activity', icon: Activity },
+    { id: 'invoices', label: 'Invoices', icon: FileText },
+    { id: 'leaderboards', label: 'Leaderboards', icon: Trophy },
+  ];
+
+  return (
+    <div className="space-y-6 p-6 max-w-screen-2xl mx-auto">
+      {/* Header section */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold">Wallet</h1>
+          <p className="text-[#95a1ad]">Manage your credits, savings and activity</p>
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <div className="border-b border-[#2e3337]">
+        <div className="flex space-x-2">
+          {tabs.map((tab) => {
+            const Icon = tab.icon;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center gap-2 px-4 py-2 border-b-2 font-medium transition ${
+                  activeTab === tab.id
+                    ? 'border-white text-white'
+                    : 'border-transparent text-[#95a1ad] hover:text-white hover:border-white/20'
+                }`}
+              >
+                <Icon className="w-4 h-4" />
+                {tab.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {error && (
+        <div className="rounded-md border border-red-500/20 bg-red-500/10 text-red-500 p-3 flex items-start">
+          <AlertCircle className="w-4 h-4 mt-0.5 mr-2 flex-shrink-0" />
+          <span className="text-sm">{error}</span>
+        </div>
+      )}
+
+      {success && (
+        <div className="rounded-md border border-green-500/20 bg-green-500/10 text-green-500 p-3 flex items-start">
+          <Check className="w-4 h-4 mt-0.5 mr-2 flex-shrink-0" />
+          <span className="text-sm">{success}</span>
+        </div>
+      )}
+
+      {/* Content */}
+      {activeTab === 'overview' && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Coin Balance Card - New */}
+          <div className="border border-[#2e3337] rounded-lg bg-transparent">
+            <div className="p-4 pb-3 border-b border-[#2e3337]">
+              <div className="flex items-center gap-2">
+                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-[#202229] border border-white/5">
+                  <Coins className="w-4 h-4 text-[#95a1ad]" />
+                </div>
+                <h3 className="font-normal text-sm">Coin Balance</h3>
+              </div>
+            </div>
+            <div className="p-4">
+              <div className="text-3xl font-bold text-white mb-4">
+                {(billingInfo?.balances?.coins || 0).toLocaleString()} <span className="text-sm text-[#95a1ad] font-normal">coins</span>
+              </div>
+              <div className="flex gap-2">
+                <button 
+                  onClick={() => setIsSendOpen(true)}
+                  className="flex-1 py-2 px-3 bg-white text-black hover:bg-white/90 rounded-md font-medium text-sm transition active:scale-95 flex items-center justify-center gap-2"
+                >
+                  <Send className="w-4 h-4" />
+                  Send
+                </button>
+                <button 
+                  onClick={() => setIsReceiveOpen(true)}
+                  className="flex-1 py-2 px-3 bg-[#202229] text-white hover:bg-[#202229]/80 border border-white/10 rounded-md font-medium text-sm transition active:scale-95 flex items-center justify-center gap-2"
+                >
+                  <ArrowDownLeft className="w-4 h-4" />
+                  Receive
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Balance Card */}
+          <div className="border border-[#2e3337] rounded-lg bg-transparent">
+            <div className="p-4 pb-3 border-b border-[#2e3337]">
+              <div className="flex items-center gap-2">
+                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-[#202229] border border-white/5">
+                  <Wallet className="w-4 h-4 text-[#95a1ad]" />
+                </div>
+                <h3 className="font-normal text-sm">Credit Balance</h3>
+              </div>
+            </div>
+            <div className="p-4">
+              <div className="text-3xl font-bold text-white mb-4">
+                ${billingInfo?.balances?.credit_usd?.toFixed(2) || '0.00'}
+              </div>
+              <div className="space-y-3">
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#95a1ad]">$</span>
+                    <input
+                      type="number"
+                      min="1"
+                      step="0.01"
+                      placeholder="0.00"
+                      value={amount}
+                      onChange={(e) => setAmount(e.target.value)}
+                      className="w-full pl-6 bg-[#394047] focus:bg-[#394047]/50 border border-white/5 focus:border-white/5 focus:ring-1 focus:ring-white/20 rounded-md py-2 text-sm focus:outline-none transition-colors text-white placeholder-white/30"
+                    />
+                  </div>
+                  <button 
+                    onClick={handleTopUp}
+                    disabled={loading.checkout || !amount}
+                    className="px-4 py-2 bg-white text-black hover:bg-white/90 rounded-md font-medium text-sm transition active:scale-95 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {loading.checkout ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+                    Add Funds
+                  </button>
+                </div>
+                <p className="text-xs text-[#95a1ad]">
+                  Payments are processed securely via Stripe.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Coin Exchange Card */}
+          <div className="border border-[#2e3337] rounded-lg bg-transparent lg:col-span-1">
+            <div className="p-4 pb-3 border-b border-[#2e3337]">
+              <div className="flex items-center gap-2">
+                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-[#202229] border border-white/5">
+                  <RefreshCw className="w-4 h-4 text-[#95a1ad]" />
+                </div>
+                <div>
+                  <h3 className="font-normal text-sm">Purchase Coins</h3>
+                </div>
+              </div>
+            </div>
+            <div className="p-4">
+              <div className="grid grid-cols-1 gap-3">
+                {billingInfo?.coin_packages?.slice(0, 3).map((pkg) => (
+                  <button
+                    key={pkg.amount}
+                    onClick={() => handlePurchaseCoins(pkg.amount)}
+                    disabled={loading.purchase || (billingInfo?.balances?.credit_usd < pkg.price_usd)}
+                    className={`
+                      relative group flex items-center justify-between p-3 rounded-lg border transition-all
+                      ${(billingInfo?.balances?.credit_usd >= pkg.price_usd)
+                        ? 'border-[#2e3337] hover:bg-[#202229]/50 hover:border-white/20 cursor-pointer active:scale-95' 
+                        : 'border-[#2e3337] opacity-50 cursor-not-allowed bg-[#202229]/20'}
+                    `}
+                  >
+                    <span className="font-medium text-white">{pkg.amount} Coins</span>
+                    <span className="text-xs px-2 py-1 rounded bg-[#202229] text-white border border-white/10">
+                      ${pkg.price_usd}
+                    </span>
+                  </button>
+                ))}
+                <button 
+                  onClick={() => window.location.href = '/coins/store'}
+                  className="w-full py-2 text-xs text-[#95a1ad] hover:text-white transition-colors text-center"
+                >
+                  View all packages
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'saving' && (
+        <StakingPage embedded={true} />
+      )}
+
+      {activeTab === 'activity' && (
+        <div className="border border-[#2e3337] rounded-lg bg-transparent">
+          <div className="p-4 pb-3 border-b border-[#2e3337]">
+            <div className="flex items-center gap-2">
+              <div className="flex items-center justify-center w-8 h-8 rounded-full bg-[#202229] border border-white/5">
+                <History className="w-4 h-4 text-[#95a1ad]" />
+              </div>
+              <h3 className="font-normal text-sm">Transaction History</h3>
+            </div>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm text-left">
+              <thead className="text-[#95a1ad] bg-[#202229]/50 border-b border-[#2e3337]">
+                <tr>
+                  <th className="px-4 py-3 font-medium">Date</th>
+                  <th className="px-4 py-3 font-medium">Type</th>
+                  <th className="px-4 py-3 font-medium">Details</th>
+                  <th className="px-4 py-3 font-medium text-right">Amount</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#2e3337]">
+                {transactions?.transactions?.length > 0 ? (
+                  transactions.transactions.map((txn) => (
+                    <tr key={txn.id} className="hover:bg-[#202229]/30 transition-colors">
+                      <td className="px-4 py-3 font-mono text-xs text-white/70">
+                        {new Date(txn.timestamp).toLocaleDateString()}
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-[#202229] text-white border border-white/10 capitalize">
+                          {txn.type.replace('_', ' ')}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-[#95a1ad]">
+                        {txn.type === 'credit_purchase' ? 'Stripe Top-up' : 
+                         txn.type === 'coin_purchase' ? `${txn.details.package_amount} Coins` :
+                         txn.type === 'credit_spend' ? txn.details.description :
+                         txn.type === 'transfer_sent' ? `Sent to ${txn.details.to}` :
+                         txn.type === 'transfer_received' ? `Received from ${txn.details.from}` :
+                         JSON.stringify(txn.details)}
+                      </td>
+                      <td className={`px-4 py-3 text-right font-medium ${
+                        ['credit_purchase', 'transfer_received', 'coin_purchase'].includes(txn.type) ? 'text-emerald-400' : 'text-red-400'
+                      }`}>
+                        {['credit_purchase', 'transfer_received', 'coin_purchase'].includes(txn.type) ? '+' : '-'}
+                        {['credit_purchase', 'bundle_purchase', 'credit_spend'].includes(txn.type) ? '$' : ''}
+                        {txn.amount}
+                        {['coin_purchase', 'transfer_sent', 'transfer_received'].includes(txn.type) ? ' Coins' : ''}
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={4} className="px-4 py-8 text-center text-[#95a1ad]">
+                      No transactions found
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'invoices' && (
+        <div className="border border-[#2e3337] rounded-lg bg-transparent">
+          <div className="p-4 pb-3 border-b border-[#2e3337]">
+            <div className="flex items-center gap-2">
+              <div className="flex items-center justify-center w-8 h-8 rounded-full bg-[#202229] border border-white/5">
+                <FileText className="w-4 h-4 text-[#95a1ad]" />
+              </div>
+              <h3 className="font-normal text-sm">Invoices</h3>
+            </div>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm text-left">
+              <thead className="text-[#95a1ad] bg-[#202229]/50 border-b border-[#2e3337]">
+                <tr>
+                  <th className="px-4 py-3 font-medium">Date</th>
+                  <th className="px-4 py-3 font-medium">Invoice ID</th>
+                  <th className="px-4 py-3 font-medium text-right">Amount</th>
+                  <th className="px-4 py-3 font-medium text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#2e3337]">
+                {invoices?.invoices?.length > 0 ? (
+                  invoices.invoices.map((inv) => (
+                    <tr key={inv.id} className="hover:bg-[#202229]/30 transition-colors">
+                      <td className="px-4 py-3 font-mono text-xs text-white/70">
+                        {new Date(inv.date).toLocaleDateString()}
+                      </td>
+                      <td className="px-4 py-3 font-mono text-xs text-[#95a1ad]">
+                        {inv.id}
+                      </td>
+                      <td className="px-4 py-3 text-right font-medium text-white">
+                        ${inv.amount.toFixed(2)}
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 text-[#95a1ad] hover:text-white"
+                          onClick={() => window.open(inv.url, '_blank')}
+                        >
+                          <Download className="w-4 h-4 mr-2" />
+                          View
+                        </Button>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={4} className="px-4 py-8 text-center text-[#95a1ad]">
+                      No invoices found
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'leaderboards' && (
+        <div className="flex flex-col items-center justify-center py-24 border border-[#2e3337] rounded-lg bg-transparent border-dashed">
+          <Trophy className="w-16 h-16 text-[#2e3337] mb-4" />
+          <h3 className="text-lg font-medium text-white">Leaderboards</h3>
+          <p className="text-[#95a1ad] mt-2">Coming soon to Heliactyl Next</p>
+        </div>
+      )}
+
+      {/* Send Dialog */}
+      <Dialog open={isSendOpen} onOpenChange={setIsSendOpen}>
+        <DialogContent className="bg-[#202229] border border-white/5 text-white sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Send Coins</DialogTitle>
+            <DialogDescription className="text-[#95a1ad]">
+              Transfer coins to another user immediately.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-[#95a1ad]">Recipient ID</label>
+              <input
+                placeholder="Enter user ID"
+                value={recipientId}
+                onChange={(e) => setRecipientId(e.target.value)}
+                className="w-full bg-[#394047] focus:bg-[#394047]/50 border border-white/5 focus:border-white/5 focus:ring-1 focus:ring-white/20 rounded-md p-2 text-sm focus:outline-none transition-colors text-white placeholder-white/30"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-[#95a1ad]">Amount</label>
+              <input
+                type="number"
+                placeholder="Amount to send"
+                value={transferAmount}
+                onChange={(e) => setTransferAmount(e.target.value)}
+                className="w-full bg-[#394047] focus:bg-[#394047]/50 border border-white/5 focus:border-white/5 focus:ring-1 focus:ring-white/20 rounded-md p-2 text-sm focus:outline-none transition-colors text-white placeholder-white/30"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setIsSendOpen(false)} className="text-[#95a1ad] hover:text-white hover:bg-white/5">Cancel</Button>
+            <Button 
+              onClick={handleTransfer} 
+              disabled={loading.transfer || !recipientId || !transferAmount}
+              className="bg-white text-black hover:bg-white/90"
+            >
+              {loading.transfer ? <RefreshCw className="w-4 h-4 animate-spin mr-2" /> : <Send className="w-4 h-4 mr-2" />}
+              Send Coins
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Receive Dialog */}
+      <Dialog open={isReceiveOpen} onOpenChange={setIsReceiveOpen}>
+        <DialogContent className="bg-[#202229] border border-white/5 text-white sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Receive Coins</DialogTitle>
+            <DialogDescription className="text-[#95a1ad]">
+              Share your User ID with others to receive coins.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col items-center justify-center py-6 space-y-4">
+            <div className="p-4 bg-[#1a1c1e] rounded-lg border border-dashed border-[#2e3337] w-full text-center">
+              <p className="text-xs text-[#95a1ad] mb-1">Your User ID</p>
+              <p className="text-2xl font-mono font-bold tracking-wider select-all">{userInfo?.id || 'Loading...'}</p>
+            </div>
+            <p className="text-xs text-[#95a1ad] text-center max-w-xs">
+              Transactions are irreversible. Only share this ID with trusted users.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setIsReceiveOpen(false)} className="w-full bg-white text-black hover:bg-white/90">
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}

@@ -1,3 +1,5 @@
+// Update server/modules/billing.js to include coin transfer endpoint
+
 const express = require('express');
 const Stripe = require('stripe');
 const loadConfig = require('../handlers/config');
@@ -114,6 +116,13 @@ class BillingManager {
     return currentCoins + amount;
   }
 
+  async removeCoins(userId, amount) {
+    const currentCoins = await this.getCoinBalance(userId);
+    if (currentCoins < amount) throw new Error('Insufficient funds');
+    await this.db.set(`coins-${userId}`, currentCoins - amount);
+    return currentCoins - amount;
+  }
+
   async getTransactionHistory(userId) {
     return await this.db.get(`transactions-${userId}`) || [];
   }
@@ -174,9 +183,13 @@ class BillingManager {
   }
 
   // Add new method for checkout sessions
-  async createCheckoutSession(userId, amount_usd) {
+  async createCheckoutSession(userId, amount_usd, userEmail) {
     const session = await getStripe().checkout.sessions.create({
-      payment_method_types: ['card'],
+      customer_email: userEmail,
+      payment_method_types: ['card', 'link', 'paypal'],
+      invoice_creation: {
+        enabled: true,
+      },
       line_items: [
         {
           price_data: {
@@ -248,11 +261,13 @@ module.exports.load = async function (app, db) {
 
       const session = await billingManager.createCheckoutSession(
         req.session.userinfo.id,
-        amount_usd
+        amount_usd,
+        req.session.userinfo.email
       );
 
       res.json({
-        sessionId: session.id
+        sessionId: session.id,
+        url: session.url
       });
     } catch (error) {
       console.error('Error creating checkout session:', error);
@@ -285,6 +300,27 @@ module.exports.load = async function (app, db) {
       await billingManager.markSessionProcessed(session_id);
 
       const amountUsd = parseFloat(session.metadata.amount_usd);
+      
+      // Fetch Invoice or Receipt URL
+      let invoiceUrl = null;
+      let invoicePdf = null;
+      
+      try {
+        if (session.invoice) {
+          const invoice = await getStripe().invoices.retrieve(session.invoice);
+          invoiceUrl = invoice.hosted_invoice_url;
+          invoicePdf = invoice.invoice_pdf;
+        } else if (session.payment_intent) {
+          // Fallback to receipt if no invoice (legacy or error)
+          const paymentIntent = await getStripe().paymentIntents.retrieve(session.payment_intent);
+          if (paymentIntent.latest_charge) {
+             const charge = await getStripe().charges.retrieve(paymentIntent.latest_charge);
+             invoiceUrl = charge.receipt_url;
+          }
+        }
+      } catch (err) {
+        console.error('Failed to retrieve invoice details:', err);
+      }
 
       // Add credit to user's balance
       await billingManager.addCreditBalance(req.session.userinfo.id, amountUsd);
@@ -295,7 +331,9 @@ module.exports.load = async function (app, db) {
         'credit_purchase',
         {
           checkout_session: session_id,
-          amount_usd: amountUsd
+          amount_usd: amountUsd,
+          invoice_url: invoiceUrl,
+          invoice_pdf: invoicePdf
         },
         amountUsd
       );
@@ -305,7 +343,16 @@ module.exports.load = async function (app, db) {
         `User ${req.session.userinfo.id} added $${amountUsd} credit balance via Stripe Checkout`
       );
 
-      res.json({ success: true });
+      res.json({
+        success: true,
+        transaction: {
+          id: session_id,
+          amount_usd: amountUsd,
+          date: new Date().toISOString(),
+          status: 'completed',
+          method: 'Stripe'
+        }
+      });
     } catch (error) {
       console.error('Error verifying checkout:', error);
       res.status(500).json({ error: 'Failed to verify checkout' });
@@ -330,6 +377,17 @@ module.exports.load = async function (app, db) {
 
       // Deduct credit and add coins
       await billingManager.addCreditBalance(userId, -package.price_usd);
+      
+      // Log the credit spending
+      await billingManager.logTransaction(
+        userId,
+        'credit_spend',
+        {
+          description: `Bought ${package.amount} Coins`
+        },
+        package.price_usd
+      );
+
       await billingManager.addCoins(userId, package.amount);
 
       // Log transaction
@@ -352,6 +410,51 @@ module.exports.load = async function (app, db) {
     } catch (error) {
       console.error('Error purchasing coins:', error);
       res.status(500).json({ error: 'Failed to purchase coins' });
+    }
+  });
+
+  // Transfer coins to another user
+  router.post('/billing/transfer-coins', async (req, res) => {
+    try {
+      const { recipientEmail, amount } = req.body;
+      const userId = req.session.userinfo.id;
+      const amountInt = parseInt(amount);
+
+      if (!recipientEmail || !amountInt || amountInt < 1) {
+        return res.status(400).json({ error: 'Invalid input' });
+      }
+
+      // 1. Check sender balance
+      const senderCoins = await billingManager.getCoinBalance(userId);
+      if (senderCoins < amountInt) {
+        return res.status(402).json({ error: 'Insufficient coin balance' });
+      }
+
+      // 2. Find recipient
+      // For now, we rely on the User ID provided by the sender.
+      // In future versions, we can implement email lookup or better user validation via a Users module.
+      
+      const recipientId = recipientEmail; // Using ID as the identifier
+
+      // Verify recipient exists (optional check could be added here if we have a user registry)
+      // Currently assuming the ID is valid for direct Pterodactyl ID transfers.
+
+      // Perform transfer
+      await billingManager.removeCoins(userId, amountInt);
+      await billingManager.addCoins(recipientId, amountInt);
+
+      // Log transactions
+      await billingManager.logTransaction(userId, 'transfer_sent', { to: recipientId }, amountInt);
+      await billingManager.logTransaction(recipientId, 'transfer_received', { from: userId }, amountInt);
+
+      res.json({
+        success: true,
+        new_balance: await billingManager.getCoinBalance(userId)
+      });
+
+    } catch (error) {
+      console.error('Error transferring coins:', error);
+      res.status(500).json({ error: error.message || 'Failed to transfer coins' });
     }
   });
 
@@ -401,6 +504,30 @@ module.exports.load = async function (app, db) {
     } catch (error) {
       console.error('Error fetching transactions:', error);
       res.status(500).json({ error: 'Failed to fetch transaction history' });
+    }
+  });
+
+  // Get invoices (filtered transactions with invoice URLs)
+  router.get('/billing/invoices', async (req, res) => {
+    try {
+      const userId = req.session.userinfo.id;
+      const transactions = await billingManager.getTransactionHistory(userId);
+      
+      const invoices = transactions
+        .filter(t => t.type === 'credit_purchase' && (t.details.invoice_url || t.details.invoice_pdf))
+        .map(t => ({
+          id: t.id,
+          date: t.timestamp,
+          amount: t.amount,
+          url: t.details.invoice_url,
+          pdf: t.details.invoice_pdf
+        }))
+        .sort((a, b) => new Date(b.date) - new Date(a.date));
+
+      res.json({ invoices });
+    } catch (error) {
+      console.error('Error fetching invoices:', error);
+      res.status(500).json({ error: 'Failed to fetch invoices' });
     }
   });
 

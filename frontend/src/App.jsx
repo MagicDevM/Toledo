@@ -35,6 +35,8 @@ import AFKPage from './pages/coins/AFKPage';
 import Store from './pages/coins/Store';
 import Staking from './pages/coins/Staking';
 import Daily from './pages/coins/Daily';
+import Wallet from './pages/coins/Wallet';
+import BillingSuccess from './pages/billing/Success';
 import AccountPage from './pages/Account';
 import PasskeyManager from './pages/Passkeys';
 
@@ -287,6 +289,8 @@ export default function App() {
             <Route path="/coins/store" element={<Store />} />
             <Route path="/coins/staking" element={<Staking />} />
             <Route path="/coins/daily" element={<Daily />} />
+            <Route path="/wallet" element={<Wallet />} />
+            <Route path="/billing/success" element={<BillingSuccess />} />
 
             <Route path="/account" element={<AccountPage />} />
             <Route path="/passkeys" element={<PasskeyManager />} />
