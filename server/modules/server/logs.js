@@ -1,9 +1,9 @@
 /* --------------------------------------------- */
-/* server_logs                                   */
+/* logs                                   */
 /* --------------------------------------------- */
 
 const express = require("express");
-const { isAuthenticated, ownsServer } = require("./server_core.js");
+const { isAuthenticated, ownsServer } = require("./core.js");
 
 /* --------------------------------------------- */
 /* Heliactyl Next Module                                  */

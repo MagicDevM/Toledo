@@ -1,10 +1,10 @@
 const express = require('express');
 const rateLimit = require('express-rate-limit');
-const loadConfig = require('../handlers/config');
+const loadConfig = require('../../handlers/config');
 const settings = loadConfig('./config.toml');
 const axios = require('axios');
-const getPteroUser = require('../handlers/getPteroUser');
-const log = require('../handlers/log');
+const getPteroUser = require('../../handlers/getPteroUser');
+const log = require('../../handlers/log');
 
 // Ensure Pterodactyl domain is properly formatted
 if (settings.pterodactyl?.domain?.slice(-1) === '/') {

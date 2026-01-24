@@ -1,12 +1,12 @@
 /* --------------------------------------------- */
-/* server_power                                   */
+/* power                                   */
 /* --------------------------------------------- */
 
 const express = require("express");
 const axios = require("axios");
-const loadConfig = require("../handlers/config");
+const loadConfig = require("../../handlers/config");
 const settings = loadConfig("./config.toml");
-const { isAuthenticated, ownsServer, logActivity, PANEL_URL, API_KEY } = require("./server_core.js");
+const { isAuthenticated, ownsServer, logActivity, PANEL_URL, API_KEY } = require("./core.js");
 
 /* --------------------------------------------- */
 /* Heliactyl Next Module                                  */

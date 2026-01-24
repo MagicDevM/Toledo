@@ -1,16 +1,16 @@
 /* --------------------------------------------- */
-/* server_websocket                              */
+/* files_read                             */
 /* --------------------------------------------- */
 
 const express = require("express");
 const axios = require("axios");
-const { isAuthenticated, ownsServer, PANEL_URL, API_KEY } = require("./server_core.js");
+const { isAuthenticated, ownsServer, PANEL_URL, API_KEY } = require("./core.js");
 
 /* --------------------------------------------- */
 /* Heliactyl Next Module                                  */
 /* --------------------------------------------- */
 const HeliactylModule = {
-  "name": "Server -> WebSocket",
+  "name": "Server -> Files Read",
   "version": "1.0.0",
   "api_level": 4,
   "target_platform": "10.0.0",
@@ -33,36 +33,42 @@ module.exports.HeliactylModule = HeliactylModule;
 module.exports.load = async function (app, db) {
   const router = express.Router();
 
-  // GET /api/server/:id/websocket - Get WebSocket credentials
-  router.get("/server/:id/websocket", isAuthenticated, ownsServer, async (req, res) => {
+  // GET /api/server/:id/files/contents
+  router.get("/server/:id/files/contents", isAuthenticated, ownsServer, async (req, res) => {
     try {
       const serverId = req.params.id;
+      const file = encodeURIComponent(req.query.file); // URL-encode the file path
+
       const response = await axios.get(
-        `${PANEL_URL}/api/client/servers/${serverId}/websocket`,
+        `${PANEL_URL}/api/client/servers/${serverId}/files/contents?file=${file}`,
         {
           headers: {
             Authorization: `Bearer ${API_KEY}`,
             Accept: "application/json",
             "Content-Type": "application/json",
           },
+          responseType: "text", // Treat the response as plain text
         }
       );
 
-      // Return the WebSocket credentials to the client
-      res.json(response.data);
+      // Send the raw file content back to the client
+      res.send(response.data);
     } catch (error) {
-      console.error("Error fetching WebSocket credentials:", error);
+      console.error("Error getting file contents:", error);
       res.status(500).json({ error: "Internal server error" });
     }
   });
 
-  // GET /api/server/:id - Get server details (needed for console)
-  router.get("/server/:id", isAuthenticated, ownsServer, async (req, res) => {
+  // GET /api/server/:id/files/download
+  router.get("/server/:id/files/download", isAuthenticated, ownsServer, async (req, res) => {
     try {
       const serverId = req.params.id;
+      const file = req.query.file;
+
       const response = await axios.get(
-        `${PANEL_URL}/api/client/servers/${serverId}`,
+        `${PANEL_URL}/api/client/servers/${serverId}/files/download`,
         {
+          params: { file },
           headers: {
             Authorization: `Bearer ${API_KEY}`,
             Accept: "application/json",
@@ -70,9 +76,10 @@ module.exports.load = async function (app, db) {
           },
         }
       );
+
       res.json(response.data);
     } catch (error) {
-      console.error("Error fetching server details:", error);
+      console.error("Error getting download link:", error);
       res.status(500).json({ error: "Internal server error" });
     }
   });

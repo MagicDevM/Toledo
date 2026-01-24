@@ -1,10 +1,10 @@
 /* --------------------------------------------- */
-/* server_users_legacy                           */
+/* users_legacy                           */
 /* --------------------------------------------- */
 
 const express = require("express");
-const { isAuthenticated } = require("./server_core.js");
-const { updateSubuserInfo } = require("./server_users.js");
+const { isAuthenticated } = require("./core.js");
+const { updateSubuserInfo } = require("./users.js");
 
 /* --------------------------------------------- */
 /* Heliactyl Next Module                                  */

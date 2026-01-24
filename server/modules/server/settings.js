@@ -1,5 +1,5 @@
 const express = require('express');
-const loadConfig = require("../handlers/config");
+const loadConfig = require("../../handlers/config");
 const settings = loadConfig("./config.toml");
 const WebSocket = require('ws');
 const axios = require('axios');

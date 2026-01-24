@@ -1,7 +1,7 @@
 const express = require("express");
 const axios = require("axios");
 const FormData = require("form-data");
-const { isAuthenticated, ownsServer, PANEL_URL, API_KEY } = require("./server_core.js");
+const { isAuthenticated, ownsServer, PANEL_URL, API_KEY } = require("./core.js");
 
 /* --------------------------------------------- */
 /* Heliactyl Next Module                        */
@@ -425,7 +425,7 @@ module.exports.load = async function (app, db) {
     }
   });
 
-  // Add this new endpoint to server_plugins.js
+  // Add this new endpoint to plugins.js
   // GET /api/plugins/scan/:serverId - Scan server plugins directory and update DB
   router.get("/plugins/scan/:serverId", isAuthenticated, ownsServer, async (req, res) => {
     const { serverId } = req.params;

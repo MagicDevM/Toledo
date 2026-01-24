@@ -1,5 +1,5 @@
 /* --------------------------------------------- */
-/* server_core                                   */
+/* core                                   */
 /* --------------------------------------------- */
 
 const express = require("express");
@@ -7,13 +7,13 @@ const WebSocket = require("ws");
 const axios = require("axios");
 const path = require("path");
 const fs = require("fs");
-const Database = require("../db.js");
+const Database = require("../../db.js");
 const db = new Database('sqlite://heliactyl.db');
-const getPteroUser = require('../handlers/getPteroUser');
-const loadConfig = require("../handlers/config");
+const getPteroUser = require('../../handlers/getPteroUser');
+const loadConfig = require("../../handlers/config");
 const settings = loadConfig("./config.toml");
 
-const workflowsFilePath = path.join(__dirname, "../storage/workflows.json");
+const workflowsFilePath = path.join(__dirname, "../../storage/workflows.json");
 
 /* --------------------------------------------- */
 /* Heliactyl Next Module                                  */
