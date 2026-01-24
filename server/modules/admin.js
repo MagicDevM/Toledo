@@ -25,8 +25,6 @@ async function checkAdminStatus(req, res, settings, db) {
   try {
     const userId = await db.get("users-" + req.session.userinfo.id);
     const response = await pteroApi.get(`/api/application/users/${userId}?include=servers`);
-    console.log(response.data)
-    console.log(response.data.attributes.root_admin);
     return response.data.attributes.root_admin === true;
   } catch (error) {
     console.error("Error checking admin status:", error);

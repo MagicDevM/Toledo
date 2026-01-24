@@ -6,7 +6,8 @@ import {
   ServerIcon, PlusIcon, CpuChipIcon,
   ChartPieIcon, ArchiveBoxIcon, ArrowPathIcon,
   ExclamationCircleIcon, CommandLineIcon, PencilIcon,
-  TrashIcon, UsersIcon, CheckIcon, EllipsisVerticalIcon
+  TrashIcon, UsersIcon, CheckIcon, EllipsisVerticalIcon,
+  BoltIcon
 } from '@heroicons/react/24/outline';
 import { ChartPie } from 'lucide-react';
 import { FAQSection } from '../components/FAQSection';
@@ -21,15 +22,21 @@ function formatBytes(bytes, decimals = 2) {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
 }
 
-function ResourceCard({ icon: Icon, title, used, total, unit }) {
+function ResourceCard({ icon: Icon, title, used, total, unit, isBoosted }) {
   const percentage = total ? (used / total) * 100 : 0;
-  const colorClass = percentage > 90 ? 'bg-red-500' : percentage > 70 ? 'bg-amber-500' : 'bg-neutral-300';
+  // If boosted, use a different color scheme or just show it's okay to be over 100%
+  const colorClass = percentage > 100 && !isBoosted ? 'bg-red-500' : 
+                     percentage > 90 && !isBoosted ? 'bg-red-500' : 
+                     percentage > 70 ? 'bg-amber-500' : 'bg-neutral-300';
 
   return (
-    <div className="border border-[#2e3337]/50 shadow-xs rounded-lg p-4 bg-transparent">
-      <div className="flex items-center justify-between pb-2">
+    <div className={`border ${isBoosted ? 'border-amber-500/30 bg-amber-500/5' : 'border-[#2e3337]/50 bg-transparent'} shadow-xs rounded-lg p-4 relative overflow-hidden`}>
+      <div className="flex items-center justify-between pb-2 mt-1 relative z-0">
         <div className="flex items-center gap-2">
-          <h3 className="text-sm font-medium">{title}</h3>
+          <h3 className={`text-sm font-medium flex items-center gap-2 ${isBoosted ? 'text-amber-500' : ''}`}>
+            {title}
+            {isBoosted && <BoltIcon className="w-3.5 h-3.5 animate-pulse" />}
+          </h3>
         </div>
         <span className="text-xs text-[#95a1ad]">
           {used}{unit} / {total}{unit}
@@ -38,13 +45,20 @@ function ResourceCard({ icon: Icon, title, used, total, unit }) {
       <div>
         <div className="h-1 bg-[#202229] rounded-full overflow-hidden">
           <div
-            className={`h-full ${colorClass} rounded-full`}
+            className={`h-full ${isBoosted ? 'bg-gradient-to-r from-amber-600 to-amber-400' : colorClass} rounded-full`}
             style={{ width: `${Math.min(percentage, 100)}%` }}
           ></div>
         </div>
-        <p className="text-xs text-[#95a1ad] mt-2">
-          {percentage.toFixed(1)}% utilized
-        </p>
+        <div className="flex justify-between items-center mt-2">
+          <p className="text-xs text-[#95a1ad]">
+            {percentage.toFixed(1)}% utilized
+          </p>
+          {isBoosted && (
+            <span className="text-[0.60rem] text-amber-500/80 font-medium uppercase tracking-wider mr-1">
+              ACTIVE BOOST
+            </span>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -474,6 +488,39 @@ export default function Dashboard() {
     }
   });
 
+  const { data: activeBoosts } = useQuery({
+    queryKey: ['active-boosts'],
+    queryFn: async () => {
+      const { data } = await axios.get('/api/boosts/active');
+      return data;
+    },
+    // Don't block loading
+    retry: false
+  });
+
+  // Calculate boosted resources
+  const boostedResources = {
+    ram: false,
+    cpu: false,
+    disk: false
+  };
+
+  if (activeBoosts) {
+    Object.values(activeBoosts).forEach(serverBoosts => {
+      Object.values(serverBoosts).forEach(boost => {
+        if (boost.boostType === 'memory' || boost.boostType === 'performance' || boost.boostType === 'extreme') {
+          boostedResources.ram = true;
+        }
+        if (boost.boostType === 'cpu' || boost.boostType === 'performance' || boost.boostType === 'extreme') {
+          boostedResources.cpu = true;
+        }
+        if (boost.boostType === 'storage' || boost.boostType === 'performance' || boost.boostType === 'extreme') {
+          boostedResources.disk = true;
+        }
+      });
+    });
+  }
+
   useEffect(() => {
     if (!servers && !subuserServers) return;
 
@@ -594,6 +641,7 @@ export default function Dashboard() {
           used={resources?.current?.ram / 1024 || 0}
           total={resources?.limits?.ram / 1024 || 0}
           unit="GB"
+          isBoosted={boostedResources.ram}
         />
         <ResourceCard
           icon={CpuChipIcon}
@@ -601,6 +649,7 @@ export default function Dashboard() {
           used={resources?.current?.cpu || 0}
           total={resources?.limits?.cpu || 0}
           unit="%"
+          isBoosted={boostedResources.cpu}
         />
         <ResourceCard
           icon={ArchiveBoxIcon}
@@ -608,6 +657,7 @@ export default function Dashboard() {
           used={resources?.current?.disk / 1024 || 0}
           total={resources?.limits?.disk / 1024 || 0}
           unit="GB"
+          isBoosted={boostedResources.disk}
         />
         <ResourceCard
           icon={ServerIcon}

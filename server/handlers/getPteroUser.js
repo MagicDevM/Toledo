@@ -12,12 +12,8 @@ const pteroApi = axios.create({
 });
 
 module.exports = async (userid, db) => {
-  console.log("Fetching Pterodactyl user info...");
-  console.log("User ID: " + userid);
-  
   const pteroId = await db.get("users-" + userid);
-  console.log(pteroId);
-  
+
   try {
     const response = await pteroApi.get(`/api/application/users/${pteroId}?include=servers`);
     return response.data;

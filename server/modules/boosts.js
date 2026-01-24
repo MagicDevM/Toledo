@@ -446,8 +446,11 @@ class BoostManager {
       const additionalMs = durationInHours * 60 * 60 * 1000;
       const newExpiresAt = boost.expiresAt + additionalMs;
 
-      // Update boost expiry time
+      // Update boost expiry time and cost basis
       boost.expiresAt = newExpiresAt;
+      boost.durationMs = (boost.durationMs || (boost.expiresAt - boost.appliedAt)) + additionalMs; // Ensure durationMs is updated
+      boost.price = (boost.price || 0) + extensionPrice; // Accumulate total cost for refund calculation
+      
       await this.db.set("active-boosts", activeBoosts);
 
       // Deduct coins
@@ -674,17 +677,28 @@ class BoostManager {
   // Helper function to update server resources via Pterodactyl API
   async updateServerResources(serverId, newLimits) {
     try {
+      // Fetch current server details to get required fields that we shouldn't change or need to preserve
+      const serverResponse = await pteroApi.get(`/api/application/servers/${serverId}`);
+      const server = serverResponse.data.attributes;
+
       await pteroApi.patch(`/api/application/servers/${serverId}/build`, {
+        allocation: server.allocation,
         memory: newLimits.memory,
-        swap: 0,
+        swap: server.limits.swap || 0,
         disk: newLimits.disk,
-        io: 500,
-        cpu: newLimits.cpu
+        io: server.limits.io || 500,
+        cpu: newLimits.cpu,
+        threads: server.limits.threads || null,
+        feature_limits: {
+          databases: server.feature_limits.databases,
+          allocations: server.feature_limits.allocations,
+          backups: server.feature_limits.backups
+        }
       });
 
       return true;
     } catch (err) {
-      console.error('[BOOST] Error updating server resources:', err.response?.data || err.message);
+      console.error('[BOOST] Error updating server resources:', JSON.stringify(err.response?.data || err.message));
       return false;
     }
   }
