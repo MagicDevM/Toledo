@@ -5,11 +5,6 @@
 # ═════════════════════════════════════════════════════════
 
 # ---------------------------------
-# General Configuration
-# ---------------------------------
-name = "Heliactyl" # Website/dashboard name
-
-# ---------------------------------
 # Heliactyl Release Information
 # ---------------------------------
 platform_codename = "Toledo"
@@ -25,7 +20,7 @@ database = "heliactyl.db"
 # Pterodactyl Settings
 # ---------------------------------
 [pterodactyl]
-domain = "https://panel.mantle.lat" # Format: https://panel.domain.tld with no / on the end
+domain = "https://panel.heliactyl.toledo" # Format: https://panel.domain.tld with no / on the end
 key = "" # Find this under Admin -> Application API
 client_key = "" # Create an admin account and generate from Account -> API Keys
 
@@ -33,6 +28,8 @@ client_key = "" # Create an admin account and generate from Account -> API Keys
 # Webserver Configuration
 # ---------------------------------
 [website]
+name = "heliactyl" # Website/dashboard name
+logo = "https://i.imgur.com/6ykl8tF.png"
 port = 17_000 # Default: 25_001
 secret = "CHANGE_THIS_SECRET" # Change this - do not run Heliactyl in production with the default secret
 domain = "http://localhost:17000"

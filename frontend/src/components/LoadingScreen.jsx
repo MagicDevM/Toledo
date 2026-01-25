@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useSettings } from '../hooks/useSettings';
 
 export default function LoadingScreen({ onComplete }) {
   const [phase, setPhase] = useState('loading');
+  const { settings } = useSettings();
 
   // External trigger to complete the loading
   useEffect(() => {
@@ -67,8 +69,12 @@ export default function LoadingScreen({ onComplete }) {
             </div>
 
             <div className="relative text-center mt-6">
-              <p className="text-white/70 text-center font-medium text-xs mb-1">Heliactyl Next 10 (Toledo)</p>
-              <p className="text-white/50 text-center text-xs">&copy; 2025 Mantle, Inc.</p>
+              <p className="text-white/70 text-center font-medium text-xs mb-1">
+                {settings ? `Heliactyl Next v10.0.0 (Toledo)` : "Loading..."}
+              </p>
+              <p className="text-white/50 text-center text-xs">
+                &copy; {new Date().getFullYear()} {settings?.name || "Heliactyl"}.
+              </p>
             </div>
           </div>
         </motion.div>

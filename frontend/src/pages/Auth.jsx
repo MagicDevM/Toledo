@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Fingerprint, AlertCircle, RefreshCw } from 'lucide-react';
+import { useSettings } from '../hooks/useSettings';
 
 // Discord icon component
 const DiscordIcon = ({ className }) => (
@@ -22,7 +23,7 @@ const DiscordIcon = ({ className }) => (
 // Toast component for notifications
 const Toast = ({ toast, setToast }) => {
   if (!toast.visible) return null;
-  
+
   return (
     <div className="fixed top-4 right-4 z-50 bg-[#202229] border border-white/5 rounded-lg p-4 w-80 shadow-lg">
       <div className="flex justify-between items-start">
@@ -30,7 +31,7 @@ const Toast = ({ toast, setToast }) => {
           <h3 className="font-medium text-white">{toast.title}</h3>
           <p className="text-sm text-[#95a1ad] mt-1">{toast.description}</p>
         </div>
-        <button 
+        <button
           onClick={() => setToast({ ...toast, visible: false })}
           className="text-[#95a1ad] hover:text-white"
         >
@@ -47,7 +48,8 @@ const AuthPage = () => {
   const [passkeySupported, setPasskeySupported] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const navigate = useNavigate();
-  
+  const { settings, isLoading: isSettingsLoading } = useSettings();
+
   // Toast state for simple notifications
   const [toast, setToast] = useState({ visible: false, title: '', description: '' });
 
@@ -64,23 +66,23 @@ const AuthPage = () => {
         setPasskeySupported(false);
       }
     };
-    
+
     // Check authentication status
     const checkAuth = async () => {
       try {
         const response = await fetch('/api/v5/state', {
           credentials: 'include',
         });
-        
+
         if (response.ok) {
           const data = await response.json();
-          
+
           // If 2FA is pending, redirect to 2FA page
           if (data.twoFactorPending) {
             navigate('/auth/2fa', { replace: true });
             return;
           }
-          
+
           // If already authenticated, redirect to dashboard
           navigate('/dashboard', { replace: true });
         }
@@ -123,11 +125,11 @@ const AuthPage = () => {
     const binary = window.atob(base64);
     const buffer = new ArrayBuffer(binary.length);
     const bytes = new Uint8Array(buffer);
-    
+
     for (let i = 0; i < binary.length; i++) {
       bytes[i] = binary.charCodeAt(i);
     }
-    
+
     return buffer;
   };
 
@@ -135,11 +137,11 @@ const AuthPage = () => {
   const bufferToBase64url = (buffer) => {
     const bytes = new Uint8Array(buffer);
     let binary = '';
-    
+
     for (let i = 0; i < bytes.byteLength; i++) {
       binary += String.fromCharCode(bytes[i]);
     }
-    
+
     const base64 = window.btoa(binary);
     return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
   };
@@ -149,21 +151,21 @@ const AuthPage = () => {
       showToast('Error', 'Your browser does not support passkeys');
       return;
     }
-    
+
     try {
       setIsPasskeyLoading(true);
       setErrorMessage("");
-      
+
       // 1. Get authentication options from server
       const optionsResponse = await fetch('/auth/passkey/options');
-      
+
       if (!optionsResponse.ok) {
         const errorData = await optionsResponse.json();
         throw new Error(errorData.error || 'Failed to start authentication');
       }
-      
+
       const options = await optionsResponse.json();
-      
+
       // 2. Convert options for the credential API
       options.challenge = base64urlToBuffer(options.challenge);
       if (options.allowCredentials) {
@@ -172,12 +174,12 @@ const AuthPage = () => {
           id: base64urlToBuffer(cred.id)
         }));
       }
-      
+
       // 3. Get credential from browser
       const credential = await navigator.credentials.get({
         publicKey: options
       });
-      
+
       // 4. Send credential to server for verification
       const authResponse = {
         id: credential.id,
@@ -190,18 +192,18 @@ const AuthPage = () => {
         },
         type: credential.type
       };
-      
+
       const verificationResponse = await fetch('/auth/passkey/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(authResponse)
       });
-      
+
       if (!verificationResponse.ok) {
         const errorData = await verificationResponse.json();
         throw new Error(errorData.error || 'Failed to verify passkey');
       }
-      
+
       // Successfully authenticated
       navigate('/dashboard');
     } catch (err) {
@@ -218,6 +220,14 @@ const AuthPage = () => {
     }
   };
 
+  if (isSettingsLoading && !settings) {
+    return (
+      <div className="min-h-screen bg-[#101218] flex items-center justify-center">
+        <RefreshCw className="w-8 h-8 animate-spin text-[#95a1ad]" />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-[#101218] p-4">
       {/* Toast notification */}
@@ -226,8 +236,8 @@ const AuthPage = () => {
       {/* Logo Section */}
       <div className="mb-10">
         <img
-          src="https://i.imgur.com/KXk1We4.png"
-          alt="Mantle"
+          src={settings?.logo || "https://i.imgur.com/gUUze6A.png"}
+          alt={settings?.name || "Heliactyl"}
           className="h-10 w-auto hover:opacity-90 transition-opacity"
         />
       </div>
@@ -236,7 +246,7 @@ const AuthPage = () => {
       <div className="w-full max-w-md bg-transparent border border-[#2e3337] rounded-lg overflow-hidden">
         <div className="p-6 pb-4 border-b border-[#2e3337]">
           <h2 className="text-2xl text-white font-medium text-center">
-            Welcome to Mantle
+            Welcome to {settings?.name || "Heliactyl"}
           </h2>
           <p className="text-[#95a1ad] text-sm text-center mt-2">
             Sign in to continue to your dashboard
@@ -265,7 +275,7 @@ const AuthPage = () => {
                 <span className="flex-shrink mx-4 text-[#95a1ad] text-sm">or</span>
                 <div className="flex-grow border-t border-[#2e3337]"></div>
               </div>
-              
+
               <button
                 type="button"
                 className="w-full relative flex items-center transition justify-center h-11 bg-[#202229] hover:bg-[#202229]/50 text-white rounded-md border border-white/5 active:scale-95"
@@ -286,7 +296,7 @@ const AuthPage = () => {
               </button>
             </>
           )}
-          
+
           {/* Error message */}
           {errorMessage && (
             <div className="rounded-md p-3 flex items-start border border-red-500/20 bg-red-500/10 text-red-500">
@@ -301,10 +311,10 @@ const AuthPage = () => {
       <footer className="w-full py-8 px-4 mt-10">
         <div className="max-w-md mx-auto text-center">
           <p className="text-sm text-[#95a1ad]">
-            © {new Date().getFullYear()} Mantle, Inc. All rights reserved.
+            © {new Date().getFullYear()} {settings?.name || "Heliactyl"}, Inc. All rights reserved.
           </p>
           <p className="text-xs text-[#95a1ad]/70 mt-0.5">
-            Powered by Heliactyl Next<br />Designed, developed and built by Ether
+            Powered by Heliactyl Next 10.0.0 [toledo]<br />Designed, developed and built by Ether, edited and maintained by achul123
           </p>
         </div>
       </footer>

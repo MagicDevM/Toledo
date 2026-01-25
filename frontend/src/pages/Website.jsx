@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronRight, Server, Globe, Shield, Zap, Menu, X, ChevronDown, CircleCheck, ExternalLink } from 'lucide-react';
+import { useSettings } from '../hooks/useSettings';
 
 const LandingPage = () => {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { settings } = useSettings();
+  const siteName = settings?.name || "Heliactyl";
+  const consoleUrl = settings?.console || "https://console.heliactyl.toledo";
 
   // Handle scroll events to update navbar style
   useEffect(() => {
@@ -22,12 +26,12 @@ const LandingPage = () => {
       <div className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-t from-[#101218] to-[#111215] border-b border-white/5 shadow py-2 px-6">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div className="text-xs text-[#95a1ad]">
-            <a href="mailto:support@mantle.lat" className="hover:text-white transition">help@mantle.lat</a>
+            <a href="mailto:support@heliactyl.toledo" className="hover:text-white transition">help@{settings?.name.toLowerCase() || 'heliactyl'}.toledo</a>
             <span className="mx-2">|</span>
             <a href="tel:+15615710232" className="hover:text-white transition">+1 (561) 571-0232</a>
           </div>
           <a
-            href="https://status.mantle.lat"
+            href={`https://status.${settings?.name.toLowerCase() || 'heliactyl'}.toledo`}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center text-xs text-[#95a1ad] hover:text-white transition"
@@ -41,26 +45,26 @@ const LandingPage = () => {
 
       {/* Floating Navbar - positioned below status bar */}
       <header className={`fixed top-8 left-0 right-0 z-40 px-6 py-4 transition-all duration-300 ${scrolled
-          ? 'bg-[#101218]/50 border-b border-white/5 backdrop-blur shadow-md'
-          : 'bg-gradient-to-b from-[#101218]/15 to-transparent'
+        ? 'bg-[#101218]/50 border-b border-white/5 backdrop-blur shadow-md'
+        : 'bg-gradient-to-b from-[#101218]/15 to-transparent'
         }`}>
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div className="flex items-center gap-2">
-            <img src="https://i.imgur.com/nCurhtn.png" alt="Mantle Logo" className="h-8 w-auto" />
+            <img src={settings?.logo || "https://i.imgur.com/gUUze6A.png"} alt={`${siteName} Logo`} className="h-8 w-auto" />
           </div>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-8">
             <a href="#pricing" className="text-sm text-white hover:text-white/80 transition">Pricing</a>
             <a href="https://discord.gg/freehosting" className="text-sm text-white hover:text-white/80 transition">Community</a>
-            <a href="https://console.mantle.lat" className="text-sm text-white hover:text-white/80 transition">Dashboard</a>
+            <a href={consoleUrl} className="text-sm text-white hover:text-white/80 transition">Dashboard</a>
           </nav>
 
           <div className="flex items-center gap-4">
             <div className="hidden md:flex items-center gap-3">
-              <a onClick={() => window.location.href = 'https://console.mantle.lat'} className="text-sm text-white hover:text-white/80 transition cursor-pointer">Login</a>
+              <a onClick={() => window.location.href = consoleUrl} className="text-sm text-white hover:text-white/80 transition cursor-pointer">Login</a>
               <a
-                onClick={() => window.location.href = 'https://console.mantle.lat'}
+                onClick={() => window.location.href = consoleUrl}
                 className="px-4 py-2 cursor-pointer rounded-full font-medium text-sm bg-white text-black hover:bg-white/90 transition"
               >
                 Sign up free
@@ -87,11 +91,11 @@ const LandingPage = () => {
             <nav className="flex flex-col gap-4 px-6">
               <a href="#pricing" className="text-sm text-white hover:text-white/80 py-2 transition">Pricing</a>
               <a href="https://discord.gg/freehosting" className="text-sm text-white hover:text-white/80 py-2 transition">Community</a>
-              <a href="https://console.mantle.lat" className="text-sm text-white hover:text-white/80 py-2 transition">Dashboard</a>
+              <a href="https://console.heliactyl.toledo" className="text-sm text-white hover:text-white/80 py-2 transition">Dashboard</a>
               <div className="flex flex-col gap-3 mt-2 pt-4 border-t border-[#2e3337]">
-                <a onClick={() => window.location.href = 'https://console.mantle.lat'} className="text-sm text-white hover:text-white/80 transition cursor-pointer">Login</a>
+                <a onClick={() => window.location.href = 'https://console.heliactyl.toledo'} className="text-sm text-white hover:text-white/80 transition cursor-pointer">Login</a>
                 <a
-                  onClick={() => window.location.href = 'https://console.mantle.lat'}
+                  onClick={() => window.location.href = 'https://console.heliactyl.toledo'}
                   className="px-4 py-2 cursor-pointer rounded-full font-medium text-sm bg-white text-black hover:bg-white/90 transition text-center"
                 >
                   Sign up free
@@ -108,7 +112,7 @@ const LandingPage = () => {
         <div
           className="absolute inset-0 z-0"
           style={{
-            backgroundImage: `linear-gradient(to bottom, rgba(16, 17, 20, 0.7), rgba(12, 13, 15, 1.0)), url('https://i.tlauncher.org/images/complementary-shaders-16.jpg')`,
+            backgroundImage: `linear-gradient(to bottom, rgba(16, 17, 20, 0.7), rgba(12, 13, 15, 1.0)), url('https://i.imgur.com/EgpDZJE.png')`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
             filter: 'blur(1px)',
@@ -127,11 +131,11 @@ const LandingPage = () => {
           </h1>
           <p className="text-lg md:text-xl mb-10 max-w-3xl mx-auto text-white/70">
             Get started with a free 24/7 server in just 60 seconds.
-            Mantle provides reliable, high-performance game servers for everyone. <i>Formerly known as Altare.</i>
+            {siteName} provides reliable, high-performance game servers for everyone. <i>Formerly known as Altare.</i>
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a
-              href="https://console.mantle.lat"
+              href={consoleUrl}
               className="px-8 py-4 rounded-lg text-base font-medium flex items-center justify-center bg-gradient-to-b from-white to-white/80 text-black hover:bg-white/90 transition active:scale-95"
             >
               Create your server
@@ -151,7 +155,7 @@ const LandingPage = () => {
       <section id="features" className="py-20 bg-[#0c0d0f]">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-semibold mb-4">Ok, but why Mantle?</h2>
+            <h2 className="text-3xl font-semibold mb-4">Ok, but why {siteName}?</h2>
             <p className="max-w-2xl mx-auto text-[#95a1ad]">
               We provide a seamless experience for hosting your game servers with powerful features and an intuitive interface.
             </p>
@@ -198,7 +202,7 @@ const LandingPage = () => {
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold mb-4">Frequently Asked Questions</h2>
             <p className="text-[#95a1ad]">
-              Find answers to common questions about Mantle.
+              Find answers to common questions about {siteName}.
             </p>
           </div>
 
@@ -213,7 +217,7 @@ const LandingPage = () => {
             />
             <FaqItem
               question="Can I install custom plugins and mods?"
-              answer="Yes! Mantle supports a wide range of plugins and mods. You can install them through our intuitive plugin manager or upload them directly via the file manager."
+              answer={`Yes! ${siteName} supports a wide range of plugins and mods. You can install them through our intuitive plugin manager or upload them directly via the file manager.`}
             />
             <FaqItem
               question="How do I connect to my server?"
@@ -232,10 +236,10 @@ const LandingPage = () => {
         <div className="max-w-4xl mx-auto px-6 text-center">
           <h2 className="text-3xl md:text-4xl font-bold mb-6">Ready to start your server?</h2>
           <p className="text-lg mb-8 text-[#95a1ad]">
-            Join thousands of users who trust Mantle for reliable, high-performance server hosting.
+            Join thousands of users who trust {siteName} for reliable, high-performance server hosting.
           </p>
           <a
-            onClick={() => window.location.href = 'https://console.mantle.lat'}
+            onClick={() => window.location.href = consoleUrl}
             className="px-8 py-4 rounded-lg text-base font-medium inline-block bg-white text-black hover:bg-white/90 transition"
           >
             Create Your Free Server
@@ -249,7 +253,7 @@ const LandingPage = () => {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
             <div>
               <div className="flex items-center gap-2 mb-4">
-                <img src="https://i.imgur.com/nCurhtn.png" alt="Mantle Logo" className="h-8 w-auto" />
+                <img src={settings?.logo || "https://i.imgur.com/gUUze6A.png"} alt={`${siteName} Logo`} className="h-8 w-auto" />
               </div>
               <p className="text-[#95a1ad] mb-4">
                 Game hosting. For everyone.
@@ -265,7 +269,7 @@ const LandingPage = () => {
               <ul className="space-y-2">
                 <li><a href="#features" className="text-sm text-[#95a1ad] hover:text-white">Features</a></li>
                 <li><a href="#pricing" className="text-sm text-[#95a1ad] hover:text-white">Pricing</a></li>
-                <li><a href="https://status.mantle.lat" className="text-sm text-[#95a1ad] hover:text-white">Status</a></li>
+                <li><a href={`https://status.${settings?.name.toLowerCase() || 'heliactyl'}.toledo`} className="text-sm text-[#95a1ad] hover:text-white">Status</a></li>
               </ul>
             </div>
             <div>
@@ -289,7 +293,7 @@ const LandingPage = () => {
           </div>
           <div className="pt-8 border-t border-[#2e3337] flex flex-col md:flex-row justify-between items-center">
             <p className="text-sm text-[#95a1ad] mb-4 md:mb-0">
-              © {new Date().getFullYear()} Mantle, Inc. All rights reserved.
+              © {new Date().getFullYear()} {siteName}. All rights reserved.
             </p>
             <div className="flex gap-6">
               <a href="#unavailable" className="text-sm text-[#95a1ad] hover:text-white">Terms</a>
@@ -407,7 +411,7 @@ const PricingCard = ({ title, price, description, features, buttonText, popular 
         </li>
       ))}
     </ul>
-    <button onClick={() => window.location.href = 'https://console.mantle.lat'} className={`w-full py-3 rounded-lg transition active:scale-95 text-sm font-medium ${popular ? 'bg-white text-black hover:bg-white/90' : 'border border-[#2e3337] hover:bg-[#2e3337]/50'}`}>
+    <button onClick={() => window.location.href = consoleUrl} className={`w-full py-3 rounded-lg transition active:scale-95 text-sm font-medium ${popular ? 'bg-white text-black hover:bg-white/90' : 'border border-[#2e3337] hover:bg-[#2e3337]/50'}`}>
       {buttonText}
     </button>
   </div>

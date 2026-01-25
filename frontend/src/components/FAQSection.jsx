@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { ChevronDownIcon, BookOpenIcon, QuestionMarkCircleIcon, GlobeAltIcon } from '@heroicons/react/24/outline';
+import { useSettings } from '../hooks/useSettings';
 
 function FAQCard({ icon: Icon, title, description }) {
   return (
@@ -19,6 +20,8 @@ export function FAQSection() {
   const [expanded, setExpanded] = useState(false);
   const containerRef = useRef(null);
   const [containerHeight, setContainerHeight] = useState(320);
+  const { settings } = useSettings();
+  const siteName = settings?.name || "Heliactyl";
 
   // Calculate proper height for animation
   useEffect(() => {
@@ -33,7 +36,7 @@ export function FAQSection() {
     {
       icon: BookOpenIcon,
       title: "Get started",
-      description: "Welcome to Mantle! Start by creating your first server. We give every user a balance of resources (Memory, CPU, Disk and Servers) - you can split them across multiple servers or use them all on one. It's up to you. You can earn coins for free and use them to purchase more resources - then you can create more servers or upgrade existing ones."
+      description: `Welcome to ${siteName}! Start by creating your first server. We give every user a balance of resources (Memory, CPU, Disk and Servers) - you can split them across multiple servers or use them all on one. It's up to you. You can earn coins for free and use them to purchase more resources - then you can create more servers or upgrade existing ones.`
     },
     {
       icon: QuestionMarkCircleIcon,
@@ -43,7 +46,7 @@ export function FAQSection() {
     {
       icon: GlobeAltIcon,
       title: "Join our community",
-      description: "Connect with other Mantle users in our Discord server. Get quick help via public support or chat with our community."
+      description: `Connect with other ${siteName} users in our Discord server. Get quick help via public support or chat with our community.`
     },
     // Additional FAQs that will be hidden initially
     {

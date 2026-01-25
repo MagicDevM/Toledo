@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { AlertTriangle, RefreshCw, Info } from 'lucide-react';
+import { useSettings } from './hooks/useSettings';
 import {
   Card,
   CardContent,
@@ -105,7 +106,7 @@ class ErrorBoundary extends React.Component {
             <CardHeader>
               <div className="flex items-center gap-2">
                 <AlertTriangle className="h-5 w-5 text-destructive" />
-                <CardTitle>Something went wrong with Heliactyl Next 10</CardTitle>
+                <CardTitle>Something went wrong with {this.props.siteName || "Heliactyl"}</CardTitle>
               </div>
               <CardDescription>
                 An error occurred while rendering the page.
@@ -126,7 +127,7 @@ class ErrorBoundary extends React.Component {
                   </AccordionTrigger>
                   <AccordionContent>
                     <div className="space-y-2 text-sm text-muted-foreground">
-                      <p>Version: Heliactyl Next 10.x.x</p>
+                      <p>Version: {this.props.siteName || "Heliactyl"} 10.x.x</p>
                       <p>Codename: Toledo</p>
                       <p>Platform: 305</p>
                       <p>User Agent: {navigator.userAgent}</p>
@@ -235,6 +236,14 @@ const ProtectedRoute = ({ children }) => {
 export default function App() {
   // Get hostname to determine if we need to render the console or website
   const [isWebsite, setIsWebsite] = useState(false);
+  const { settings } = useSettings();
+  const siteName = settings?.name || "Heliactyl";
+
+  useEffect(() => {
+    if (settings?.name) {
+      document.title = settings.name;
+    }
+  }, [settings]);
 
   useEffect(() => {
     const hostname = window.location.hostname;
@@ -244,7 +253,7 @@ export default function App() {
   // If it's the main website domain, render the Website component directly
   if (isWebsite) {
     return (
-      <ErrorBoundary>
+      <ErrorBoundary siteName={siteName}>
         <div className="dark text-white">
           <Website />
         </div>
@@ -254,7 +263,7 @@ export default function App() {
 
   // Otherwise render the console application
   return (
-    <ErrorBoundary>
+    <ErrorBoundary siteName={siteName}>
       <div className="dark text-white bg-[#151719]">
         <Routes>
           {/* Root route with conditional redirect */}

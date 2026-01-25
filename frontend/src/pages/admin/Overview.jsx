@@ -48,14 +48,17 @@ import {
   Rocket
 } from 'lucide-react';
 import axios from 'axios';
+import { useSettings } from '../../hooks/useSettings';
 
 // Welcome Modal Component
 function WelcomeModal({ isOpen, onClose }) {
   const [dontShowAgain, setDontShowAgain] = useState(false);
+  const { settings } = useSettings();
+  const siteName = settings?.name || "Heliactyl";
 
   const handleClose = () => {
     if (dontShowAgain) {
-      localStorage.setItem('Heliactyl NextWelcomeShown', 'true');
+      localStorage.setItem(`${siteName}WelcomeShown`, 'true');
     }
     onClose();
   };

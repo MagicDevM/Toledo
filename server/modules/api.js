@@ -50,6 +50,7 @@ module.exports.load = async function (app, db) {
         authenticated: !twoFactorPending,
         twoFactorPending: twoFactorPending,
         twoFactorEnabled: twoFactorEnabled,
+        site_name: settings.website.name || "Heliactyl",
         user: {
           id: userData.id,
           username: userData.username,
@@ -63,6 +64,14 @@ module.exports.load = async function (app, db) {
         message: 'Internal server error'
       });
     }
+  });
+
+  app.get("/api/v5/settings", async (req, res) => {
+    res.json({
+      name: settings.website.name || "Heliactyl",
+      logo: settings.website.logo || "https://i.imgur.com/gUUze6A.png",
+      pterodactyl: settings.pterodactyl.domain
+    });
   });
 
   app.get("/api/coins", async (req, res) => {

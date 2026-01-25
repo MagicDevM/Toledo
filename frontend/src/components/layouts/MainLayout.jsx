@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback, createContext, useCont
 import { Link, useLocation, useParams, useNavigate, Outlet } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import axios from 'axios';
+import { useSettings } from '../../hooks/useSettings';
 import {
   ServerStackIcon, WindowIcon, FolderIcon, GlobeAltIcon, PuzzlePieceIcon,
   CloudArrowDownIcon, UsersIcon, Cog6ToothIcon, CubeIcon,
@@ -35,7 +36,7 @@ const SidebarProvider = ({ children }) => {
   );
 };
 
-// Enhanced Navigation Item with ref forwarding - Argon-style with Mantle colors
+// Enhanced Navigation Item with ref forwarding - Argon-style with Heliactyl colors
 const NavItem = ({ to, icon: Icon, label, isActive, setRef }) => {
   const id = to.replace(/\//g, '-').slice(1);
   const linkRef = useRef(null);
@@ -52,8 +53,8 @@ const NavItem = ({ to, icon: Icon, label, isActive, setRef }) => {
       to={to}
       ref={linkRef}
       className={`flex items-center h-8 px-2 text-xs rounded-md transition duration-300 relative z-10 outline-none active:scale-95 ${isActive
-          ? 'text-white font-semibold'
-          : 'hover:text-white text-white/50 border-none'
+        ? 'text-white font-semibold'
+        : 'hover:text-white text-white/50 border-none'
         }`}
     >
       {Icon && <Icon className={`mr-2 h-4 w-4 ${isActive ? 'text-white/60' : 'text-white/30'}`} />}
@@ -78,6 +79,7 @@ const MainLayout = () => {
     email: '...',
     global_name: ''
   });
+  const { settings } = useSettings();
   const [balances, setBalances] = useState({ coins: 0 });
   const [servers, setServers] = useState([]);
   const [subuserServers, setSubuserServers] = useState([]);
@@ -168,7 +170,7 @@ const MainLayout = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Navigation items for both Mantle sections
+  // Navigation items for both Heliactyl sections
   const iconNavItems = [
     { icon: HomeIcon, label: 'Dashboard', path: '/' },
     { icon: ServerIcon, label: 'Servers', path: '/servers' },
@@ -200,7 +202,7 @@ const MainLayout = () => {
   ];
 
   const menuItems = [
-    { icon: <LinkIcon className="w-4 h-4" />, label: 'Panel', path: 'https://panel.mantle.lat', external: true },
+    { icon: <LinkIcon className="w-4 h-4" />, label: 'Panel', path: settings?.pterodactyl || 'https://panel.heliactyl.toledo', external: true },
     { icon: <ArrowRightOnRectangleIcon className="w-4 h-4" />, label: 'Logout', action: handleLogout, className: 'text-red-400 hover:text-red-300 hover:bg-red-950/30' }
   ];
 
@@ -279,7 +281,7 @@ const MainLayout = () => {
               {/* Logo and Toggle Button */}
               <div className="flex items-center justify-between px-4 h-16">
                 <Link to="/dashboard" className="flex items-center gap-3 transition-transform duration-200 active:scale-95">
-                  <span className="text-white font-semibold">Heliactyl</span>
+                  <span className="text-white font-semibold">{settings?.name || "Heliactyl"}</span>
                 </Link>
               </div>
 
@@ -473,7 +475,7 @@ const MainLayout = () => {
                 {/* Powered by text - Bottom of sidebar */}
                 <div className="relative py-4 pt-6 px-4">
                   <Link
-                    to="https://github.com/mantle"
+                    to="https://github.com/re-heliactyl/"
                     className="text-[0.75rem] border-b font-mono border-white/10 pb-0.5 hover:border-white/15 text-white/40 transition hover:text-white/60"
                   >
                     v10.0.0 [toledo]
