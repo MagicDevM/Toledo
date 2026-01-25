@@ -11,8 +11,6 @@ module.exports = (action, message) => {
     if (!settings.logging.status) return
     if (!settings.logging.actions.user[action] && !settings.logging.actions.admin[action]) return
 
-    console.log(action, message);
-
     axios.post(settings.logging.webhook, {
         embeds: [
             {
@@ -23,7 +21,7 @@ module.exports = (action, message) => {
                     name: 'Heliactyl Logging'
                 },
                 thumbnail: {
-                    url: 'https://atqr.pages.dev/favicon2.png' // This is the default Heliactyl logo, you can change it if you want.
+                    url: settings.website.logo
                 }
             }
         ]

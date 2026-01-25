@@ -320,6 +320,41 @@ module.exports.load = async function (app, db) {
     }
   });
 
+  // Delete backup
+  app.delete("/api/config/backups/:file", async (req, res) => {
+    if (!await checkAdmin(req, res, settings, db)) {
+      return res.status(403).json({ error: "Unauthorized" });
+    }
+
+    try {
+      const fileName = req.params.file.replace(/[^a-zA-Z0-9\-\.]/g, ''); // Basic sanitization
+      const backupPath = path.join(process.cwd(), 'backups', fileName);
+
+      // Verify backup exists
+      try {
+        await fs.access(backupPath);
+      } catch (e) {
+        return res.status(404).json({ error: "Backup file not found" });
+      }
+
+      // Delete backup
+      await fs.unlink(backupPath);
+
+      log(
+        "backup deleted",
+        `${req.session.userinfo.username} deleted a configuration backup: ${fileName}`
+      );
+
+      res.json({
+        success: true,
+        message: "Backup deleted successfully"
+      });
+    } catch (error) {
+      console.error("Error deleting backup:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
   // Check if reboot is needed
   app.get("/api/reboot/status", async (req, res) => {
     if (!await checkAdmin(req, res, settings, db)) {
@@ -1317,3 +1352,5 @@ async function suspendIfNeeded(userId, settings, db) {
     console.error("Error in suspendIfNeeded:", error);
   }
 }
+
+module.exports.suspend = suspendIfNeeded;

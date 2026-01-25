@@ -196,21 +196,21 @@ status = true
 webhook = "https://discord.com/api/webhooks/your_webhook_url"
 
 [logging.actions.user]
-signup = true
-"create server" = true
-"gifted coins" = true
-"modify server" = true
-"buy servers" = true
-"buy ram" = true
-"buy cpu" = true
-"buy disk" = true
+"Resources Purchased" = true
+"payment_success" = true
+"server_created" = true
+"server_modified" = true
+"server_deleted" = true
 
 [logging.actions.admin]
-"set coins" = true
-"add coins" = true
-"set resources" = true
-"set plan" = true
-"create coupon" = true
-"revoke coupon" = true
-"remove account" = true
-"view ip" = true
+"config updated" = true
+"config restored" = true
+"backup deleted" = true
+"dashboard reboot" = true
+"panel rebuilt" = true
+"panel rebuild failed" = true
+"radar node added" = true
+"radar node updated" = true
+"radar node deleted" = true
+"coins updated" = true
+"resources updated" = true

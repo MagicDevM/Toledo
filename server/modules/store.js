@@ -3,6 +3,8 @@ const fs = require("fs");
 const WebSocket = require('ws');
 const loadConfig = require("../handlers/config.js");
 const settings = loadConfig("./config.toml");
+const log = require("../handlers/log.js");
+const adminjs = require("./admin.js");
 
 const HeliactylModule = {
   "name": "Store",
@@ -469,7 +471,7 @@ module.exports.load = function (app, db) {
         await db.set("extra-" + req.session.userinfo.id, extra);
       }
 
-      adminjs.suspend(req.session.userinfo.id);
+      adminjs.suspend(req.session.userinfo.id, settings, db);
 
       log(`Resources Purchased`, `${req.session.userinfo.username}#${req.session.userinfo.discriminator} bought ${per}\MB ram from the store for \`${cost}\` Credits.`)
 
@@ -533,7 +535,7 @@ module.exports.load = function (app, db) {
         await db.set("extra-" + req.session.userinfo.id, extra);
       }
 
-      adminjs.suspend(req.session.userinfo.id);
+      adminjs.suspend(req.session.userinfo.id, settings, db);
 
       log(`Resources Purchased`, `${req.session.userinfo.username}#${req.session.userinfo.discriminator} bought ${per}MB disk from the store for \`${cost}\` Credits.`)
 
@@ -597,7 +599,7 @@ module.exports.load = function (app, db) {
         await db.set("extra-" + req.session.userinfo.id, extra);
       }
 
-      adminjs.suspend(req.session.userinfo.id);
+      adminjs.suspend(req.session.userinfo.id, settings, db);
 
       log(`Resources Purchased`, `${req.session.userinfo.username}#${req.session.userinfo.discriminator} bought ${per}% CPU from the store for \`${cost}\` Credits.`)
 
@@ -661,7 +663,7 @@ module.exports.load = function (app, db) {
         await db.set("extra-" + req.session.userinfo.id, extra);
       }
 
-      adminjs.suspend(req.session.userinfo.id);
+      adminjs.suspend(req.session.userinfo.id, settings, db);
 
       log(`Resources Purchased`, `${req.session.userinfo.username}#${req.session.userinfo.discriminator} bought ${per} Slots from the store for \`${cost}\` Credits.`)
 

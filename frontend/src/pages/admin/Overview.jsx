@@ -46,7 +46,9 @@ import {
   ArrowRight,
   Box,
   CircuitBoard,
-  Rocket
+  Rocket,
+  Trash,
+  X
 } from 'lucide-react';
 import axios from 'axios';
 import { useSettings } from '../../hooks/useSettings';
@@ -153,7 +155,7 @@ function SystemStats() {
               </div>
               <div>
                 <p className="text-sm font-medium text-neutral-400">{stat.label}</p>
-                <p className="text-2xl font-bold">
+                <p className="text-2xl font-bold text-white">
                   {isLoading ? (
                     <div className="h-8 w-16 bg-neutral-800 animate-pulse rounded" />
                   ) : (
@@ -172,7 +174,9 @@ function SystemStats() {
 // Backup Management Dialog
 function BackupsDialog({ isOpen, onClose }) {
   const [selectedBackup, setSelectedBackup] = useState(null);
+  const [backupToDelete, setBackupToDelete] = useState(null);
   const [isRestoring, setIsRestoring] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState('');
   const [showRebootPrompt, setShowRebootPrompt] = useState(false);
 
@@ -196,6 +200,20 @@ function BackupsDialog({ isOpen, onClose }) {
       setError(err.response?.data?.error || 'Failed to restore backup');
     } finally {
       setIsRestoring(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    try {
+      setIsDeleting(true);
+      setError('');
+      await axios.delete(`/api/config/backups/${backupToDelete.name}`);
+      setBackupToDelete(null);
+      refetch();
+    } catch (err) {
+      setError(err.response?.data?.error || 'Failed to delete backup');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -239,7 +257,7 @@ function BackupsDialog({ isOpen, onClose }) {
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl bg-[#0a0a0a] border-neutral-800">
         <DialogHeader>
-          <DialogTitle>Configuration Backups</DialogTitle>
+          <DialogTitle className="text-white">Configuration Backups</DialogTitle>
           <DialogDescription>
             View and manage your dashboard configuration backups. You can restore to a previous version if needed.
           </DialogDescription>
@@ -257,17 +275,18 @@ function BackupsDialog({ isOpen, onClose }) {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Filename</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead className="text-neutral-400">Date</TableHead>
+                  <TableHead className="text-neutral-400">Filename</TableHead>
+                  <TableHead className="text-right text-neutral-400">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {isLoading ? (
                   <TableRow>
                     <TableCell colSpan={3}>
-                      <div className="flex items-center justify-center py-4">
-                        <RefreshCw className="w-4 h-4 animate-spin" />
+                      <div className="flex items-center justify-center py-4 text-white">
+                        <RefreshCw className="w-4 h-4 animate-spin mr-2" />
+                        Loading backups...
                       </div>
                     </TableCell>
                   </TableRow>
@@ -275,24 +294,34 @@ function BackupsDialog({ isOpen, onClose }) {
                   <>
                     {Array.isArray(backups) && backups.map((backup) => (
                       <TableRow key={backup.name}>
-                        <TableCell>{formatDate(backup.timestamp)}</TableCell>
-                        <TableCell className="font-mono text-sm">{backup.name}</TableCell>
+                        <TableCell className="text-white">{formatDate(backup.timestamp)}</TableCell>
+                        <TableCell className="font-mono text-sm text-neutral-300">{backup.name}</TableCell>
                         <TableCell className="text-right space-x-2">
                           <Button
-                            variant="outline"
+                            variant="secondary"
                             size="sm"
+                            className="bg-neutral-800 hover:bg-neutral-700 text-white border-neutral-700"
                             onClick={() => window.open(`/api/config/backups/${backup.name}`, '_blank')}
                           >
                             <FileCode className="w-4 h-4 mr-2" />
                             View
                           </Button>
                           <Button
-                            variant="outline"
+                            variant="secondary"
                             size="sm"
+                            className="bg-white hover:bg-neutral-200 text-black border-white"
                             onClick={() => setSelectedBackup(backup)}
                           >
                             <RotateCcw className="w-4 h-4 mr-2" />
                             Restore
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            className="bg-red-500 hover:bg-red-600 text-white border-red-500"
+                            onClick={() => setBackupToDelete(backup)}
+                          >
+                            <Trash className="w-4 h-4" />
                           </Button>
                         </TableCell>
                       </TableRow>
@@ -333,6 +362,35 @@ function BackupsDialog({ isOpen, onClose }) {
                     </>
                   ) : (
                     'Restore Configuration'
+                  )}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        )}
+
+        {backupToDelete && (
+          <AlertDialog open={true} onOpenChange={() => setBackupToDelete(null)}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete Backup</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Are you sure you want to delete the backup from {formatDate(backupToDelete.timestamp)}?
+                  This action cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel onClick={() => setBackupToDelete(null)}>
+                  Cancel
+                </AlertDialogCancel>
+                <AlertDialogAction onClick={handleDelete} disabled={isDeleting} className="bg-red-500 hover:bg-red-600">
+                  {isDeleting ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                      Deleting...
+                    </>
+                  ) : (
+                    'Delete Backup'
                   )}
                 </AlertDialogAction>
               </AlertDialogFooter>
@@ -527,7 +585,7 @@ export default function AdminOverview() {
                   <textarea
                     value={configContent}
                     onChange={(e) => setConfigContent(e.target.value)}
-                    className="w-full h-full p-4 bg-neutral-950 font-mono text-sm resize-none focus:outline-none border border-neutral-800 rounded-md"
+                    className="w-full h-full p-4 bg-neutral-950 font-mono text-sm text-white resize-none focus:outline-none border border-neutral-800 rounded-md"
                     spellCheck={false}
                   />
                 </div>
