@@ -17,14 +17,6 @@ version = "10.0.0"
 database = "heliactyl.db"
 
 # ---------------------------------
-# Pterodactyl Settings
-# ---------------------------------
-[pterodactyl]
-domain = "https://panel.heliactyl.toledo" # Format: https://panel.domain.tld with no / on the end
-key = "" # Find this under Admin -> Application API
-client_key = "" # Create an admin account and generate from Account -> API Keys
-
-# ---------------------------------
 # Webserver Configuration
 # ---------------------------------
 [website]
@@ -33,6 +25,14 @@ logo = "https://i.imgur.com/6ykl8tF.png"
 port = 17_000 # Default: 25_001
 secret = "CHANGE_THIS_SECRET" # Change this - do not run Heliactyl in production with the default secret
 domain = "http://localhost:17000"
+
+# ---------------------------------
+# Pterodactyl Settings
+# ---------------------------------
+[pterodactyl]
+domain = "https://panel.heliactyl.toledo" # Format: https://panel.domain.tld with no / on the end
+key = "" # Find this under Admin -> Application API
+client_key = "" # Create an admin account and generate from Account -> API Keys
 
 # ---------------------------------
 # API Client Settings

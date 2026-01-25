@@ -11,6 +11,25 @@ export default defineConfig({
   ],
   chunkSizeWarningLimit: 1000,
   plugins: [react()],
+  // For local development
+  server: {
+    port: 5173,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:17000',
+        changeOrigin: true,
+        ws: true,
+      },
+      '/auth': {
+        target: 'http://localhost:17000',
+        changeOrigin: true,
+      },
+      '/ws': {
+        target: 'http://localhost:17000',
+        ws: true,
+      }
+    }
+  },
   base: '/',
   build: {
     commonjsOptions: {

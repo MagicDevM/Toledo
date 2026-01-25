@@ -91,11 +91,11 @@ const LandingPage = () => {
             <nav className="flex flex-col gap-4 px-6">
               <a href="#pricing" className="text-sm text-white hover:text-white/80 py-2 transition">Pricing</a>
               <a href="https://discord.gg/freehosting" className="text-sm text-white hover:text-white/80 py-2 transition">Community</a>
-              <a href="https://console.heliactyl.toledo" className="text-sm text-white hover:text-white/80 py-2 transition">Dashboard</a>
+              <a href={consoleUrl} className="text-sm text-white hover:text-white/80 py-2 transition">Dashboard</a>
               <div className="flex flex-col gap-3 mt-2 pt-4 border-t border-[#2e3337]">
-                <a onClick={() => window.location.href = 'https://console.heliactyl.toledo'} className="text-sm text-white hover:text-white/80 transition cursor-pointer">Login</a>
+                <a onClick={() => window.location.href = consoleUrl} className="text-sm text-white hover:text-white/80 transition cursor-pointer">Login</a>
                 <a
-                  onClick={() => window.location.href = 'https://console.heliactyl.toledo'}
+                  onClick={() => window.location.href = consoleUrl}
                   className="px-4 py-2 cursor-pointer rounded-full font-medium text-sm bg-white text-black hover:bg-white/90 transition text-center"
                 >
                   Sign up free
@@ -130,8 +130,8 @@ const LandingPage = () => {
             The <span className="text-white">world's largest</span> free 24/7<br />game server hosting platform.
           </h1>
           <p className="text-lg md:text-xl mb-10 max-w-3xl mx-auto text-white/70">
-            Get started with a free 24/7 server in just 60 seconds.
-            {siteName} provides reliable, high-performance game servers for everyone. <i>Formerly known as Altare.</i>
+            Get started with a free 24/7 server in just 60 seconds.<br />
+            {siteName} provides reliable, high-performance game servers for everyone.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a

@@ -3,3 +3,4 @@ package-lock.json
 .DS_Store
 bun.lock
 dist
+pnpm-lock.yaml

@@ -70,6 +70,7 @@ module.exports.load = async function (app, db) {
     res.json({
       name: settings.website.name || "Heliactyl",
       logo: settings.website.logo || "https://i.imgur.com/gUUze6A.png",
+      domain: settings.website.domain,
       pterodactyl: settings.pterodactyl.domain
     });
   });

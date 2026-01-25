@@ -63,6 +63,7 @@
   },
   "scripts": {
     "mono:build": "cd ../frontend && pnpm run build",
+    "mono:watch": "cd ../frontend && pnpm run dev",
     "db:build:macos": "cd Heliactyl Nextdb && cargo build --release && cp target/release/libHeliactyl Nextdb.dylib ../ffi/libHeliactyl Nextdb.dylib",
     "db:build:linux": "cd Heliactyl Nextdb && cargo build --release && cp target/release/libHeliactyl Nextdb.so ../ffi/libHeliactyl Nextdb.so",
     "db:build:windows": "cd Heliactyl Nextdb && cargo build --release && cp target/release/Heliactyl Nextdb.dll ../ffi/Heliactyl Nextdb.dll",

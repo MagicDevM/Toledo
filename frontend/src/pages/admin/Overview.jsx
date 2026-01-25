@@ -65,32 +65,35 @@ function WelcomeModal({ isOpen, onClose }) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl">
-        <div className="py-10">
-          <div className="relative space-y-4">
-            <img src="https://i.imgur.com/ZLb7kak.png" alt="Heliactyl Next Logo" className="w-auto h-12 mb-6" />
-            <h2 className="text-3xl font-bold text-black">Heliactyl Next 0.5 (Namek)</h2>
-            <p className="text-neutral-700 max-w-lg">
-              The next generation of Heliactyl Next is here. New year, new look, new features and improvements. We're excited to have you join us now that you've upgraded from Heliactyl!
-            </p>
-            <div className="flex space-x-4 items-center">
-            <Checkbox 
-              id="dontShowAgain" 
-              checked={dontShowAgain} 
-              onCheckedChange={setDontShowAgain}
-              className="text-primary-500"
-            />
-            <label 
-              htmlFor="dontShowAgain" 
-              className="text-sm text-neutral-600 cursor-pointer"
-            >
-              Don't show this again
-            </label>
+      <DialogContent className="max-w-2xl bg-[#0a0a0a] border-neutral-800">
+        <div className="py-8">
+          <div className="relative space-y-6">
+            <img src="https://i.imgur.com/ZLb7kak.png" alt="Heliactyl Next Logo" className="w-auto h-12" />
+            <div className="space-y-2">
+              <h2 className="text-3xl font-bold text-white tracking-tight">Heliactyl Next 10.0.0 (Toledo)</h2>
+              <p className="text-neutral-400 max-w-lg leading-relaxed">
+                The next generation of Heliactyl Next is here. New year, new look, new features and improvements. 
+                We're excited to have you join us now that you've upgraded from Heliactyl!
+              </p>
+            </div>
+            <div className="flex space-x-3 items-center pt-2">
+              <Checkbox
+                id="dontShowAgain"
+                checked={dontShowAgain}
+                onCheckedChange={setDontShowAgain}
+                className="border-neutral-700 data-[state=checked]:bg-white data-[state=checked]:border-white data-[state=checked]:text-black"
+              />
+              <label
+                htmlFor="dontShowAgain"
+                className="text-sm font-medium text-neutral-500 cursor-pointer select-none hover:text-neutral-300 transition-colors"
+              >
+                Don't show this again
+              </label>
             </div>
           </div>
         </div>
-        <DialogFooter className="flex-col space-y-4">
-          <Button onClick={handleClose} className="w-96 mr-auto">
+        <DialogFooter className="sm:justify-start pt-2">
+          <Button onClick={handleClose} className="w-full sm:w-80 h-11 text-base font-semibold transition-all active:scale-[0.98] bg-white text-black hover:bg-neutral-200">
             Explore Heliactyl Next
           </Button>
         </DialogFooter>
@@ -219,7 +222,7 @@ function BackupsDialog({ isOpen, onClose }) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl">
+      <DialogContent className="max-w-4xl bg-[#0a0a0a] border-neutral-800">
         <DialogHeader>
           <DialogTitle>Configuration Backups</DialogTitle>
           <DialogDescription>
@@ -295,11 +298,11 @@ function BackupsDialog({ isOpen, onClose }) {
 
         {selectedBackup && (
           <AlertDialog open={true} onOpenChange={() => setSelectedBackup(null)}>
-            <AlertDialogContent>
+            <AlertDialogContent className="bg-[#0a0a0a] border-neutral-800">
               <AlertDialogHeader>
                 <AlertDialogTitle>Restore Configuration</AlertDialogTitle>
                 <AlertDialogDescription>
-                  Are you sure you want to restore the configuration from {formatDate(selectedBackup.timestamp)}? 
+                  Are you sure you want to restore the configuration from {formatDate(selectedBackup.timestamp)}?
                   This will overwrite your current configuration and require a dashboard reboot.
                 </AlertDialogDescription>
               </AlertDialogHeader>
@@ -397,231 +400,231 @@ export default function AdminOverview() {
       await axios.post('/api/reboot');
       setTimeout(() => window.location.reload(), 7000);
     } catch (err) {
-        setError('Failed to initiate reboot');
-        setIsRebooting(false);
-      }
-    };
-  
-    const handleCreateBackup = async () => {
-      try {
-        setError('');
-        await handleSaveConfig();
-        setIsBackupsDialogOpen(true);
-      } catch (err) {
-        setError('Failed to create backup');
-      }
-    };
-  
-    if (loadingConfig || loadingReboot) {
-      return (
-        <div className="p-6">
-          <div className="h-8 w-32 bg-neutral-800 rounded animate-pulse mb-6" />
-          <div className="grid gap-6">
-            <div className="h-40 bg-neutral-800 rounded animate-pulse" />
-            <div className="h-40 bg-neutral-800 rounded animate-pulse" />
-          </div>
-        </div>
-      );
+      setError('Failed to initiate reboot');
+      setIsRebooting(false);
     }
-  
+  };
+
+  const handleCreateBackup = async () => {
+    try {
+      setError('');
+      await handleSaveConfig();
+      setIsBackupsDialogOpen(true);
+    } catch (err) {
+      setError('Failed to create backup');
+    }
+  };
+
+  if (loadingConfig || loadingReboot) {
     return (
-      <div className="min-h-screen bg-neutral-950">
-        <WelcomeModal 
-          isOpen={showWelcome} 
-          onClose={() => setShowWelcome(false)} 
-        />
-        
-        <div className="p-6">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className="text-2xl font-bold">Overview</h1>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button 
-                variant="outline" 
-                onClick={handleCreateBackup}
-              >
-                <Archive className="w-4 h-4 mr-2" />
-                Create Backup
-              </Button>
-              <Button 
-                onClick={() => setIsRebootDialogOpen(true)}
-                variant={rebootStatus?.needsReboot ? "default" : "outline"}
-                disabled={isRebooting}
-              >
-                {isRebooting ? (
-                  <>
-                    <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                    Rebooting...
-                  </>
-                ) : rebootStatus?.needsReboot ? (
-                  <>
-                    <RefreshCw className="w-4 h-4 mr-2" />
-                    Reboot Required
-                  </>
-                ) : (
-                  <>
-                    <RefreshCw className="w-4 h-4 mr-2" />
-                    Reboot Dashboard
-                  </>
-                )}
-              </Button>
-            </div>
-          </div>
-  
-          {/* System Overview Section */}
-          <div className="grid gap-6 mb-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>System Overview</CardTitle>
-                <CardDescription>Current system status and statistics</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-1">
-                  <div className="flex items-center text-sm">
-                    <Badge variant="outline" className="mr-2">{config?.version}</Badge>
-                    <ChevronRight className="w-4 h-4 text-neutral-500" />
-                    <span className="text-neutral-400">Platform {config?.platform_level}</span>
-                    <ChevronRight className="w-4 h-4 text-neutral-500" />
-                    <span className="text-neutral-400">"{config?.platform_codename}"</span>
-                  </div>
-                </div>
-                <SystemStats />
-              </CardContent>
-            </Card>
-          </div>
-  
-          <div className="grid gap-6 grid-cols-4">
-{/* Main Configuration Section */}
-<div className="col-span-3">
-  <Card className="flex flex-col h-[calc(100vh-20rem)]">
-    <CardHeader>
-      <CardTitle className="flex items-center gap-2">
-        <FileCode className="w-4 h-4" />
-        Configuration Editor
-      </CardTitle>
-      <CardDescription>
-        Edit your dashboard's configuration file directly. Be careful as incorrect changes may break your dashboard.
-      </CardDescription>
-    </CardHeader>
-    <CardContent className="flex-1 pb-0">
-      <div className="h-full">
-        <textarea
-          value={configContent}
-          onChange={(e) => setConfigContent(e.target.value)}
-          className="w-full h-full p-4 bg-neutral-950 font-mono text-sm resize-none focus:outline-none border border-neutral-800 rounded-md"
-          spellCheck={false}
-        />
-      </div>
-    </CardContent>
-    <CardFooter className="flex justify-between mt-4">
-      <div className="text-sm text-neutral-500">
-        {rebootStatus?.needsReboot && (
-          <span className="flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 text-yellow-500" />
-            Reboot required to apply changes
-          </span>
-        )}
-      </div>
-      <Button onClick={handleSaveConfig} disabled={isSaving}>
-        {isSaving ? (
-          <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-        ) : (
-          <Save className="w-4 h-4 mr-2" />
-        )}
-        Save Changes
-      </Button>
-    </CardFooter>
-  </Card>
-</div>
-  
-            {/* Quick Actions Section */}
-            <div className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Quick Actions</CardTitle>
-                  <CardDescription>Common administrative tasks</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    <Button 
-                      variant="outline" 
-                      className="w-full justify-start" 
-                      onClick={() => setIsBackupsDialogOpen(true)}
-                    >
-                      <Archive className="w-4 h-4 mr-2" />
-                      Config Backups
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      className="w-full justify-start hidden"
-                      onClick={() => window.open('/api/config/backups', '_blank')}
-                    >
-                      <FileCode className="w-4 h-4 mr-2" />
-                      View Backup Files
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      className="w-full justify-start hidden"
-                      onClick={async () => {
-                        try {
-                          await axios.post('/api/panel/rebuild');
-                          setError('Panel rebuild initiated successfully');
-                        } catch (err) {
-                          setError('Failed to rebuild panel');
-                        }
-                      }}
-                    >
-                      <Box className="w-4 h-4 mr-2" />
-                      Rebuild Panel
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-  
-              {error && (
-                <Alert variant={error.includes('successfully') ? "default" : "destructive"}>
-                  {error.includes('successfully') ? (
-                    <Check className="h-4 w-4" />
-                  ) : (
-                    <AlertCircle className="h-4 w-4" />
-                  )}
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
-              )}
-            </div>
-          </div>
+      <div className="p-6">
+        <div className="h-8 w-32 bg-neutral-800 rounded animate-pulse mb-6" />
+        <div className="grid gap-6">
+          <div className="h-40 bg-neutral-800 rounded animate-pulse" />
+          <div className="h-40 bg-neutral-800 rounded animate-pulse" />
         </div>
-  
-        <BackupsDialog 
-          isOpen={isBackupsDialogOpen}
-          onClose={() => setIsBackupsDialogOpen(false)}
-        />
-  
-        <AlertDialog open={isRebootDialogOpen} onOpenChange={setIsRebootDialogOpen}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Reboot Dashboard</AlertDialogTitle>
-              <AlertDialogDescription>
-                Are you sure you want to reboot the dashboard? All active connections will be temporarily disconnected.
-                {rebootStatus?.needsReboot && (
-                  <Alert className="mt-2">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>
-                      Configuration changes have been detected that require a reboot to take effect.
-                    </AlertDescription>
-                  </Alert>
-                )}
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel onClick={() => setIsRebootDialogOpen(false)}>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={handleReboot} disabled={isRebooting}>
-                {isRebooting ? 'Rebooting...' : 'Reboot Dashboard'}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
       </div>
     );
   }
+
+  return (
+    <div className="min-h-screen bg-neutral-950">
+      <WelcomeModal
+        isOpen={showWelcome}
+        onClose={() => setShowWelcome(false)}
+      />
+
+      <div className="p-6">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="text-2xl font-bold">Overview</h1>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              onClick={handleCreateBackup}
+            >
+              <Archive className="w-4 h-4 mr-2" />
+              Create Backup
+            </Button>
+            <Button
+              onClick={() => setIsRebootDialogOpen(true)}
+              variant={rebootStatus?.needsReboot ? "default" : "outline"}
+              disabled={isRebooting}
+            >
+              {isRebooting ? (
+                <>
+                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                  Rebooting...
+                </>
+              ) : rebootStatus?.needsReboot ? (
+                <>
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  Reboot Required
+                </>
+              ) : (
+                <>
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  Reboot Dashboard
+                </>
+              )}
+            </Button>
+          </div>
+        </div>
+
+        {/* System Overview Section */}
+        <div className="grid gap-6 mb-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>System Overview</CardTitle>
+              <CardDescription>Current system status and statistics</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-1">
+                <div className="flex items-center text-sm">
+                  <Badge variant="outline" className="mr-2">{config?.version}</Badge>
+                  <ChevronRight className="w-4 h-4 text-neutral-500" />
+                  <span className="text-neutral-400">Platform {config?.platform_level}</span>
+                  <ChevronRight className="w-4 h-4 text-neutral-500" />
+                  <span className="text-neutral-400">"{config?.platform_codename}"</span>
+                </div>
+              </div>
+              <SystemStats />
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="grid gap-6 grid-cols-4">
+          {/* Main Configuration Section */}
+          <div className="col-span-3">
+            <Card className="flex flex-col h-[calc(100vh-20rem)]">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileCode className="w-4 h-4" />
+                  Configuration Editor
+                </CardTitle>
+                <CardDescription>
+                  Edit your dashboard's configuration file directly. Be careful as incorrect changes may break your dashboard.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="flex-1 pb-0">
+                <div className="h-full">
+                  <textarea
+                    value={configContent}
+                    onChange={(e) => setConfigContent(e.target.value)}
+                    className="w-full h-full p-4 bg-neutral-950 font-mono text-sm resize-none focus:outline-none border border-neutral-800 rounded-md"
+                    spellCheck={false}
+                  />
+                </div>
+              </CardContent>
+              <CardFooter className="flex justify-between mt-4">
+                <div className="text-sm text-neutral-500">
+                  {rebootStatus?.needsReboot && (
+                    <span className="flex items-center gap-2">
+                      <AlertCircle className="w-4 h-4 text-yellow-500" />
+                      Reboot required to apply changes
+                    </span>
+                  )}
+                </div>
+                <Button onClick={handleSaveConfig} disabled={isSaving}>
+                  {isSaving ? (
+                    <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <Save className="w-4 h-4 mr-2" />
+                  )}
+                  Save Changes
+                </Button>
+              </CardFooter>
+            </Card>
+          </div>
+
+          {/* Quick Actions Section */}
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Quick Actions</CardTitle>
+                <CardDescription>Common administrative tasks</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start"
+                    onClick={() => setIsBackupsDialogOpen(true)}
+                  >
+                    <Archive className="w-4 h-4 mr-2" />
+                    Config Backups
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start hidden"
+                    onClick={() => window.open('/api/config/backups', '_blank')}
+                  >
+                    <FileCode className="w-4 h-4 mr-2" />
+                    View Backup Files
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start hidden"
+                    onClick={async () => {
+                      try {
+                        await axios.post('/api/panel/rebuild');
+                        setError('Panel rebuild initiated successfully');
+                      } catch (err) {
+                        setError('Failed to rebuild panel');
+                      }
+                    }}
+                  >
+                    <Box className="w-4 h-4 mr-2" />
+                    Rebuild Panel
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {error && (
+              <Alert variant={error.includes('successfully') ? "default" : "destructive"}>
+                {error.includes('successfully') ? (
+                  <Check className="h-4 w-4" />
+                ) : (
+                  <AlertCircle className="h-4 w-4" />
+                )}
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <BackupsDialog
+        isOpen={isBackupsDialogOpen}
+        onClose={() => setIsBackupsDialogOpen(false)}
+      />
+
+      <AlertDialog open={isRebootDialogOpen} onOpenChange={setIsRebootDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Reboot Dashboard</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to reboot the dashboard? All active connections will be temporarily disconnected.
+              {rebootStatus?.needsReboot && (
+                <Alert className="mt-2">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    Configuration changes have been detected that require a reboot to take effect.
+                  </AlertDescription>
+                </Alert>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setIsRebootDialogOpen(false)}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleReboot} disabled={isRebooting}>
+              {isRebooting ? 'Rebooting...' : 'Reboot Dashboard'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
+}
