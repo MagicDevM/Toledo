@@ -514,13 +514,13 @@ module.exports.load = async function (app, db) {
       const transactions = await billingManager.getTransactionHistory(userId);
       
       const invoices = transactions
-        .filter(t => t.type === 'credit_purchase' && (t.details.invoice_url || t.details.invoice_pdf))
+        .filter(t => t.type === 'credit_purchase' && t.details && (t.details.invoice_url || t.details.invoice_pdf))
         .map(t => ({
           id: t.id,
           date: t.timestamp,
           amount: t.amount,
-          url: t.details.invoice_url,
-          pdf: t.details.invoice_pdf
+          url: t.details?.invoice_url,
+          pdf: t.details?.invoice_pdf
         }))
         .sort((a, b) => new Date(b.date) - new Date(a.date));
 

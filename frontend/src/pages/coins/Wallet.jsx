@@ -395,10 +395,10 @@ export default function WalletPage() {
                       </td>
                        <td className="px-4 py-3 text-[#95a1ad]">
                         {txn.type === 'credit_purchase' ? 'Stripe Top-up' : 
-                         txn.type === 'coin_purchase' ? `${txn.details.package_amount} Coins` :
-                         txn.type === 'transfer_sent' ? `Sent to ${txn.details.to}` :
-                         txn.type === 'transfer_received' ? `Received from ${txn.details.from}` :
-                         txn.details.description || JSON.stringify(txn.details)}
+                         txn.type === 'coin_purchase' ? `${txn.details?.package_amount || 'Unknown'} Coins` :
+                         txn.type === 'transfer_sent' ? `Sent to ${txn.details?.to || 'Unknown'}` :
+                         txn.type === 'transfer_received' ? `Received from ${txn.details?.from || 'Unknown'}` :
+                         txn.details?.description || (txn.details ? JSON.stringify(txn.details) : 'No details available')}
                       </td>
                       <td className={`px-4 py-3 text-right font-medium ${
                         txn.amount > 0 ? 'text-emerald-400' : 'text-red-400'

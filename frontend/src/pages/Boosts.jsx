@@ -593,12 +593,12 @@ export default function ServerBoostsPage() {
                         </div>
                         {entry.details?.duration && (
                           <span className="text-xs text-[#95a1ad]">
-                            Duration: {entry.details.duration}
+                            Duration: {entry.details?.duration}
                           </span>
                         )}
                         {entry.details?.refundAmount > 0 && (
                           <span className="text-xs text-green-500">
-                            Refund: {entry.details.refundAmount} coins
+                            Refund: {entry.details?.refundAmount} coins
                           </span>
                         )}
                       </div>
