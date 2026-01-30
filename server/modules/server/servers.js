@@ -215,7 +215,12 @@ module.exports.load = async function (app, db) {
                 }
             });
         } catch (error) {
-            console.error('Error fetching resources:', error);
+            if (error.message.includes('not linked')) {
+                return res.status(400).json({ error: 'Pterodactyl account not linked' });
+            }
+            if (error.message.includes('authentication failed')) {
+                return res.status(500).json({ error: 'Pterodactyl API authentication failed' });
+            }
             res.status(500).json({ error: 'Failed to fetch resource information' });
         }
     });
@@ -229,6 +234,12 @@ module.exports.load = async function (app, db) {
             }
             res.json(user.attributes.relationships.servers.data);
         } catch (error) {
+            if (error.message.includes('not linked')) {
+                return res.status(400).json({ error: 'Pterodactyl account not linked' });
+            }
+            if (error.message.includes('authentication failed')) {
+                return res.status(500).json({ error: 'Pterodactyl API authentication failed' });
+            }
             res.status(500).json({ error: 'Failed to fetch servers' });
         }
     });
