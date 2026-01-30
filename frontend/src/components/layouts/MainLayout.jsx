@@ -186,6 +186,7 @@ const MainLayout = () => {
     { icon: FolderIcon, label: 'Files', path: `/server/${id}/files` },
     { icon: GlobeAltIcon, label: 'Network', path: `/server/${id}/network` },
     { icon: CloudArrowDownIcon, label: 'Backups', path: `/server/${id}/backups` },
+    { icon: UsersIcon, label: 'Players', path: `/server/${id}/players` },
     { icon: UsersIcon, label: 'Users', path: `/server/${id}/users` },
     { icon: Cog6ToothIcon, label: 'Settings', path: `/server/${id}/settings` },
     { icon: CubeIcon, label: 'Package', path: `/server/${id}/package` },

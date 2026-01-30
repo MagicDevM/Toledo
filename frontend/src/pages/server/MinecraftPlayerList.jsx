@@ -13,7 +13,6 @@ import {
   AlertTriangle
 } from 'lucide-react';
 import {
-  fetchServerStatus,
   getPlayerHeadUrl,
   executeServerCommand
 } from '../../services/minecraftService';
@@ -53,31 +52,21 @@ const MinecraftPlayerList = ({ serverIdentifier }) => {
   const refreshStatus = async () => {
     try {
       setIsRefreshing(true);
-      // First get the server's IP and port from our backend
-      const serverInfoResponse = await axios.get(`/api/server/${serverIdentifier}`);
-      const serverInfo = serverInfoResponse.data;
-
-      // Fix: Properly access the allocation data from the response
-      const allocation = serverInfo?.attributes?.relationships?.allocations?.data?.[0]?.attributes ||
-        serverInfo?.relationships?.allocations?.data?.[0]?.attributes;
-
-      if (!allocation || !allocation.ip_alias || !allocation.port) {
-        console.error('Could not find allocation data in the server info response');
-        setServerAddress('Server address unavailable');
-        setError('Failed to get server connection information');
-        return;
+      
+      // Use the proxy endpoint to avoid CORS issues
+      const { data: status } = await axios.get(`/api/v5/server/${serverIdentifier}/minecraft-status`);
+      
+      if (status && status.online) {
+        setServerStatus(status);
+        setServerAddress(status.hostname || status.ip || 'Unknown');
+        setError(null);
+      } else {
+        setServerStatus({ online: false });
+        setServerAddress('Server offline');
       }
-
-      const address = `${allocation.ip_alias}:${allocation.port}`;
-      setServerAddress(address);
-
-      // Then use this to query the Minecraft server status API
-      const status = await fetchServerStatus(address);
-      setServerStatus(status);
-      setError(null);
     } catch (err) {
-      setError('Failed to fetch server status');
-      console.error('Error fetching server status:', err);
+      // Silently fail - don't spam console with errors
+      setServerStatus({ online: false });
       setServerAddress('Connection failed');
     } finally {
       setLoading(false);

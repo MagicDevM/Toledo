@@ -349,10 +349,8 @@ async function apiRequest(endpoint, method = "GET", body = null) {
 }
 
 module.exports.load = async function (app, db) {
-  const router = express.Router();
-
-  // Nothing to do here
-  // All routes are defined in the other modules
+  // Core module exports helper functions only
+  // Routes are defined in other modules (servers.js, etc.)
 };
 
 module.exports = {

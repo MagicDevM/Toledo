@@ -537,7 +537,7 @@ export default function ConsolePage() {
           break;
       }
     } catch (error) {
-      console.error('WebSocket message handling error:', error);
+      // Silently ignore WebSocket errors to avoid console spam
     }
   }, [addNotification]);
 

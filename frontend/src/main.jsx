@@ -18,7 +18,13 @@ const queryClient = new QueryClient()
 ReactDOM.createRoot(document.getElementById('heliactyl')).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter basename="/">
+      <BrowserRouter 
+        basename="/"
+        future={{
+          v7_startTransition: true,
+          v7_relativeSplatPath: true
+        }}
+      >
         <SettingsProvider>
           <App />
         </SettingsProvider>

@@ -11,13 +11,23 @@ if (settings.pterodactyl?.domain?.slice(-1) === '/') {
     settings.pterodactyl.domain = settings.pterodactyl.domain.slice(0, -1);
 }
 
-// Pterodactyl API helper
+// Pterodactyl API helper (Application API)
 const pteroApi = axios.create({
     baseURL: settings.pterodactyl.domain,
     headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
         'Authorization': `Bearer ${settings.pterodactyl.key}`
+    }
+});
+
+// Pterodactyl Client API helper (for /api/client/ endpoints)
+const pteroClientApi = axios.create({
+    baseURL: settings.pterodactyl.domain,
+    headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${settings.pterodactyl.client_key}`
     }
 });
 
@@ -582,6 +592,57 @@ module.exports.load = async function (app, db) {
             }
             console.error('Error deleting server:', error);
             res.status(500).json({ error: 'Failed to delete server' });
+        }
+    });
+
+    // Proxy endpoint for Minecraft server status API (avoids CORS issues)
+    router.get('/server/:id/minecraft-status', async (req, res) => {
+        try {
+            const serverId = req.params.id;
+
+            // Verify user owns this server
+            const user = await getPteroUser(req.session.userinfo.id, db);
+            const server = user.attributes.relationships.servers.data.find(
+                s => s.attributes.id === serverId || s.attributes.identifier === serverId
+            );
+
+            if (!server) {
+                return res.status(403).json({ error: 'Access denied' });
+            }
+
+            // Get server info from Pterodactyl using Client API
+            const serverResponse = await pteroClientApi.get(`/api/client/servers/${serverId}`);
+
+            // Handle different possible response structures
+            const serverData = serverResponse.data?.data || serverResponse.data;
+            const attributes = serverData?.attributes || serverData;
+            const relationships = attributes?.relationships || {};
+            const allocations = relationships?.allocations?.data || [];
+
+            const allocation = allocations[0];
+            if (!allocation) {
+                return res.status(404).json({ error: 'No allocation found for server' });
+            }
+
+            const allocAttrs = allocation.attributes || allocation;
+            const ip = allocAttrs.ip_alias || allocAttrs.ip;
+            const port = allocAttrs.port;
+
+            // Query mcsrvstat.us API from server-side (no CORS issues)
+            const statusResponse = await axios.get(`https://api.mcsrvstat.us/3/${ip}:${port}`, {
+                timeout: 10000,
+                headers: {
+                    'User-Agent': 'Heliactyl/10.0.0'
+                }
+            });
+
+            res.json(statusResponse.data);
+        } catch (error) {
+            console.error('Error fetching Minecraft status:', error.message);
+            res.status(500).json({
+                error: 'Failed to fetch Minecraft server status',
+                online: false
+            });
         }
     });
 

@@ -92,11 +92,8 @@ export default function PlayersPage() {
 
   const queryServer = useCallback(async () => {
     try {
-      // First get the server info from your API
-      const { data: serverInfo } = await axios.get(`/api/server/${id}`);
-
-      // Then query mcsrvstat.us API
-      const { data: status } = await axios.get(`https://api.mcsrvstat.us/3/${serverInfo?.attributes.relationships?.allocations?.data?.[0]?.attributes?.ip_alias}:${serverInfo?.attributes.relationships?.allocations?.data?.[0]?.attributes?.port}`);
+      // Use the proxy endpoint to avoid CORS issues
+      const { data: status } = await axios.get(`/api/v5/server/${id}/minecraft-status`);
 
       if (mounted.current) {
         setServerState(status);
@@ -104,7 +101,9 @@ export default function PlayersPage() {
       }
     } catch (err) {
       if (mounted.current) {
-        setError(err.message);
+        // Silently fail - don't spam console with CORS errors
+        setError(null);
+        setServerState({ online: false });
       }
     } finally {
       if (mounted.current) {
@@ -148,7 +147,7 @@ export default function PlayersPage() {
 
         socketRef.current = ws;
       } catch (error) {
-        console.error('WebSocket connection error:', error);
+        // Silently ignore WebSocket connection errors
       }
     };
 
