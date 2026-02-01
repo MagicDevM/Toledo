@@ -376,6 +376,7 @@ export default function Support() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedTicketId, setSelectedTicketId] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [sortBy, setSortBy] = useState('updated');
   const perPage = 10;
 
   const { data: counts } = useQuery({
@@ -399,8 +400,23 @@ export default function Support() {
   const tickets = ticketsData?.data || [];
   const pagination = ticketsData?.pagination || { page: 1, totalPages: 1, total: 0 };
 
-  const activeTickets = tickets.filter(t => t.status === 'open');
-  const closedTickets = tickets.filter(t => t.status === 'closed');
+  // Sort tickets
+  const sortedTickets = [...tickets].sort((a, b) => {
+    switch (sortBy) {
+      case 'updated':
+        return new Date(b.updated) - new Date(a.updated);
+      case 'created':
+        return new Date(b.created) - new Date(a.created);
+      case 'priority':
+        const priorityOrder = { urgent: 4, high: 3, medium: 2, low: 1 };
+        return priorityOrder[b.priority] - priorityOrder[a.priority];
+      default:
+        return new Date(b.updated) - new Date(a.updated);
+    }
+  });
+
+  const activeTickets = sortedTickets.filter(t => t.status === 'open');
+  const closedTickets = sortedTickets.filter(t => t.status === 'closed');
 
   return (
     <div className="space-y-6 p-6 max-w-7xl mx-auto">
@@ -409,13 +425,25 @@ export default function Support() {
           <h1 className="text-2xl font-semibold text-white">Support Center</h1>
           <p className="text-[#95a1ad] mt-1">Get help from our support team</p>
         </div>
-        <Button 
-          onClick={() => setIsCreateModalOpen(true)}
-          className="bg-blue-500 hover:bg-blue-600 text-white"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          New Ticket
-        </Button>
+        <div className="flex items-center gap-4">
+          <Select value={sortBy} onValueChange={setSortBy}>
+            <SelectTrigger className="w-[180px] bg-[#1a1d21] border-[#2e3337]/50 text-white">
+              <SelectValue placeholder="Sort by" />
+            </SelectTrigger>
+            <SelectContent className="bg-[#1a1d21] border-[#2e3337]/50">
+              <SelectItem value="updated" className="text-white hover:bg-[#2e3337]/50 focus:bg-[#2e3337]/50 focus:text-white">Last Updated</SelectItem>
+              <SelectItem value="created" className="text-white hover:bg-[#2e3337]/50 focus:bg-[#2e3337]/50 focus:text-white">Date Created</SelectItem>
+              <SelectItem value="priority" className="text-white hover:bg-[#2e3337]/50 focus:bg-[#2e3337]/50 focus:text-white">Priority</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button 
+            onClick={() => setIsCreateModalOpen(true)}
+            className="bg-blue-500 hover:bg-blue-600 text-white"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            New Ticket
+          </Button>
+        </div>
       </div>
 
       {/* Stats */}

@@ -27,7 +27,9 @@ import {
   X,
   RotateCcw,
   MoreHorizontal,
-  Download
+  Download,
+  ArrowUpIcon,
+  ArrowDownIcon
 } from 'lucide-react';
 
 const StatsCard = ({ title, value, className }) => (
@@ -224,7 +226,9 @@ export default function AdminSupportDashboard() {
     search: '',
     priority: 'all',
     category: 'all',
-    status: 'all'
+    status: 'all',
+    sortBy: 'updated',
+    sortOrder: 'desc'
   });
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedTicketId, setSelectedTicketId] = useState(null);
@@ -262,7 +266,32 @@ export default function AdminSupportDashboard() {
   const tickets = ticketsData?.data || [];
   const pagination = ticketsData?.pagination || { page: 1, totalPages: 1, total: 0, hasNextPage: false, hasPrevPage: false };
 
-  const filteredTickets = Array.isArray(tickets) ? tickets : [];
+  // Sort tickets
+  const sortedTickets = Array.isArray(tickets) ? [...tickets].sort((a, b) => {
+    let comparison = 0;
+    
+    switch (filters.sortBy) {
+      case 'updated':
+        comparison = new Date(b.updated) - new Date(a.updated);
+        break;
+      case 'created':
+        comparison = new Date(b.created) - new Date(a.created);
+        break;
+      case 'priority':
+        const priorityOrder = { urgent: 4, high: 3, medium: 2, low: 1 };
+        comparison = priorityOrder[b.priority] - priorityOrder[a.priority];
+        break;
+      case 'subject':
+        comparison = a.subject.localeCompare(b.subject);
+        break;
+      default:
+        comparison = new Date(b.updated) - new Date(a.updated);
+    }
+    
+    return filters.sortOrder === 'asc' ? -comparison : comparison;
+  }) : [];
+
+  const filteredTickets = sortedTickets;
 
   const handleStatusChange = async (ticketId, status) => {
     try {
@@ -373,6 +402,42 @@ export default function AdminSupportDashboard() {
           <Button onClick={exportTickets}>
             <Download className="w-4 h-4 mr-2" />
             Export CSV
+          </Button>
+        </div>
+
+        {/* Sort Controls */}
+        <div className="flex items-center gap-4 mt-4 pt-4 border-t">
+          <span className="text-sm text-gray-500">Sort by:</span>
+          
+          <Select
+            value={filters.sortBy}
+            onValueChange={(value) => setFilters(prev => ({ ...prev, sortBy: value }))}
+          >
+            <SelectTrigger className="w-[150px]">
+              <SelectValue placeholder="Sort by" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="updated">Last Updated</SelectItem>
+              <SelectItem value="created">Date Created</SelectItem>
+              <SelectItem value="priority">Priority</SelectItem>
+              <SelectItem value="subject">Subject</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setFilters(prev => ({ 
+              ...prev, 
+              sortOrder: prev.sortOrder === 'asc' ? 'desc' : 'asc' 
+            }))}
+            className="flex items-center gap-2"
+          >
+            {filters.sortOrder === 'asc' ? (
+              <><ArrowUpIcon className="w-4 h-4" /> Ascending</>
+            ) : (
+              <><ArrowDownIcon className="w-4 h-4" /> Descending</>
+            )}
           </Button>
         </div>
       </div>
