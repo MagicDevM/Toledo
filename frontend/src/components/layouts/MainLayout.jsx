@@ -97,9 +97,12 @@ const MainLayout = () => {
   const { id } = useParams();
   const showServerSection = location.pathname.includes('/server/');
 
-  // Sliding indicator animation logic
+  // Sliding indicator animation logic - separate for user and admin navs
   const [activeTabId, setActiveTabId] = useState(null);
-  const [indicatorStyle, setIndicatorStyle] = useState({
+  const [userIndicatorStyle, setUserIndicatorStyle] = useState({
+    width: 0, height: 0, top: 0, left: 0, opacity: 0,
+  });
+  const [adminIndicatorStyle, setAdminIndicatorStyle] = useState({
     width: 0, height: 0, top: 0, left: 0, opacity: 0,
   });
 
@@ -116,7 +119,7 @@ const MainLayout = () => {
     }
   }, [location.pathname, activeTabId]);
 
-  // Effect to update the indicator position
+  // Effect to update the indicator positions
   useEffect(() => {
     requestAnimationFrame(() => {
       if (activeTabId && tabRefsMap.current[activeTabId]) {
@@ -128,13 +131,24 @@ const MainLayout = () => {
         const navRect = navElement?.getBoundingClientRect();
 
         if (navRect) {
-          setIndicatorStyle({
+          const style = {
             width: rect.width,
             height: rect.height,
             top: rect.top - navRect.top,
             left: rect.left - navRect.left,
             opacity: 1,
-          });
+          };
+
+          // Check if this is an admin route
+          const isAdminRoute = activeTabId.startsWith('admin-');
+          
+          if (isAdminRoute) {
+            setAdminIndicatorStyle(style);
+            setUserIndicatorStyle(prev => ({ ...prev, opacity: 0 }));
+          } else {
+            setUserIndicatorStyle(style);
+            setAdminIndicatorStyle(prev => ({ ...prev, opacity: 0 }));
+          }
         }
       }
     });
@@ -313,11 +327,11 @@ const MainLayout = () => {
                   <div
                     className="absolute transform transition-all duration-200 ease-spring bg-[#383c47] rounded-md z-0"
                     style={{
-                      width: `${indicatorStyle.width}px`,
-                      height: `${indicatorStyle.height}px`,
-                      top: `${indicatorStyle.top}px`,
-                      left: `${indicatorStyle.left}px`,
-                      opacity: indicatorStyle.opacity,
+                      width: `${userIndicatorStyle.width}px`,
+                      height: `${userIndicatorStyle.height}px`,
+                      top: `${userIndicatorStyle.top}px`,
+                      left: `${userIndicatorStyle.left}px`,
+                      opacity: userIndicatorStyle.opacity,
                       transitionDelay: '30ms',
                     }}
                   />
@@ -360,6 +374,18 @@ const MainLayout = () => {
                   <>
                     <SectionHeader label="Admin" />
                     <nav className="py-1 px-3 space-y-0.5 relative">
+                      {/* Animated background indicator for admin section */}
+                      <div
+                        className="absolute transform transition-all duration-200 ease-spring bg-[#383c47] rounded-md z-0"
+                        style={{
+                          width: `${adminIndicatorStyle.width}px`,
+                          height: `${adminIndicatorStyle.height}px`,
+                          top: `${adminIndicatorStyle.top}px`,
+                          left: `${adminIndicatorStyle.left}px`,
+                          opacity: adminIndicatorStyle.opacity,
+                          transitionDelay: '30ms',
+                        }}
+                      />
                       {adminNavItems.map((item) => (
                         <NavItem
                           key={item.label}
