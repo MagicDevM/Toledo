@@ -5,6 +5,7 @@ const settings = loadConfig('./config.toml');
 const axios = require('axios');
 const getPteroUser = require('../../handlers/getPteroUser');
 const log = require('../../handlers/log');
+const cache = require('../../handlers/cache');
 
 // Ensure Pterodactyl domain is properly formatted
 if (settings.pterodactyl?.domain?.slice(-1) === '/') {
@@ -67,11 +68,16 @@ const createServerLimiter = rateLimit({
 
 // Helper functions
 async function checkUserResources(userId, db, additionalResources = { ram: 0, disk: 0, cpu: 0 }) {
-    const packageName = await db.get(`package-${userId}`);
+    const packageName = await db.getCached(`package-${userId}`, 60000); // Cache for 1 minute
     const package = settings.api.client.packages.list[packageName || settings.api.client.packages.default];
-    const extra = await db.get(`extra-${userId}`) || { ram: 0, disk: 0, cpu: 0, servers: 0 };
+    const extra = await db.getCached(`extra-${userId}`, 60000) || { ram: 0, disk: 0, cpu: 0, servers: 0 };
 
-    const userServers = await getPteroUser(userId, db);
+    // Use cache for Pterodactyl user data (5 minutes TTL)
+    const userServers = await cache.getOrSet(
+        `ptero:user:${userId}:servers`,
+        () => getPteroUser(userId, db),
+        300
+    );
     if (!userServers) throw new Error('Failed to fetch user servers');
 
     const usage = userServers.attributes.relationships.servers.data.reduce((acc, server) => ({
@@ -112,8 +118,8 @@ module.exports.load = async function (app, db) {
 
     router.get('/eggs', async (req, res) => {
         try {
-            // Get package name for restriction checking
-            const packageName = await db.get(`package-${req.session.userinfo.id}`);
+            // Get package name for restriction checking (with cache)
+            const packageName = await db.getCached(`package-${req.session.userinfo.id}`, 60000);
             const userPackage = settings.api.client.packages.list[packageName || settings.api.client.packages.default];
 
             // Filter and format eggs
@@ -154,8 +160,8 @@ module.exports.load = async function (app, db) {
     // GET /api/locations - List all available locations
     router.get('/locations', async (req, res) => {
         try {
-            // Get package name for restriction checking
-            const packageName = await db.get(`package-${req.session.userinfo.id}`);
+            // Get package name for restriction checking (with cache)
+            const packageName = await db.getCached(`package-${req.session.userinfo.id}`, 60000);
             const userPackage = settings.api.client.packages.list[packageName || settings.api.client.packages.default];
 
             // Filter and format locations
@@ -184,12 +190,12 @@ module.exports.load = async function (app, db) {
     // GET /api/resources - Get user's resource usage and limits
     router.get('/resources', async (req, res) => {
         try {
-            // Get package information
-            const packageName = await db.get(`package-${req.session.userinfo.id}`);
+            // Get package information (with cache)
+            const packageName = await db.getCached(`package-${req.session.userinfo.id}`, 60000);
             const package = settings.api.client.packages.list[packageName || settings.api.client.packages.default];
 
-            // Get extra resources
-            const extra = await db.get(`extra-${req.session.userinfo.id}`) || {
+            // Get extra resources (with cache)
+            const extra = await db.getCached(`extra-${req.session.userinfo.id}`, 60000) || {
                 ram: 0,
                 disk: 0,
                 cpu: 0,
@@ -238,7 +244,11 @@ module.exports.load = async function (app, db) {
     // GET /api/servers - List all servers
     router.get('/servers', async (req, res) => {
         try {
-            const user = await getPteroUser(req.session.userinfo.id, db);
+            const user = await cache.getOrSet(
+                `ptero:user:${req.session.userinfo.id}:servers`,
+                () => getPteroUser(req.session.userinfo.id, db),
+                300
+            );
             if (!user) {
                 return res.status(404).json({ error: 'User not found' });
             }
@@ -257,7 +267,11 @@ module.exports.load = async function (app, db) {
     // GET /api/servers/:id - Get specific server
     router.get('/server/:id', async (req, res) => {
         try {
-            const user = await getPteroUser(req.session.userinfo.id, db);
+            const user = await cache.getOrSet(
+                `ptero:user:${req.session.userinfo.id}:servers`,
+                () => getPteroUser(req.session.userinfo.id, db),
+                300
+            );
             const server = user.attributes.relationships.servers.data.find(
                 s => s.attributes.id === req.params.id
             );
@@ -285,9 +299,13 @@ module.exports.load = async function (app, db) {
             if (!location) return res.status(400).json({ error: 'Location is required' });
             if (!ram || !disk || !cpu) return res.status(400).json({ error: 'Resource values are required' });
 
-            // Get user's current resource usage and limits
-            const user = await getPteroUser(req.session.userinfo.id, db);
-            const packageName = await db.get(`package-${req.session.userinfo.id}`);
+            // Get user's current resource usage and limits (with cache)
+            const user = await cache.getOrSet(
+                `ptero:user:${req.session.userinfo.id}:servers`,
+                () => getPteroUser(req.session.userinfo.id, db),
+                300
+            );
+            const packageName = await db.getCached(`package-${req.session.userinfo.id}`, 60000);
             const package = settings.api.client.packages.list[packageName || settings.api.client.packages.default];
             const extra = await db.get(`extra-${req.session.userinfo.id}`) || {
                 ram: 0,
@@ -373,6 +391,9 @@ module.exports.load = async function (app, db) {
                 `(RAM: ${ram}MB, CPU: ${cpu}%, Disk: ${disk}MB)`
             );
 
+            // Invalidate user servers cache
+            await cache.del(`ptero:user:${req.session.userinfo.id}:servers`);
+
             res.status(201).json(response.data);
         } catch (error) {
             if (error.response) {
@@ -397,11 +418,15 @@ module.exports.load = async function (app, db) {
                 return res.status(400).json({ error: 'Missing required resource values' });
             }
 
-            // Get user's current resources and limits
-            const user = await getPteroUser(req.session.userinfo.id, db);
-            const packageName = await db.get(`package-${req.session.userinfo.id}`);
+            // Get user's current resources and limits (with cache)
+            const user = await cache.getOrSet(
+                `ptero:user:${req.session.userinfo.id}:servers`,
+                () => getPteroUser(req.session.userinfo.id, db),
+                300
+            );
+            const packageName = await db.getCached(`package-${req.session.userinfo.id}`, 60000);
             const package = settings.api.client.packages.list[packageName || settings.api.client.packages.default];
-            const extra = await db.get(`extra-${req.session.userinfo.id}`) || {
+            const extra = await db.getCached(`extra-${req.session.userinfo.id}`, 60000) || {
                 ram: 0,
                 disk: 0,
                 cpu: 0,
@@ -528,8 +553,12 @@ module.exports.load = async function (app, db) {
 
             const idOrIdentifier = req.params.idOrIdentifier;
 
-            // Get user's current resources and servers
-            const user = await getPteroUser(req.session.userinfo.id, db);
+            // Get user's current resources and servers (with cache)
+            const user = await cache.getOrSet(
+                `ptero:user:${req.session.userinfo.id}:servers`,
+                () => getPteroUser(req.session.userinfo.id, db),
+                300
+            );
             if (!user) {
                 return res.status(404).json({ error: 'User not found' });
             }
@@ -585,6 +614,9 @@ module.exports.load = async function (app, db) {
                 `User ${req.session.userinfo.username} deleted server "${server.attributes.name}"`
             );
 
+            // Invalidate user servers cache
+            await cache.del(`ptero:user:${req.session.userinfo.id}:servers`);
+
             res.status(204).send();
         } catch (error) {
             if (error.response) {
@@ -600,8 +632,12 @@ module.exports.load = async function (app, db) {
         try {
             const serverId = req.params.id;
 
-            // Verify user owns this server
-            const user = await getPteroUser(req.session.userinfo.id, db);
+            // Verify user owns this server (with cache)
+            const user = await cache.getOrSet(
+                `ptero:user:${req.session.userinfo.id}:servers`,
+                () => getPteroUser(req.session.userinfo.id, db),
+                300
+            );
             const server = user.attributes.relationships.servers.data.find(
                 s => s.attributes.id === serverId || s.attributes.identifier === serverId
             );

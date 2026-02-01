@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
+import { Pagination } from '@/components/Pagination';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -214,29 +215,30 @@ export default function AdminSupportDashboard() {
     }
   });
 
-  const { data: tickets, refetch: refetchTickets } = useQuery({
-    queryKey: ['tickets'],
+  const { data: ticketsData, refetch: refetchTickets } = useQuery({
+    queryKey: ['tickets', currentPage, perPage, filters],
     queryFn: async () => {
-      const response = await fetch('/api/tickets/all');
+      const params = new URLSearchParams({
+        page: currentPage.toString(),
+        per_page: perPage.toString()
+      });
+      
+      // Add filter params if set
+      if (filters.priority !== 'all') params.append('priority', filters.priority);
+      if (filters.category !== 'all') params.append('category', filters.category);
+      if (filters.status !== 'all') params.append('status', filters.status);
+      if (filters.search) params.append('query', filters.search);
+      
+      const response = await fetch(`/api/tickets/all?${params}`);
       return response.json();
     }
   });
 
-  const filteredTickets = Array.isArray(tickets) ? tickets.filter(ticket => {
-    if (filters.search && !ticket.subject.toLowerCase().includes(filters.search.toLowerCase()) &&
-      !ticket.user.username.toLowerCase().includes(filters.search.toLowerCase())) {
-      return false;
-    }
-    if (filters.priority !== 'all' && ticket.priority !== filters.priority) return false;
-    if (filters.category !== 'all' && ticket.category !== filters.category) return false;
-    if (filters.status !== 'all' && ticket.status !== filters.status) return false;
-    return true;
-  }) : [];
+  // Extract data and pagination info from response
+  const tickets = ticketsData?.data || [];
+  const pagination = ticketsData?.pagination || { page: 1, totalPages: 1, total: 0, hasNextPage: false, hasPrevPage: false };
 
-  const paginatedTickets = filteredTickets.slice(
-    (currentPage - 1) * perPage,
-    currentPage * perPage
-  );
+  const filteredTickets = Array.isArray(tickets) ? tickets : [];
 
   const handleStatusChange = async (ticketId, status) => {
     try {
@@ -387,7 +389,7 @@ export default function AdminSupportDashboard() {
               </tr>
             </thead>
             <tbody>
-              {paginatedTickets.map(ticket => (
+              {filteredTickets.map(ticket => (
                 <tr key={ticket.id} className="border-b">
                   <td className="p-4">
                     <div>
@@ -449,55 +451,15 @@ export default function AdminSupportDashboard() {
         </div>
 
         {/* Pagination */}
-        <div className="flex items-center justify-between p-4 border-t">
-          <div className="text-sm text-gray-500">
-            Showing {(currentPage - 1) * perPage + 1} to{' '}
-            {Math.min(currentPage * perPage, filteredTickets.length)} of{' '}
-            {filteredTickets.length} tickets
-          </div>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              disabled={currentPage === 1}
-              onClick={() => setCurrentPage(prev => prev - 1)}
-            >
-              Previous
-            </Button>
-            {Array.from({ length: Math.ceil(filteredTickets.length / perPage) }).map((_, i) => {
-              const pageNumber = i + 1;
-              // Show first, last, and pages around current page
-              if (
-                pageNumber === 1 ||
-                pageNumber === Math.ceil(filteredTickets.length / perPage) ||
-                (pageNumber >= currentPage - 2 && pageNumber <= currentPage + 2)
-              ) {
-                return (
-                  <Button
-                    key={pageNumber}
-                    variant={currentPage === pageNumber ? 'default' : 'outline'}
-                    onClick={() => setCurrentPage(pageNumber)}
-                  >
-                    {pageNumber}
-                  </Button>
-                );
-              } else if (
-                (pageNumber === 2 && currentPage > 4) ||
-                (pageNumber === Math.ceil(filteredTickets.length / perPage) - 1 &&
-                  currentPage < Math.ceil(filteredTickets.length / perPage) - 3)
-              ) {
-                return <span key={pageNumber} className="px-2">...</span>;
-              }
-              return null;
-            })}
-            <Button
-              variant="outline"
-              disabled={currentPage === Math.ceil(filteredTickets.length / perPage)}
-              onClick={() => setCurrentPage(prev => prev + 1)}
-            >
-              Next
-            </Button>
-          </div>
-        </div>
+        <Pagination
+          page={pagination.page}
+          totalPages={pagination.totalPages}
+          perPage={perPage}
+          total={pagination.total}
+          hasNextPage={pagination.hasNextPage}
+          hasPrevPage={pagination.hasPrevPage}
+          onPageChange={setCurrentPage}
+        />
       </Card>
 
       {/* View Ticket Dialog */}

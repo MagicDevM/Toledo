@@ -11,6 +11,7 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const winston = require('winston');
+const LRU = require('lru-cache');
 
 // Configure Winston logger
 const dbLogger = winston.createLogger({
@@ -49,10 +50,19 @@ class HeliactylDB {
     this.ttlSupport = false;
     this.queue = [];
     this.isProcessing = false;
+    this.processingLock = false; // Lock to prevent race conditions
     this.totalOperationTime = 0;
     this.operationCount = 0;
     this.maxQueueSize = 10000; // Prevent unbounded queue growth
     this.tableName = 'heliactyl'; // Default table name
+
+    // Initialize LRU cache for hot data
+    this.cache = new LRU({
+      max: 500, // Max 500 items
+      ttl: 1000 * 60 * 5, // 5 minutes default TTL
+      updateAgeOnGet: true,
+      updateAgeOnHas: true
+    });
 
     // Enable WAL mode for better concurrency
     this.db.run('PRAGMA journal_mode = WAL');
@@ -173,11 +183,13 @@ class HeliactylDB {
    * @private
    */
   async processQueue() {
-    if (this.isProcessing || this.queue.length === 0) return;
-
+    // Use a lock to prevent race conditions
+    if (this.processingLock || this.queue.length === 0) return;
+    
+    this.processingLock = true;
     this.isProcessing = true;
+    
     const { operation, resolve, reject } = this.queue.shift();
-
     const startTime = Date.now();
 
     try {
@@ -203,7 +215,12 @@ class HeliactylDB {
       reject(error);
     } finally {
       this.isProcessing = false;
-      setImmediate(() => this.processQueue());
+      this.processingLock = false;
+      
+      // Process next item if queue not empty
+      if (this.queue.length > 0) {
+        setImmediate(() => this.processQueue());
+      }
     }
   }
 
@@ -395,6 +412,73 @@ class HeliactylDB {
         else resolve();
       });
     });
+  }
+
+  /**
+   * @async
+   * @method getCached
+   * @description Retrieves a value by key with caching
+   * @param {string} key - Key to retrieve
+   * @param {number} ttl - Cache TTL in milliseconds
+   * @returns {Promise<any>} Retrieved value
+   */
+  async getCached(key, ttl = 300000) {
+    const cacheKey = `${this.namespace}:${key}`;
+    
+    // Check cache first
+    const cached = this.cache.get(cacheKey);
+    if (cached !== undefined) {
+      return cached;
+    }
+    
+    // Fetch from database
+    const value = await this.get(key);
+    
+    // Store in cache if value exists
+    if (value !== undefined && value !== null) {
+      this.cache.set(cacheKey, value, { ttl });
+    }
+    
+    return value;
+  }
+
+  /**
+   * @async
+   * @method setCached
+   * @description Sets a value with cache invalidation
+   * @param {string} key - Key to set
+   * @param {any} value - Value to store
+   * @param {number} ttl - Cache TTL in milliseconds
+   * @returns {Promise<void>}
+   */
+  async setCached(key, value, ttl = 300000) {
+    const cacheKey = `${this.namespace}:${key}`;
+    
+    // Update database
+    await this.set(key, value);
+    
+    // Update cache
+    this.cache.set(cacheKey, value, { ttl });
+  }
+
+  /**
+   * @method clearCache
+   * @description Clears cache for a specific key or pattern
+   * @param {string} pattern - Key pattern to clear (supports * wildcard)
+   * @returns {void}
+   */
+  clearCache(pattern) {
+    if (pattern.includes('*')) {
+      // Convert pattern to regex
+      const regex = new RegExp('^' + pattern.replace(/\*/g, '.*') + '$');
+      for (const key of this.cache.keys()) {
+        if (regex.test(key)) {
+          this.cache.delete(key);
+        }
+      }
+    } else {
+      this.cache.delete(`${this.namespace}:${pattern}`);
+    }
   }
 
   /**

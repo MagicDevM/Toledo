@@ -2,6 +2,7 @@ const loadConfig = require("../handlers/config.js");
 const settings = loadConfig("./config.toml");
 const axios = require("axios");
 const { v4: uuidv4 } = require('uuid');
+const { paginate, getPaginationParams } = require("../handlers/pagination");
 
 // Pterodactyl API helper
 const pteroApi = axios.create({
@@ -167,7 +168,7 @@ module.exports.load = async function (app, db) {
     }
   });
 
-  // Search tickets (admin only)
+  // Search tickets (admin only) with pagination
   app.get("/api/tickets/search", async (req, res) => {
     if (!await checkAdmin(req, res, settings, db)) {
       return res.status(403).json({ error: "Unauthorized" });
@@ -201,7 +202,11 @@ module.exports.load = async function (app, db) {
       // Format tickets for display
       const formattedTickets = tickets.map(ticket => formatTicketForDisplay(ticket, false));
 
-      res.json(formattedTickets);
+      // Paginate results
+      const { page, perPage } = getPaginationParams(req.query);
+      const paginatedResult = paginate(formattedTickets, page, perPage);
+      
+      res.json(paginatedResult);
     } catch (error) {
       console.error("Error searching tickets:", error);
       res.status(500).json({ error: "Internal server error" });
@@ -303,7 +308,7 @@ module.exports.load = async function (app, db) {
     }
   });
 
-  // Get all tickets (admin only)
+  // Get all tickets (admin only) with pagination
   app.get("/api/tickets/all", async (req, res) => {
     if (!await checkAdmin(req, res, settings, db)) {
       return res.status(403).json({ error: "Unauthorized" });
@@ -311,6 +316,7 @@ module.exports.load = async function (app, db) {
 
     try {
       const tickets = await db.get('tickets') || [];
+      const { page, perPage } = getPaginationParams(req.query);
 
       // Add user information to each ticket
       const ticketsWithUserInfo = await Promise.all(tickets.map(async (ticket) => {
@@ -337,21 +343,27 @@ module.exports.load = async function (app, db) {
         }
       }));
 
-      res.json(ticketsWithUserInfo);
+      // Paginate results
+      const paginatedResult = paginate(ticketsWithUserInfo, page, perPage);
+      res.json(paginatedResult);
     } catch (error) {
       console.error("Error fetching tickets:", error);
       res.status(500).json({ error: "Internal server error" });
     }
   });
 
-  // Get user's tickets
+  // Get user's tickets with pagination
   app.get("/api/tickets", async (req, res) => {
     if (!req.session.pterodactyl) return res.status(401).json({ error: "Unauthorized" });
 
     try {
       const tickets = await db.get('tickets') || [];
       const userTickets = tickets.filter(ticket => ticket.userId === req.session.userinfo.id);
-      res.json(userTickets);
+      const { page, perPage } = getPaginationParams(req.query);
+      
+      // Paginate results
+      const paginatedResult = paginate(userTickets, page, perPage);
+      res.json(paginatedResult);
     } catch (error) {
       console.error("Error fetching user tickets:", error);
       res.status(500).json({ error: "Internal server error" });

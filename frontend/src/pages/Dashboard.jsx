@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
@@ -22,12 +22,14 @@ function formatBytes(bytes, decimals = 2) {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
 }
 
-function ResourceCard({ icon: Icon, title, used, total, unit, isBoosted }) {
-  const percentage = total ? (used / total) * 100 : 0;
-  // If boosted, use a different color scheme or just show it's okay to be over 100%
-  const colorClass = percentage > 100 && !isBoosted ? 'bg-red-500' : 
-                     percentage > 90 && !isBoosted ? 'bg-red-500' : 
-                     percentage > 70 ? 'bg-amber-500' : 'bg-neutral-300';
+const ResourceCard = React.memo(function ResourceCard({ icon: Icon, title, used, total, unit, isBoosted }) {
+  const { percentage, colorClass } = useMemo(() => {
+    const pct = total ? (used / total) * 100 : 0;
+    const color = pct > 100 && !isBoosted ? 'bg-red-500' :
+                  pct > 90 && !isBoosted ? 'bg-red-500' :
+                  pct > 70 ? 'bg-amber-500' : 'bg-neutral-300';
+    return { percentage: pct, colorClass: color };
+  }, [used, total, isBoosted]);
 
   return (
     <div className={`border ${isBoosted ? 'border-amber-500/30 bg-amber-500/5' : 'border-[#2e3337]/50 bg-transparent'} shadow-xs rounded-lg p-4 relative overflow-hidden`}>
@@ -62,7 +64,7 @@ function ResourceCard({ icon: Icon, title, used, total, unit, isBoosted }) {
       </div>
     </div>
   );
-}
+});
 
 function CreateServerModal({ isOpen, onClose }) {
   const [name, setName] = useState('');

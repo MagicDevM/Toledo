@@ -48,6 +48,8 @@ import AdminNodes from './pages/admin/Nodes';
 import AdminTickets from './pages/admin/Tickets';
 import AdminRadar from './pages/admin/Radar';
 
+import Support from './pages/Support';
+
 class ErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
@@ -305,6 +307,7 @@ export default function App() {
 
             <Route path="/account" element={<AccountPage />} />
             <Route path="/passkeys" element={<PasskeyManager />} />
+            <Route path="/support" element={<Support />} />
 
             {/* Others */}
             <Route path="/boosts" element={<Boosts />} />
