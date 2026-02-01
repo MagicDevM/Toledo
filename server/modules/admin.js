@@ -1285,6 +1285,37 @@ module.exports.load = async function (app, db) {
     configNeedsReboot = false;
     setTimeout(handleReboot, 1000);
   });
+
+  // Platform Statistics endpoint - accessible to all authenticated users
+  app.get("/api/stats", async (req, res) => {
+    if (!req.session.pterodactyl) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    try {
+      // Fetch data from Pterodactyl
+      const [usersResponse, serversResponse, nodesResponse] = await Promise.all([
+        pteroApi.get('/api/application/users?per_page=1'),
+        pteroApi.get('/api/application/servers?per_page=1'),
+        pteroApi.get('/api/application/nodes?per_page=1')
+      ]);
+
+      // Get locations from config
+      const locations = Object.keys(settings.api.client.locations || {});
+
+      const stats = {
+        totalUsers: usersResponse.data.meta.pagination.total || 0,
+        totalServers: serversResponse.data.meta.pagination.total || 0,
+        totalNodes: nodesResponse.data.meta.pagination.total || 0,
+        totalLocations: locations.length
+      };
+
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching platform stats:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
 };
 
 // Utility function to handle reboot

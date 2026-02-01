@@ -7,10 +7,11 @@ import {
   ChartPieIcon, ArchiveBoxIcon, ArrowPathIcon,
   ExclamationCircleIcon, CommandLineIcon, PencilIcon,
   TrashIcon, UsersIcon, CheckIcon, EllipsisVerticalIcon,
-  BoltIcon
+  BoltIcon, GlobeAltIcon, CircleStackIcon
 } from '@heroicons/react/24/outline';
-import { ChartPie } from 'lucide-react';
+import { ChartPie, Users, Server, CircuitBoard, MapPin } from 'lucide-react';
 import { FAQSection } from '../components/FAQSection';
+import { Card, CardContent } from '@/components/ui/card';
 
 // Utility function to format bytes
 function formatBytes(bytes, decimals = 2) {
@@ -369,6 +370,15 @@ export default function Dashboard() {
     retry: false
   });
 
+  const { data: platformStats } = useQuery({
+    queryKey: ['platform-stats'],
+    queryFn: async () => {
+      const { data } = await axios.get('/api/stats');
+      return data;
+    },
+    retry: false
+  });
+
   // Calculate boosted resources
   const boostedResources = {
     ram: false,
@@ -445,6 +455,68 @@ export default function Dashboard() {
 
       {/* FAQ Section */}
       <FAQSection />
+
+      {/* Platform Statistics */}
+      <div className="mt-8">
+        <h2 className="text-lg font-medium mb-4">Platform Statistics</h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="border border-[#2e3337]/50 bg-transparent rounded-lg p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-[#202229] rounded-lg">
+                <Users className="w-5 h-5 text-[#95a1ad]" />
+              </div>
+              <div>
+                <p className="text-xs text-[#95a1ad]">Total Users</p>
+                <p className="text-xl font-semibold text-white">
+                  {platformStats?.totalUsers?.toLocaleString() || '-'}
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="border border-[#2e3337]/50 bg-transparent rounded-lg p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-[#202229] rounded-lg">
+                <Server className="w-5 h-5 text-[#95a1ad]" />
+              </div>
+              <div>
+                <p className="text-xs text-[#95a1ad]">Active Servers</p>
+                <p className="text-xl font-semibold text-white">
+                  {platformStats?.totalServers?.toLocaleString() || '-'}
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="border border-[#2e3337]/50 bg-transparent rounded-lg p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-[#202229] rounded-lg">
+                <CircuitBoard className="w-5 h-5 text-[#95a1ad]" />
+              </div>
+              <div>
+                <p className="text-xs text-[#95a1ad]">Nodes</p>
+                <p className="text-xl font-semibold text-white">
+                  {platformStats?.totalNodes?.toLocaleString() || '-'}
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="border border-[#2e3337]/50 bg-transparent rounded-lg p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-[#202229] rounded-lg">
+                <MapPin className="w-5 h-5 text-[#95a1ad]" />
+              </div>
+              <div>
+                <p className="text-xs text-[#95a1ad]">Locations</p>
+                <p className="text-xl font-semibold text-white">
+                  {platformStats?.totalLocations?.toLocaleString() || '-'}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Create Server Modal */}
       <CreateServerModal
