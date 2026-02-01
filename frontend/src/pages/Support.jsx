@@ -38,7 +38,7 @@ const PriorityBadge = ({ priority }) => {
 const StatusBadge = ({ status }) => (
   <Badge 
     variant={status === 'open' ? 'default' : 'secondary'}
-    className={status === 'open' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-gray-500/10 text-gray-400 border-gray-500/20'}
+    className={status === 'open' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-gray-500/20 text-gray-300 border-gray-500/30'}
   >
     {status === 'open' ? 'Open' : 'Closed'}
   </Badge>
@@ -309,10 +309,10 @@ const ViewTicketDialog = ({ isOpen, onClose, ticketId }) => {
                   <Badge 
                     variant="outline" 
                     className={msg.isStaff 
-                      ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' 
+                      ? 'bg-blue-500/20 text-blue-300 border-blue-500/30 font-medium' 
                       : msg.isSystem
-                      ? 'bg-gray-500/10 text-gray-400 border-gray-500/20'
-                      : 'bg-[#2e3337]/50 text-[#95a1ad]'
+                      ? 'bg-gray-500/20 text-gray-300 border-gray-500/30 font-medium'
+                      : 'bg-[#3e4347] text-white border-[#4e5457] font-medium'
                     }
                   >
                     {msg.isStaff ? 'Support Team' : msg.isSystem ? 'System' : 'You'}

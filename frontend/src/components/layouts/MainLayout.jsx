@@ -178,7 +178,6 @@ const MainLayout = () => {
     { icon: CircleStackIcon, label: 'Store', path: '/coins/store' },
     { icon: GiftIcon, label: 'Daily rewards', path: '/coins/daily' },
     { icon: BoltIcon, label: 'Boosts', path: '/boosts' },
-    { icon: ArrowTrendingUpIcon, label: 'Saving', path: '/wallet?tab=saving' },
     { icon: TicketIcon, label: 'Support', path: '/support' }
   ];
 

@@ -41,10 +41,10 @@ const StatsCard = ({ title, value, className }) => (
 
 const PriorityBadge = ({ priority }) => {
   const variants = {
-    low: "bg-blue-100 text-blue-800 border-blue-200",
-    medium: "bg-yellow-100 text-yellow-800 border-yellow-200",
-    high: "bg-orange-100 text-orange-800 border-orange-200",
-    urgent: "bg-red-100 text-red-800 border-red-200"
+    low: "bg-blue-500 text-white border-blue-400",
+    medium: "bg-yellow-500 text-black border-yellow-400",
+    high: "bg-orange-500 text-white border-orange-400",
+    urgent: "bg-red-500 text-white border-red-400"
   };
 
   return (
@@ -55,7 +55,10 @@ const PriorityBadge = ({ priority }) => {
 };
 
 const StatusBadge = ({ status }) => (
-  <Badge variant={status === 'open' ? 'success' : 'secondary'}>
+  <Badge 
+    variant={status === 'open' ? 'success' : 'secondary'}
+    className={status === 'open' ? 'bg-emerald-500 text-white border-emerald-400' : 'bg-gray-500 text-white border-gray-400'}
+  >
     {status.charAt(0).toUpperCase() + status.slice(1)}
   </Badge>
 );
@@ -97,12 +100,12 @@ const ViewTicketDialog = ({ isOpen, onClose, ticketId, onStatusChange }) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-2xl">
+      <DialogContent className="sm:max-w-2xl bg-[#1a1d21] border-[#2e3337]/50 text-white">
         <DialogHeader>
           <div className="flex justify-between items-start">
             <div>
-              <DialogTitle>{ticket.subject}</DialogTitle>
-              <p className="text-sm text-gray-500 mt-1">#{ticket.id.slice(0, 8)}</p>
+              <DialogTitle className="text-white">{ticket.subject}</DialogTitle>
+              <p className="text-sm text-[#95a1ad] mt-1">#{ticket.id.slice(0, 8)}</p>
             </div>
             <div className="flex gap-2">
               <PriorityBadge priority={ticket.priority} />
@@ -115,34 +118,51 @@ const ViewTicketDialog = ({ isOpen, onClose, ticketId, onStatusChange }) => {
           {ticket.messages.map((msg, idx) => (
             <div
               key={idx}
-              className={`bg-gray-50 rounded-lg p-4 ${msg.isStaff ? 'ml-8' : 'mr-8'}`}
+              className={`rounded-lg p-4 ${
+                msg.isStaff 
+                  ? 'bg-blue-600/20 border border-blue-500/30 ml-8' 
+                  : msg.isSystem
+                  ? 'bg-gray-600/20 border border-gray-500/30'
+                  : 'bg-[#25282e] border border-[#3e4347] mr-8'
+              }`}
             >
               <div className="flex justify-between items-start">
-                <Badge variant={msg.isSystem ? "outline" : msg.isStaff ? "secondary" : "default"}>
+                <Badge 
+                  variant="outline"
+                  className={msg.isStaff 
+                    ? 'bg-blue-500 text-white border-blue-400 font-medium' 
+                    : msg.isSystem
+                    ? 'bg-gray-500 text-white border-gray-400 font-medium'
+                    : 'bg-[#4e5457] text-white border-[#5e6467] font-medium'
+                  }
+                >
                   {msg.isSystem ? 'System' : msg.isStaff ? 'Staff' : 'User'}
                 </Badge>
-                <span className="text-xs text-gray-400">
+                <span className="text-xs text-[#95a1ad]">
                   {new Date(msg.timestamp).toLocaleString()}
                 </span>
               </div>
-              <p className="mt-2 text-sm text-gray-700">{msg.content}</p>
+              <p className="mt-2 text-sm text-white">{msg.content}</p>
             </div>
           ))}
         </div>
 
-        <div className="border-t pt-4">
+        <div className="border-t border-[#2e3337]/50 pt-4">
           <form onSubmit={handleSubmitReply} className="space-y-4">
             <Textarea
               value={replyContent}
               onChange={(e) => setReplyContent(e.target.value)}
               placeholder="Type your reply..."
-              className="min-h-[100px]"
+              className="min-h-[100px] bg-[#202229] border-[#2e3337]/50 text-white placeholder:text-[#95a1ad]/50 resize-none"
             />
             <div className="flex justify-between">
               <Button
                 type="button"
                 variant={ticket.status === 'open' ? 'destructive' : 'default'}
                 onClick={() => onStatusChange(ticket.id, ticket.status === 'open' ? 'closed' : 'open')}
+                className={ticket.status === 'open' 
+                  ? 'bg-red-500 hover:bg-red-600 text-white' 
+                  : 'bg-emerald-500 hover:bg-emerald-600 text-white'}
               >
                 {ticket.status === 'open' ? (
                   <><X className="w-4 h-4 mr-2" /> Close Ticket</>
@@ -150,7 +170,11 @@ const ViewTicketDialog = ({ isOpen, onClose, ticketId, onStatusChange }) => {
                   <><RotateCcw className="w-4 h-4 mr-2" /> Reopen Ticket</>
                 )}
               </Button>
-              <Button type="submit" disabled={isSubmitting}>
+              <Button 
+                type="submit" 
+                disabled={isSubmitting}
+                className="bg-blue-500 hover:bg-blue-600 text-white"
+              >
                 {isSubmitting ? (
                   <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
                 ) : (
@@ -402,7 +426,7 @@ export default function AdminSupportDashboard() {
                     <div className="text-xs text-gray-500">{ticket.user.email}</div>
                   </td>
                   <td className="p-4">
-                    <Badge variant="outline">
+                    <Badge variant="outline" className="bg-[#202229] text-[#95a1ad] border-[#2e3337]/50">
                       {ticket.category}
                     </Badge>
                   </td>
