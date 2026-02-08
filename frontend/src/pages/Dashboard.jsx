@@ -24,12 +24,24 @@ function formatBytes(bytes, decimals = 2) {
 }
 
 const ResourceCard = React.memo(function ResourceCard({ icon: Icon, title, used, total, unit, isBoosted }) {
-  const { percentage, colorClass } = useMemo(() => {
+  const { percentage, colorClass, formattedUsed, formattedTotal } = useMemo(() => {
     const pct = total ? (used / total) * 100 : 0;
     const color = pct > 100 && !isBoosted ? 'bg-red-500' :
                   pct > 90 && !isBoosted ? 'bg-red-500' :
                   pct > 70 ? 'bg-amber-500' : 'bg-neutral-300';
-    return { percentage: pct, colorClass: color };
+    
+    // Format values to avoid long decimals (e.g. 22.99609375GB)
+    const formatValue = (val) => {
+      if (typeof val !== 'number') return val;
+      return parseFloat(val.toFixed(2));
+    };
+
+    return { 
+      percentage: pct, 
+      colorClass: color,
+      formattedUsed: formatValue(used),
+      formattedTotal: formatValue(total)
+    };
   }, [used, total, isBoosted]);
 
   return (
@@ -42,7 +54,7 @@ const ResourceCard = React.memo(function ResourceCard({ icon: Icon, title, used,
           </h3>
         </div>
         <span className="text-xs text-[#95a1ad]">
-          {used}{unit} / {total}{unit}
+          {formattedUsed}{unit} / {formattedTotal}{unit}
         </span>
       </div>
       <div>
