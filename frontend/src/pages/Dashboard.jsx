@@ -31,9 +31,10 @@ const ResourceCard = React.memo(function ResourceCard({ icon: Icon, title, used,
                   pct > 70 ? 'bg-amber-500' : 'bg-neutral-300';
     
     // Format values to avoid long decimals (e.g. 22.99609375GB)
+    // Using Math.floor to keep digits without rounding up as requested
     const formatValue = (val) => {
       if (typeof val !== 'number') return val;
-      return parseFloat(val.toFixed(2));
+      return Math.floor(val * 100) / 100;
     };
 
     return { 

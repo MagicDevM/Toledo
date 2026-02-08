@@ -52,10 +52,10 @@ const MinecraftPlayerList = ({ serverIdentifier }) => {
   const refreshStatus = async () => {
     try {
       setIsRefreshing(true);
-      
+
       // Use the proxy endpoint to avoid CORS issues
       const { data: status } = await axios.get(`/api/v5/server/${serverIdentifier}/minecraft-status`);
-      
+
       if (status && status.online) {
         setServerStatus(status);
         setServerAddress(status.hostname || status.ip || 'Unknown');
