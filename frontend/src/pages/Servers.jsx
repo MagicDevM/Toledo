@@ -3,14 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import {
-  ServerIcon, PlusIcon, 
+  ServerIcon, PlusIcon,
   ArrowPathIcon, ExclamationCircleIcon,
   UsersIcon, MagnifyingGlassIcon
 } from '@heroicons/react/24/outline';
 
 // Utility function to format bytes
 function formatBytes(bytes, decimals = 2) {
-  if (bytes === 0) return '0 MB';
+  if (bytes === 0) return '∞';
   const k = 1024;
   const dm = decimals < 0 ? 0 : decimals;
   const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
@@ -506,10 +506,10 @@ export default function ServersPage() {
   };
 
   // Filter servers
-  const filteredOwnedServers = Array.isArray(servers) 
+  const filteredOwnedServers = Array.isArray(servers)
     ? servers.filter(s => s.attributes.name.toLowerCase().includes(searchTerm.toLowerCase()))
     : [];
-    
+
   const filteredSubuserServers = Array.isArray(subuserServers)
     ? subuserServers.filter(s => s.name.toLowerCase().includes(searchTerm.toLowerCase()))
     : [];
@@ -531,8 +531,8 @@ export default function ServersPage() {
         <div className="flex items-center gap-3">
           <div className="relative">
             <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#95a1ad]" />
-            <input 
-              type="text" 
+            <input
+              type="text"
               placeholder="Search servers..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}

@@ -413,15 +413,7 @@ export default function ConsolePage() {
   const { data: userData } = useQuery({
     queryKey: ['user'],
     queryFn: async () => {
-      const { data } = await axios.get('/api/user');
-      return data;
-    }
-  });
-
-  const { data: argonData } = useQuery({
-    queryKey: ['argon'],
-    queryFn: async () => {
-      const { data } = await axios.get('/api/remote/argon');
+      const { data } = await axios.get('/api/remote/user');
       return data;
     }
   });
@@ -806,10 +798,10 @@ export default function ConsolePage() {
           >
             <div
               className={`h-1.5 w-1.5 rounded-full ${serverState === 'running'
-                  ? 'bg-emerald-500/80'
-                  : serverState === 'starting'
-                    ? 'bg-amber-500/80'
-                    : 'bg-neutral-400/80'
+                ? 'bg-emerald-500/80'
+                : serverState === 'starting'
+                  ? 'bg-amber-500/80'
+                  : 'bg-neutral-400/80'
                 }`}
             />
             {serverState.charAt(0).toUpperCase() + serverState.slice(1)}
@@ -899,7 +891,7 @@ export default function ConsolePage() {
                 <div>
                   <p className="text-xs text-neutral-500">SFTP</p>
                   <p className="text-sm text-white font-medium truncate max-w-[150px]">
-                    {argonData?.ArgonUser?.Username}.{server?.identifier}
+                    {userData?.user?.Username}.{server?.identifier}
                   </p>
                 </div>
                 <ChevronDown className="h-4 w-4 text-neutral-500 group-hover:text-neutral-300 transition-colors" />
@@ -924,7 +916,7 @@ export default function ConsolePage() {
                 <div className="flex justify-between">
                   <p className="text-xs text-neutral-500">Username</p>
                   <div className="flex items-center gap-1">
-                    <p className="text-xs text-black">{argonData?.ArgonUser?.Username}.{server?.identifier}</p>
+                    <p className="text-xs text-black">{userData?.user?.Username}.{server?.identifier}</p>
                     <TooltipProvider>
                       <Tooltip open={copySuccess}>
                         <TooltipTrigger asChild>
@@ -932,7 +924,7 @@ export default function ConsolePage() {
                             variant="ghost"
                             size="icon"
                             className="h-5 w-5 hover:bg-neutral-800/50"
-                            onClick={() => copyToClipboard(`${argonData?.ArgonUser?.Username}.${server?.identifier}`)}
+                            onClick={() => copyToClipboard(`${userData?.user?.Username}.${server?.identifier}`)}
                           >
                             <Copy className="h-3 w-3" />
                           </Button>

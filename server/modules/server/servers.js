@@ -7,6 +7,9 @@ const getPteroUser = require('../../handlers/getPteroUser');
 const log = require('../../handlers/log');
 const cache = require('../../handlers/cache');
 
+// Dynamic eggs helper - will be initialized in load()
+let getEggsFromDB = null;
+
 // Ensure Pterodactyl domain is properly formatted
 if (settings.pterodactyl?.domain?.slice(-1) === '/') {
     settings.pterodactyl.domain = settings.pterodactyl.domain.slice(0, -1);
@@ -108,6 +111,14 @@ async function checkUserResources(userId, db, additionalResources = { ram: 0, di
 module.exports.load = async function (app, db) {
     const router = express.Router();
 
+    // Initialize dynamic eggs helper
+    try {
+        const eggsModule = require('../eggs.js');
+        getEggsFromDB = eggsModule.getEggsFromDB;
+    } catch (e) {
+        console.log('[EGGS] Dynamic eggs module not loaded');
+    }
+
     // Middleware to check authentication
     router.use((req, res, next) => {
         if (!req.session.pterodactyl) {
@@ -122,35 +133,51 @@ module.exports.load = async function (app, db) {
             const packageName = await db.getCached(`package-${req.session.userinfo.id}`, 60000);
             const userPackage = settings.api.client.packages.list[packageName || settings.api.client.packages.default];
 
-            // Filter and format eggs
-            const eggs = Object.entries(settings.api.client.eggs).map(([id, egg]) => {
-                // Check if egg is restricted to specific packages
-                if (egg.package && !egg.package.includes(packageName || settings.api.client.packages.default)) {
-                    return null;
-                }
+            // Try dynamic eggs from database first
+            if (getEggsFromDB) {
+                try {
+                    const dbEggs = await getEggsFromDB(db);
+                    
+                    if (dbEggs && Object.keys(dbEggs).length > 0) {
+                        // Filter and format eggs from database
+                        const eggs = Object.entries(dbEggs)
+                            .filter(([_, egg]) => egg.enabled)
+                            .filter(([_, egg]) => {
+                                // Check package restrictions
+                                if (egg.packages && egg.packages.length > 0) {
+                                    return egg.packages.includes(packageName || settings.api.client.packages.default);
+                                }
+                                return true;
+                            })
+                            .map(([id, egg]) => ({
+                                id,
+                                name: egg.displayName || egg.originalName,
+                                description: egg.description || '',
+                                category: egg.category || 'other',
+                                minimum: {
+                                    ram: egg.minimum?.ram || 0,
+                                    disk: egg.minimum?.disk || 0,
+                                    cpu: egg.minimum?.cpu || 0
+                                },
+                                maximum: egg.maximum || null,
+                                info: egg.info || {},
+                                startup: egg.startup || '',
+                                image: egg.dockerImage || '',
+                                requirements: {
+                                    ram: Math.max(egg.minimum?.ram || 0, 1),
+                                    disk: Math.max(egg.minimum?.disk || 0, 1),
+                                    cpu: Math.max(egg.minimum?.cpu || 0, 1)
+                                }
+                            }));
 
-                return {
-                    id,
-                    name: egg.display || id,
-                    description: egg.description,
-                    minimum: {
-                        ram: egg.minimum?.ram || 0,
-                        disk: egg.minimum?.disk || 0,
-                        cpu: egg.minimum?.cpu || 0
-                    },
-                    maximum: egg.maximum || null,
-                    info: egg.info || {},
-                    startup: egg.info?.startup || '',
-                    image: egg.info?.image || '',
-                    requirements: {
-                        ram: Math.max(egg.minimum?.ram || 0, 1),
-                        disk: Math.max(egg.minimum?.disk || 0, 1),
-                        cpu: Math.max(egg.minimum?.cpu || 0, 1)
+                        return res.json(eggs);
                     }
-                };
-            }).filter(Boolean);
+                } catch (dbError) {
+                    console.log('[EGGS] DB eggs fetch failed:', dbError.message);
+                }
+            }
 
-            res.json(eggs);
+            res.json([]);
         } catch (error) {
             console.error('Error fetching eggs:', error);
             res.status(500).json({ error: 'Failed to fetch eggs' });
@@ -336,8 +363,36 @@ module.exports.load = async function (app, db) {
                 return res.status(400).json({ error: 'Insufficient CPU available' });
             }
 
-            // Get egg configuration
-            const eggInfo = settings.api.client.eggs[egg];
+            // Get egg configuration - try dynamic DB first, then fallback to config
+            let eggInfo = null;
+            let pterodactylEggId = null;
+
+            if (getEggsFromDB) {
+                try {
+                    const dbEggs = await getEggsFromDB(db);
+                    if (dbEggs && dbEggs[egg]) {
+                        const dbEgg = dbEggs[egg];
+                        if (!dbEgg.enabled) {
+                            return res.status(400).json({ error: 'This egg is not available' });
+                        }
+                        eggInfo = {
+                            minimum: dbEgg.minimum,
+                            maximum: dbEgg.maximum,
+                            info: {
+                                egg: dbEgg.pterodactylEggId,
+                                docker_image: dbEgg.dockerImage,
+                                startup: dbEgg.startup,
+                                environment: dbEgg.environment || {},
+                                feature_limits: dbEgg.featureLimits || { databases: 4, backups: 4 }
+                            }
+                        };
+                        pterodactylEggId = dbEgg.pterodactylEggId;
+                    }
+                } catch (dbError) {
+                    console.log('[EGGS] DB egg fetch failed:', dbError.message);
+                }
+            }
+
             if (!eggInfo) {
                 return res.status(400).json({ error: 'Invalid egg specified' });
             }
@@ -498,12 +553,22 @@ module.exports.load = async function (app, db) {
                 });
             }
 
-            // Get egg configuration to check minimums
+            // Get egg configuration to check minimums - try dynamic DB first
             let eggInfo = null;
-            for (const [_, egg] of Object.entries(settings.api.client.eggs)) {
-                if (egg.info.egg === server.attributes.egg) {
-                    eggInfo = egg;
-                    break;
+
+            if (getEggsFromDB) {
+                try {
+                    const dbEggs = await getEggsFromDB(db);
+                    if (dbEggs) {
+                        for (const [_, dbEgg] of Object.entries(dbEggs)) {
+                            if (dbEgg.pterodactylEggId === server.attributes.egg) {
+                                eggInfo = { minimum: dbEgg.minimum };
+                                break;
+                            }
+                        }
+                    }
+                } catch (dbError) {
+                    console.log('[EGGS] DB egg lookup failed:', dbError.message);
                 }
             }
 

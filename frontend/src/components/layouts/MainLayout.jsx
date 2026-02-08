@@ -36,7 +36,7 @@ const SidebarProvider = ({ children }) => {
   );
 };
 
-// Enhanced Navigation Item with ref forwarding - Argon-style with Heliactyl colors
+// Enhanced Navigation Item with ref forwarding
 const NavItem = ({ to, icon: Icon, label, isActive, setRef }) => {
   const id = to.replace(/\//g, '-').slice(1);
   const linkRef = useRef(null);
@@ -63,7 +63,7 @@ const NavItem = ({ to, icon: Icon, label, isActive, setRef }) => {
   );
 };
 
-// Section Header component from Argon
+// Section Header component
 const SectionHeader = ({ label }) => {
   return (
     <div className="px-3 pt-5 pb-1">
@@ -141,7 +141,7 @@ const MainLayout = () => {
 
           // Check if this is an admin route
           const isAdminRoute = activeTabId.startsWith('admin-');
-          
+
           if (isAdminRoute) {
             setAdminIndicatorStyle(style);
             setUserIndicatorStyle(prev => ({ ...prev, opacity: 0 }));
@@ -212,6 +212,7 @@ const MainLayout = () => {
     { icon: WindowIcon, label: 'Overview', path: '/admin/overview' },
     { icon: UsersIcon, label: 'Users', path: '/admin/users' },
     { icon: ServerStackIcon, label: 'Nodes', path: '/admin/nodes' },
+    { icon: CubeIcon, label: 'Eggs', path: '/admin/eggs' },
     { icon: TicketIcon, label: 'Tickets', path: '/admin/tickets' },
     { icon: SignalIcon, label: 'Radar', path: '/admin/radar' }
   ];
@@ -315,7 +316,7 @@ const MainLayout = () => {
 
               {/* Navigation Sections */}
               <div className="flex-1 overflow-y-auto py-2">
-                {/* Show section headers in Argon style */}
+                {/* Show section headers */}
                 {!showServerSection ? (
                   <SectionHeader label="Navigation" />
                 ) : (
@@ -323,7 +324,7 @@ const MainLayout = () => {
                 )}
 
                 <nav className="py-1 px-3 space-y-0.5 relative">
-                  {/* Animated background indicator - Argon style */}
+                  {/* Animated background indicator */}
                   <div
                     className="absolute transform transition-all duration-200 ease-spring bg-[#383c47] rounded-md z-0"
                     style={{

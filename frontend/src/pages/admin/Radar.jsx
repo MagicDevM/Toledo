@@ -48,7 +48,7 @@ function NodeForm({ node, onSubmit, isSubmitting }) {
     <div className="grid gap-6 py-4">
       <div className="grid gap-4">
         <div className="space-y-2">
-          <label className="text-sm font-medium">Node Name</label>
+          <label className="text-sm font-medium text-white">Node Name</label>
           <Input
             value={formData.name}
             onChange={e => setFormData({ ...formData, name: e.target.value })}
@@ -56,7 +56,7 @@ function NodeForm({ node, onSubmit, isSubmitting }) {
           />
         </div>
         <div className="space-y-2">
-          <label className="text-sm font-medium">FQDN / IP Address</label>
+          <label className="text-sm font-medium text-white">FQDN / IP Address</label>
           <Input
             value={formData.fqdn}
             onChange={e => setFormData({ ...formData, fqdn: e.target.value })}
@@ -64,7 +64,7 @@ function NodeForm({ node, onSubmit, isSubmitting }) {
           />
         </div>
         <div className="space-y-2">
-          <label className="text-sm font-medium">Port</label>
+          <label className="text-sm font-medium text-white">Port</label>
           <Input
             type="number"
             value={formData.port}
@@ -73,7 +73,7 @@ function NodeForm({ node, onSubmit, isSubmitting }) {
           />
         </div>
         <div className="space-y-2">
-          <label className="text-sm font-medium">Webhook URL (Optional)</label>
+          <label className="text-sm font-medium text-white">Webhook URL (Optional)</label>
           <Input
             value={formData.webhookUrl}
             onChange={e => setFormData({ ...formData, webhookUrl: e.target.value })}

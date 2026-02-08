@@ -99,14 +99,14 @@ module.exports.load = async function (app, db) {
     res.json(req.session.userinfo);
   });
 
-  app.get("/api/remote/argon", async (req, res) => {
+  app.get("/api/remote/user", async (req, res) => {
     if (!req.session.pterodactyl) {
       return res.status(401).json({
         error: "Not authenticated"
       });
     }
     res.json({
-      ArgonUser: {
+      user: {
         Id: req.session.pterodactyl.id,
         Username: req.session.pterodactyl.username,
         Email: req.session.pterodactyl.email
