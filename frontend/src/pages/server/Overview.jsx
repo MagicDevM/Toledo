@@ -32,7 +32,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import axios from "axios";
-import MinecraftPlayerList from './MinecraftPlayerList';
 import ConnectionOverlay from '../../components/ConnectionOverlay';
 
 const RETRY_COUNT = 5;
@@ -858,8 +857,6 @@ export default function ConsolePage() {
           </div>
         </TooltipProvider>
       </div>
-
-      <MinecraftPlayerList serverIdentifier={id} />
       {isConnecting && <ConnectionOverlay />}
 
       {/* Replace the existing Card after the Server Header with this */}
