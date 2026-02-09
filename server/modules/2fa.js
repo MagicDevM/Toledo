@@ -4,6 +4,7 @@ const { v4: uuidv4 } = require('uuid');
 const axios = require('axios');
 const loadConfig = require("../handlers/config.js");
 const settings = loadConfig("./config.toml");
+const { validate, schemas } = require('../handlers/validate');
 
 const HeliactylModule = {
   "name": "Two-factor authentication",
@@ -108,7 +109,7 @@ module.exports.load = async function (app, db) {
       // Generate a new secret
       const secret = speakeasy.generateSecret({
         length: 20,
-        name: `Altare:${username}`
+        name: `Heliactyl:${username}`
       });
 
       // Generate QR code
@@ -131,13 +132,13 @@ module.exports.load = async function (app, db) {
   });
 
   // Verify and enable 2FA
-  app.post('/api/2fa/verify', isAuthenticated, async (req, res) => {
+  app.post('/api/2fa/verify', isAuthenticated, validate(schemas.twoFactorVerify), async (req, res) => {
     try {
-      const { code, secret } = req.body;
+      const { token: code, secret } = req.body;
       const userId = req.session.userinfo.id;
 
-      if (!code) {
-        return res.status(400).json({ error: 'Verification code is required' });
+      if (!secret) {
+        return res.status(400).json({ error: 'Secret is required' });
       }
 
       // Verify that the user is in setup mode
@@ -189,6 +190,7 @@ module.exports.load = async function (app, db) {
 
   // Disable 2FA
   app.post('/api/2fa/disable', isAuthenticated, async (req, res) => {
+    // Note: No body validation required as this endpoint doesn't use any body parameters
     try {
       const userId = req.session.userinfo.id;
 
@@ -249,7 +251,7 @@ module.exports.load = async function (app, db) {
   });
 
   // 2FA verification during login
-  app.post('/auth/2fa/verify', async (req, res) => {
+  app.post('/auth/2fa/verify', validate(schemas.auth2FALoginVerify), async (req, res) => {
     try {
       const { code } = req.body;
 

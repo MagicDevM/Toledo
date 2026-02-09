@@ -3,6 +3,7 @@ const indexjs = require("../app.js");
 const fs = require("fs");
 const loadConfig = require("../handlers/config.js");
 const settings = loadConfig("./config.toml");
+const { validate, schemas } = require('../handlers/validate');
 
 const HeliactylModule = {
   "name": "Boosts",
@@ -805,16 +806,12 @@ module.exports.load = function (app, db) {
   });
 
   // Apply boost to a server
-  app.post('/api/boosts/apply', async (req, res) => {
+  app.post('/api/boosts/apply', validate(schemas.boostApply), async (req, res) => {
     try {
       if (!req.session.userinfo) return res.status(401).json({ error: 'Unauthorized' });
 
       const userId = req.session.userinfo.id;
       const { serverId, boostType, duration } = req.body;
-
-      if (!serverId || !boostType || !duration) {
-        return res.status(400).json({ error: 'Missing required fields', code: 'MISSING_FIELDS' });
-      }
 
       // Fetch server info to get current resources
       try {
@@ -855,16 +852,12 @@ module.exports.load = function (app, db) {
   });
 
   // Cancel an active boost
-  app.post('/api/boosts/cancel', async (req, res) => {
+  app.post('/api/boosts/cancel', validate(schemas.boostCancel), async (req, res) => {
     try {
       if (!req.session.userinfo) return res.status(401).json({ error: 'Unauthorized' });
 
       const userId = req.session.userinfo.id;
       const { serverId, boostId } = req.body;
-
-      if (!serverId || !boostId) {
-        return res.status(400).json({ error: 'Missing required fields', code: 'MISSING_FIELDS' });
-      }
 
       const result = await boostManager.cancelBoost(userId, serverId, boostId);
 
@@ -883,16 +876,12 @@ module.exports.load = function (app, db) {
   });
 
   // Extend an active boost
-  app.post('/api/boosts/extend', async (req, res) => {
+  app.post('/api/boosts/extend', validate(schemas.boostExtend), async (req, res) => {
     try {
       if (!req.session.userinfo) return res.status(401).json({ error: 'Unauthorized' });
 
       const userId = req.session.userinfo.id;
       const { serverId, boostId, additionalDuration } = req.body;
-
-      if (!serverId || !boostId || !additionalDuration) {
-        return res.status(400).json({ error: 'Missing required fields', code: 'MISSING_FIELDS' });
-      }
 
       const result = await boostManager.extendBoost(
         userId,
@@ -916,16 +905,12 @@ module.exports.load = function (app, db) {
   });
 
   // Schedule a boost for the future
-  app.post('/api/boosts/schedule', async (req, res) => {
+  app.post('/api/boosts/schedule', validate(schemas.boostSchedule), async (req, res) => {
     try {
       if (!req.session.userinfo) return res.status(401).json({ error: 'Unauthorized' });
 
       const userId = req.session.userinfo.id;
-      const { serverId, boostType, duration, scheduledTime } = req.body;
-
-      if (!serverId || !boostType || !duration || !scheduledTime) {
-        return res.status(400).json({ error: 'Missing required fields', code: 'MISSING_FIELDS' });
-      }
+      const { serverId, boostType, duration, startTime } = req.body;
 
       // Fetch server info to get current resources
       try {
@@ -943,7 +928,7 @@ module.exports.load = function (app, db) {
           serverInfo.attributes,
           boostType,
           duration,
-          parseInt(scheduledTime)
+          startTime
         );
 
         res.json({
@@ -967,16 +952,12 @@ module.exports.load = function (app, db) {
   });
 
   // Cancel a scheduled boost
-  app.post('/api/boosts/cancel-scheduled', async (req, res) => {
+  app.post('/api/boosts/cancel-scheduled', validate(schemas.boostCancelScheduled), async (req, res) => {
     try {
       if (!req.session.userinfo) return res.status(401).json({ error: 'Unauthorized' });
 
       const userId = req.session.userinfo.id;
       const { scheduledBoostId } = req.body;
-
-      if (!scheduledBoostId) {
-        return res.status(400).json({ error: 'Missing scheduled boost ID', code: 'MISSING_FIELDS' });
-      }
 
       const result = await boostManager.cancelScheduledBoost(userId, scheduledBoostId);
 

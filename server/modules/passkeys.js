@@ -2,6 +2,7 @@ const { v4: uuidv4 } = require('uuid');
 const axios = require('axios');
 const loadConfig = require("../handlers/config.js");
 const settings = loadConfig("./config.toml");
+const { validate, schemas } = require('../handlers/validate');
 
 const HeliactylModule = {
   "name": "Passkeys",
@@ -88,14 +89,10 @@ module.exports.load = async function (app, db) {
   });
 
   // Initialize passkey registration
-  app.post('/api/passkey/registration-options', isAuthenticated, async (req, res) => {
+  app.post('/api/passkey/registration-options', isAuthenticated, validate(schemas.passkeyRegistration), async (req, res) => {
     try {
       const userId = req.session.userinfo.id;
       const { name } = req.body;
-
-      if (!name) {
-        return res.status(400).json({ error: 'You must provide a name for this passkey' });
-      }
 
       // Get existing passkeys for this user
       const passkeyData = await db.get(`passkey-${userId}`);
@@ -140,7 +137,7 @@ module.exports.load = async function (app, db) {
   });
 
   // Verify passkey registration
-  app.post('/api/passkey/register', isAuthenticated, async (req, res) => {
+  app.post('/api/passkey/register', isAuthenticated, validate(schemas.passkeyRegister), async (req, res) => {
     try {
       // Verify we have a registration in progress
       if (!req.session.passkeyRegistrationChallenge) {
@@ -302,7 +299,7 @@ module.exports.load = async function (app, db) {
   });
 
   // Verify passkey authentication (for login)
-  app.post('/auth/passkey/verify', async (req, res) => {
+  app.post('/auth/passkey/verify', validate(schemas.passkeyAuthVerify), async (req, res) => {
     try {
       // Verify we have an authentication challenge
       if (!req.session.passkeyAuthenticationChallenge) {

@@ -7,6 +7,7 @@ const axios = require("axios");
 const loadConfig = require("../../handlers/config");
 const settings = loadConfig("./config.toml");
 const { isAuthenticated, ownsServer, logActivity, PANEL_URL, API_KEY } = require("./core.js");
+const { validate, schemas } = require('../../handlers/validate');
 
 /* --------------------------------------------- */
 /* Heliactyl Next Module                                  */
@@ -43,16 +44,10 @@ module.exports.load = async function (app, db) {
    * Set server power state
    * POST /api/server/:id/power
    */
-  router.post("/server/:id/power", isAuthenticated, ownsServer, async (req, res) => {
+  router.post("/server/:id/power", isAuthenticated, ownsServer, validate(schemas.serverPower), async (req, res) => {
     try {
       const serverId = req.params.id;
       const { signal } = req.body;
-
-      // Validate power signal
-      const validSignals = ['start', 'stop', 'restart', 'kill'];
-      if (!validSignals.includes(signal)) {
-        return res.status(400).json({ error: 'Invalid power signal' });
-      }
 
       const response = await axios.post(
         `${PANEL_URL}/api/client/servers/${serverId}/power`,
@@ -84,14 +79,10 @@ module.exports.load = async function (app, db) {
    * Send command to server
    * POST /api/server/:id/command
    */
-  router.post("/server/:id/command", isAuthenticated, ownsServer, async (req, res) => {
+  router.post("/server/:id/command", isAuthenticated, ownsServer, validate(schemas.serverCommand), async (req, res) => {
     try {
       const serverId = req.params.id;
       const { command } = req.body;
-
-      if (!command) {
-        return res.status(400).json({ error: 'Command is required' });
-      }
 
       await sendCommandAndGetResponse(serverId, command);
       await logActivity(db, serverId, 'Send Command', { command });

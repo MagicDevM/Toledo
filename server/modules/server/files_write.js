@@ -5,6 +5,7 @@
 const express = require("express");
 const axios = require("axios");
 const { isAuthenticated, ownsServer, logActivity, PANEL_URL, API_KEY } = require("./core.js");
+const { validate, schemas } = require('../../handlers/validate');
 
 /* --------------------------------------------- */
 /* Heliactyl Next Module                                  */
@@ -70,14 +71,10 @@ module.exports.load = async function (app, db) {
   });
 
   // POST /api/server/:id/files/create-folder
-  router.post("/server/:id/files/create-folder", isAuthenticated, ownsServer, async (req, res) => {
+  router.post("/server/:id/files/create-folder", isAuthenticated, ownsServer, validate(schemas.fileCreateFolder), async (req, res) => {
     try {
       const serverId = req.params.id;
       const { root, name } = req.body;
-
-      if (!name) {
-        return res.status(400).json({ error: 'Folder name is required' });
-      }
 
       await axios.post(
         `${PANEL_URL}/api/client/servers/${serverId}/files/create-folder`,
@@ -100,14 +97,10 @@ module.exports.load = async function (app, db) {
   });
 
   // PUT /api/server/:id/files/rename
-  router.put("/server/:id/files/rename", isAuthenticated, ownsServer, async (req, res) => {
+  router.put("/server/:id/files/rename", isAuthenticated, ownsServer, validate(schemas.fileRename), async (req, res) => {
     try {
       const serverId = req.params.id;
       const { root, files } = req.body;
-
-      if (!files || !Array.isArray(files) || files.length === 0) {
-        return res.status(400).json({ error: 'Files array is required' });
-      }
 
       await axios.put(
         `${PANEL_URL}/api/client/servers/${serverId}/files/rename`,

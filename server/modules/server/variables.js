@@ -5,6 +5,7 @@
 const express = require("express");
 const axios = require("axios");
 const { isAuthenticated, ownsServer, PANEL_URL, API_KEY } = require("./core.js");
+const { validate, schemas } = require('../../handlers/validate');
 
 /* --------------------------------------------- */
 /* Heliactyl Next Module                                  */
@@ -54,14 +55,10 @@ module.exports.load = async function (app, db) {
   });
 
   // PUT /api/server/:id/variables - Update server variable
-  router.put('/server/:id/variables', isAuthenticated, ownsServer, async (req, res) => {
+  router.put('/server/:id/variables', isAuthenticated, ownsServer, validate(schemas.serverVariable), async (req, res) => {
     try {
       const serverId = req.params.id;
       const { key, value } = req.body;
-
-      if (!key || value === undefined) {
-        return res.status(400).json({ error: 'Missing key or value' });
-      }
 
       const response = await axios.put(
         `${PANEL_URL}/api/client/servers/${serverId}/startup/variable`,

@@ -8,6 +8,7 @@ const TOML = require('@iarna/toml');
 const log = require('../handlers/log.js');
 const loadConfig = require('../handlers/config.js');
 const settings = loadConfig('./config.toml');
+const { validate, schemas } = require('../handlers/validate');
 
 // Pterodactyl API helper
 const pteroApi = axios.create({
@@ -83,18 +84,13 @@ module.exports.load = async function (app, db) {
   });
 
   // Update dashboard name
-  app.patch("/api/config/name", async (req, res) => {
+  app.patch("/api/config/name", validate(schemas.configName), async (req, res) => {
     if (!await checkAdmin(req, res, settings, db)) {
       return res.status(403).json({ error: "Unauthorized" });
     }
 
     try {
-
       const { name } = req.body;
-
-      if (!name || typeof name !== 'string' || name.trim() === '') {
-        return res.status(400).json({ error: "Invalid name" });
-      }
 
       // Read the current config
       const configPath = path.join(process.cwd(), 'config.toml');
@@ -104,7 +100,7 @@ module.exports.load = async function (app, db) {
       const parsedConfig = TOML.parse(configContent);
 
       // Update name
-      parsedConfig.name = name.trim();
+      parsedConfig.name = name;
 
       // Convert back to TOML and write
       const updatedConfigContent = TOML.stringify(parsedConfig);
@@ -129,18 +125,13 @@ module.exports.load = async function (app, db) {
   });
 
   // Update dashboard logo
-  app.patch("/api/config/logo", async (req, res) => {
+  app.patch("/api/config/logo", validate(schemas.configLogo), async (req, res) => {
     if (!await checkAdmin(req, res, settings, db)) {
       return res.status(403).json({ error: "Unauthorized" });
     }
 
     try {
-
       const { logo } = req.body;
-
-      if (!logo || typeof logo !== 'string') {
-        return res.status(400).json({ error: "Invalid logo" });
-      }
 
       // Read the current config
       const configPath = path.join(process.cwd(), 'config.toml');
@@ -150,7 +141,7 @@ module.exports.load = async function (app, db) {
       const parsedConfig = TOML.parse(configContent);
 
       // Update logo
-      parsedConfig.logo = logo.trim();
+      parsedConfig.logo = logo;
 
       // Convert back to TOML and write
       const updatedConfigContent = TOML.stringify(parsedConfig);
@@ -500,17 +491,13 @@ module.exports.load = async function (app, db) {
   });
 
   // Add new radar node
-  app.post("/api/radar/nodes", async (req, res) => {
+  app.post("/api/radar/nodes", validate(schemas.nodeCreate), async (req, res) => {
     if (!await checkAdmin(req, res, settings, db)) {
       return res.status(403).json({ error: "Unauthorized" });
     }
 
     try {
       const { name, fqdn, port, webhookUrl } = req.body;
-
-      if (!name || !fqdn || !port) {
-        return res.status(400).json({ error: "Missing required fields" });
-      }
 
       const nodes = await db.get("radar-nodes") || [];
       const id = Math.random().toString(36).substring(2, 15);
@@ -540,7 +527,7 @@ module.exports.load = async function (app, db) {
   });
 
   // Update radar node
-  app.patch("/api/radar/nodes/:id", async (req, res) => {
+  app.patch("/api/radar/nodes/:id", validate(schemas.nodeUpdate), async (req, res) => {
     if (!await checkAdmin(req, res, settings, db)) {
       return res.status(403).json({ error: "Unauthorized" });
     }
@@ -835,17 +822,13 @@ module.exports.load = async function (app, db) {
     }
   });
 
-  app.post("/api/users", async (req, res) => {
+  app.post("/api/users", validate(schemas.adminCreateUser), async (req, res) => {
     if (!await checkAdmin(req, res, settings, db)) {
       return res.status(403).json({ error: "Unauthorized" });
     }
 
     try {
       const { email, username, first_name, last_name, password } = req.body;
-
-      if (!email || !username || !first_name || !last_name || !password) {
-        return res.status(400).json({ error: "Missing required fields" });
-      }
 
       const response = await pteroApi.post('/api/application/users', {
         email,
@@ -866,21 +849,13 @@ module.exports.load = async function (app, db) {
     }
   });
 
-  app.patch("/api/users/:id", async (req, res) => {
+  app.patch("/api/users/:id", validate(schemas.adminUpdateUser), async (req, res) => {
     if (!await checkAdmin(req, res, settings, db)) {
       return res.status(403).json({ error: "Unauthorized" });
     }
 
     try {
-      const { email, username, first_name, last_name, password } = req.body;
-      const updateData = {};
-
-      // Only include fields that are provided
-      if (email) updateData.email = email;
-      if (username) updateData.username = username;
-      if (first_name) updateData.first_name = first_name;
-      if (last_name) updateData.last_name = last_name;
-      if (password) updateData.password = password;
+      const updateData = req.body;
 
       const response = await pteroApi.patch(`/api/application/users/${req.params.id}`, updateData);
       res.json(response.data);
@@ -1104,7 +1079,7 @@ module.exports.load = async function (app, db) {
   });
 
   // Update user coins
-  app.patch("/api/users/:id/coins", async (req, res) => {
+  app.patch("/api/users/:id/coins", validate(schemas.adminSetCoins), async (req, res) => {
     if (!await checkAdminStatus(req, res, settings, db)) {
       return res.status(403).json({ error: "Unauthorized" });
     }
@@ -1130,10 +1105,6 @@ module.exports.load = async function (app, db) {
 
       const { coins } = req.body;
 
-      if (typeof coins !== 'number' || coins < 0 || coins > 999999999999999) {
-        return res.status(400).json({ error: "Invalid coin amount" });
-      }
-
       if (coins === 0) {
         await db.delete("coins-" + userId);
       } else {
@@ -1153,7 +1124,7 @@ module.exports.load = async function (app, db) {
   });
 
   // Update user resources
-  app.patch("/api/users/:id/resources", async (req, res) => {
+  app.patch("/api/users/:id/resources", validate(schemas.adminSetResources), async (req, res) => {
     if (!await checkAdminStatus(req, res, settings, db)) {
       return res.status(403).json({ error: "Unauthorized" });
     }
@@ -1177,21 +1148,7 @@ module.exports.load = async function (app, db) {
         return res.status(404).json({ error: "User not found" });
       }
 
-      const { ram, disk, cpu, servers } = req.body;
-
-      // Validate all resource values
-      const resources = {
-        ram: parseInt(ram) || 0,
-        disk: parseInt(disk) || 0,
-        cpu: parseInt(cpu) || 0,
-        servers: parseInt(servers) || 0
-      };
-
-      for (const [key, value] of Object.entries(resources)) {
-        if (value < 0 || value > 999999999999999) {
-          return res.status(400).json({ error: `Invalid ${key} amount` });
-        }
-      }
+      const resources = req.body;
 
       if (Object.values(resources).every(v => v === 0)) {
         await db.delete("extra-" + userId);
@@ -1236,6 +1193,37 @@ module.exports.load = async function (app, db) {
     }
 
     try {
+      try {
+        parsedConfig = TOML.parse(req.body);
+      } catch (parseError) {
+        return res.status(400).json({
+          error: "Invalid TOML syntax",
+          details: parseError.message,
+          line: parseError.line,
+          column: parseError.column
+        });
+      }
+
+      // Validate required config keys exist
+      const requiredKeys = [
+        { path: ['website', 'domain'], name: 'website.domain' },
+        { path: ['pterodactyl', 'domain'], name: 'pterodactyl.domain' },
+        { path: ['pterodactyl', 'key'], name: 'pterodactyl.key' }
+      ];
+
+      for (const { path, name } of requiredKeys) {
+        let value = parsedConfig;
+        for (const key of path) {
+          value = value?.[key];
+        }
+        if (!value) {
+          return res.status(400).json({
+            error: "Missing required configuration",
+            details: `Required key '${name}' is missing or empty`
+          });
+        }
+      }
+
       const configPath = path.join(process.cwd(), 'config.toml');
       const backupPath = path.join(process.cwd(), 'backups', `config-${Date.now()}.toml`);
 
@@ -1243,7 +1231,7 @@ module.exports.load = async function (app, db) {
       await fs.mkdir(path.join(process.cwd(), 'backups'), { recursive: true });
       await fs.copyFile(configPath, backupPath);
 
-      // Write new config
+      // Write validated config
       await fs.writeFile(configPath, req.body, 'utf8');
 
       configNeedsReboot = true;

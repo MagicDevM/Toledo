@@ -3,6 +3,7 @@ const axios = require('axios');
 const loadConfig = require('../handlers/config.js');
 const settings = loadConfig('./config.toml');
 const log = require('../handlers/log.js');
+const { validate, schemas } = require('../handlers/validate');
 
 // Pterodactyl API helper
 const pteroApi = axios.create({
@@ -317,7 +318,7 @@ module.exports.load = async function (app, db) {
    * PATCH /api/admin/eggs/:id
    * Update egg configuration
    */
-  router.patch('/admin/eggs/:id', async (req, res) => {
+  router.patch('/admin/eggs/:id', validate(schemas.eggUpdate), async (req, res) => {
     if (!await checkAdminStatus(req, res, db)) {
       return res.status(403).json({ error: 'Unauthorized' });
     }
@@ -401,13 +402,14 @@ module.exports.load = async function (app, db) {
    * POST /api/admin/eggs/batch
    * Batch update multiple eggs
    */
-  router.post('/admin/eggs/batch', async (req, res) => {
+  router.post('/admin/eggs/batch', validate(schemas.eggBatch), async (req, res) => {
     if (!await checkAdminStatus(req, res, db)) {
       return res.status(403).json({ error: 'Unauthorized' });
     }
 
     try {
-      const { action, eggIds, data } = req.body;
+      const { action, ids } = req.body;
+      const eggIds = ids;
       const eggs = await getEggsFromDB(db);
 
       let updatedCount = 0;
@@ -477,17 +479,13 @@ module.exports.load = async function (app, db) {
    * POST /api/admin/eggs/categories
    * Create a new category
    */
-  router.post('/admin/eggs/categories', async (req, res) => {
+  router.post('/admin/eggs/categories', validate(schemas.eggCategory), async (req, res) => {
     if (!await checkAdminStatus(req, res, db)) {
       return res.status(403).json({ error: 'Unauthorized' });
     }
 
     try {
       const { id, name, icon, order } = req.body;
-
-      if (!id || !name) {
-        return res.status(400).json({ error: 'ID and name are required' });
-      }
 
       const categories = await getCategoriesFromDB(db);
 
@@ -524,7 +522,7 @@ module.exports.load = async function (app, db) {
    * PATCH /api/admin/eggs/categories/:id
    * Update a category
    */
-  router.patch('/admin/eggs/categories/:id', async (req, res) => {
+  router.patch('/admin/eggs/categories/:id', validate(schemas.eggCategoryUpdate), async (req, res) => {
     if (!await checkAdminStatus(req, res, db)) {
       return res.status(403).json({ error: 'Unauthorized' });
     }

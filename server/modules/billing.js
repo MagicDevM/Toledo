@@ -1,10 +1,9 @@
-// Update server/modules/billing.js to include coin transfer endpoint
-
 const express = require('express');
 const Stripe = require('stripe');
 const loadConfig = require('../handlers/config');
 const settings = loadConfig('./config.toml');
 const log = require('../handlers/log');
+const { validate, schemas } = require('../handlers/validate');
 
 const HeliactylModule = {
   "name": "Billing",
@@ -252,12 +251,9 @@ module.exports.load = async function (app, db) {
   });
 
   // Create checkout session for adding credit
-  router.post('/billing/checkout', async (req, res) => {
+  router.post('/billing/checkout', validate(schemas.billingCheckout), async (req, res) => {
     try {
       const { amount_usd } = req.body;
-      if (!amount_usd || amount_usd < 1) {
-        return res.status(400).json({ error: 'Invalid amount' });
-      }
 
       const session = await billingManager.createCheckoutSession(
         req.session.userinfo.id,
@@ -300,11 +296,11 @@ module.exports.load = async function (app, db) {
       await billingManager.markSessionProcessed(session_id);
 
       const amountUsd = parseFloat(session.metadata.amount_usd);
-      
+
       // Fetch Invoice or Receipt URL
       let invoiceUrl = null;
       let invoicePdf = null;
-      
+
       try {
         if (session.invoice) {
           const invoice = await getStripe().invoices.retrieve(session.invoice);
@@ -314,8 +310,8 @@ module.exports.load = async function (app, db) {
           // Fallback to receipt if no invoice (legacy or error)
           const paymentIntent = await getStripe().paymentIntents.retrieve(session.payment_intent);
           if (paymentIntent.latest_charge) {
-             const charge = await getStripe().charges.retrieve(paymentIntent.latest_charge);
-             invoiceUrl = charge.receipt_url;
+            const charge = await getStripe().charges.retrieve(paymentIntent.latest_charge);
+            invoiceUrl = charge.receipt_url;
           }
         }
       } catch (err) {
@@ -360,12 +356,12 @@ module.exports.load = async function (app, db) {
   });
 
   // Purchase coins with credit balance
-  router.post('/billing/purchase-coins', async (req, res) => {
+  router.post('/billing/purchase-coins', validate(schemas.purchaseCoins), async (req, res) => {
     try {
       const { package_id } = req.body;
       const userId = req.session.userinfo.id;
 
-      const package = COIN_PURCHASE_OPTIONS.find(p => p.amount === parseInt(package_id));
+      const package = COIN_PURCHASE_OPTIONS.find(p => p.amount === package_id);
       if (!package) {
         return res.status(400).json({ error: 'Invalid package selected' });
       }
@@ -377,7 +373,7 @@ module.exports.load = async function (app, db) {
 
       // Deduct credit and add coins
       await billingManager.addCreditBalance(userId, -package.price_usd);
-      
+
       // Log the credit spending
       await billingManager.logTransaction(
         userId,
@@ -414,38 +410,33 @@ module.exports.load = async function (app, db) {
   });
 
   // Transfer coins to another user
-  router.post('/billing/transfer-coins', async (req, res) => {
+  router.post('/billing/transfer-coins', validate(schemas.coinTransfer), async (req, res) => {
     try {
       const { recipientEmail, amount } = req.body;
       const userId = req.session.userinfo.id;
-      const amountInt = parseInt(amount);
-
-      if (!recipientEmail || !amountInt || amountInt < 1) {
-        return res.status(400).json({ error: 'Invalid input' });
-      }
 
       // 1. Check sender balance
       const senderCoins = await billingManager.getCoinBalance(userId);
-      if (senderCoins < amountInt) {
+      if (senderCoins < amount) {
         return res.status(402).json({ error: 'Insufficient coin balance' });
       }
 
       // 2. Find recipient
       // For now, we rely on the User ID provided by the sender.
       // In future versions, we can implement email lookup or better user validation via a Users module.
-      
+
       const recipientId = recipientEmail; // Using ID as the identifier
 
       // Verify recipient exists (optional check could be added here if we have a user registry)
       // Currently assuming the ID is valid for direct Pterodactyl ID transfers.
 
       // Perform transfer
-      await billingManager.removeCoins(userId, amountInt);
-      await billingManager.addCoins(recipientId, amountInt);
+      await billingManager.removeCoins(userId, amount);
+      await billingManager.addCoins(recipientId, amount);
 
       // Log transactions
-      await billingManager.logTransaction(userId, 'transfer_sent', { to: recipientId }, amountInt);
-      await billingManager.logTransaction(recipientId, 'transfer_received', { from: userId }, amountInt);
+      await billingManager.logTransaction(userId, 'transfer_sent', { to: recipientId }, amount);
+      await billingManager.logTransaction(recipientId, 'transfer_received', { from: userId }, amount);
 
       res.json({
         success: true,
@@ -459,15 +450,12 @@ module.exports.load = async function (app, db) {
   });
 
   // Purchase bundle with credit balance
-  router.post('/billing/purchase-bundle', async (req, res) => {
+  router.post('/billing/purchase-bundle', validate(schemas.bundlePurchase), async (req, res) => {
     try {
       const { bundle_id } = req.body;
       const userId = req.session.userinfo.id;
 
       const bundle = BUNDLES[bundle_id];
-      if (!bundle) {
-        return res.status(400).json({ error: 'Invalid bundle selected' });
-      }
 
       const creditBalance = await billingManager.getCreditBalance(userId);
       if (creditBalance < bundle.price_usd) {
@@ -512,7 +500,7 @@ module.exports.load = async function (app, db) {
     try {
       const userId = req.session.userinfo.id;
       const transactions = await billingManager.getTransactionHistory(userId);
-      
+
       const invoices = transactions
         .filter(t => t.type === 'credit_purchase' && t.details && (t.details.invoice_url || t.details.invoice_pdf))
         .map(t => ({

@@ -5,6 +5,7 @@ const loadConfig = require("../handlers/config.js");
 const settings = loadConfig("./config.toml");
 const log = require("../handlers/log.js");
 const adminjs = require("./admin.js");
+const { validate, schemas } = require("../handlers/validate.js");
 
 const HeliactylModule = {
   "name": "Store",
@@ -350,14 +351,13 @@ module.exports.load = function (app, db) {
     }
   });
 
-  app.post('/api/store/buy', async (req, res) => {
+  app.post('/api/store/buy', validate(schemas.storeBuy), async (req, res) => {
     try {
       if (!req.session.userinfo) return res.status(401).json({ error: 'Unauthorized' });
 
       const userId = req.session.userinfo.id;
       const { resourceType, amount } = req.body;
 
-      store.validateResourceAmount(resourceType, amount);
       const cost = RESOURCE_PRICES[resourceType] * amount;
       const userCoins = await db.get(`coins-${userId}`) || 0;
 

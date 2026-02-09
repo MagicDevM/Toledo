@@ -2,6 +2,7 @@ const indexjs = require("../app.js");
 const fs = require("fs");
 const loadConfig = require("../handlers/config.js");
 const settings = loadConfig("./config.toml");
+const { validate, schemas } = require('../handlers/validate');
 
 const HeliactylModule = {
   "name": "Staking",
@@ -405,21 +406,12 @@ module.exports.load = function (app, db) {
   });
 
   // Create a new stake
-  app.post('/api/staking/stakes', async (req, res) => {
+  app.post('/api/staking/stakes', validate(schemas.stakingCreate), async (req, res) => {
     try {
       if (!req.session.userinfo) return res.status(401).json({ error: 'Unauthorized' });
 
       const userId = req.session.userinfo.id;
       const { planId, amount } = req.body;
-
-      if (!planId || !amount) {
-        return res.status(400).json({ error: 'Missing required fields', code: 'MISSING_FIELDS' });
-      }
-
-      const numericAmount = parseFloat(amount);
-      if (isNaN(numericAmount)) {
-        return res.status(400).json({ error: 'Invalid amount', code: 'INVALID_AMOUNT' });
-      }
 
       const result = await stakingManager.createStake(userId, planId, numericAmount);
 

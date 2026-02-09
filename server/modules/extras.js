@@ -4,6 +4,7 @@ const fs = require("fs");
 const indexjs = require("../app.js");
 const axios = require('axios');
 const Queue = require("../handlers/Queue.js");
+const { validate, schemas } = require('../handlers/validate');
 
 const HeliactylModule = {
   "name": "Extras",
@@ -83,37 +84,11 @@ module.exports.load = async function (app, db) {
     res.redirect("/security");
   });
 
-  app.post("/api/password/change", async (req, res) => {
+  app.post("/api/password/change", validate(schemas.passwordChangeDirect), async (req, res) => {
     if (!req.session.pterodactyl) return res.status(401).json({ error: "Unauthorized" });
     if (!settings.api.client.allow.regen) return res.status(403).json({ error: "Password changes are not allowed" });
 
-    const { password, confirmPassword } = req.body;
-
-    // Validate password
-    if (!password || typeof password !== 'string') {
-      return res.status(400).json({ error: "Invalid password provided" });
-    }
-
-    if (password !== confirmPassword) {
-      return res.status(400).json({ error: "Passwords do not match" });
-    }
-
-    // Password requirements
-    const minLength = 8;
-    const hasNumber = /\d/.test(password);
-    const hasUpperCase = /[A-Z]/.test(password);
-    const hasLowerCase = /[a-z]/.test(password);
-    const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password);
-
-    if (password.length < minLength) {
-      return res.status(400).json({ error: `Password must be at least ${minLength} characters long` });
-    }
-
-    if (!(hasNumber && hasUpperCase && hasLowerCase)) {
-      return res.status(400).json({
-        error: "Password must contain at least one number, one uppercase letter, and one lowercase letter"
-      });
-    }
+    const { password } = req.body;
 
     try {
       await updatePassword(req.session.pterodactyl, password, settings, db);

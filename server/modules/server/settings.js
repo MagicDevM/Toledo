@@ -3,6 +3,7 @@ const loadConfig = require("../../handlers/config");
 const settings = loadConfig("./config.toml");
 const WebSocket = require('ws');
 const axios = require('axios');
+const { validate, schemas } = require('../../handlers/validate');
 
 /* Ensure platform release target is met */
 const HeliactylModule = {
@@ -71,10 +72,10 @@ module.exports.load = async function (app, db) {
     });
 
     // POST Rename server
-    router.post('/server/:id/rename', isAuthenticated, ownsServer, async (req, res) => {
+    router.post('/server/:id/rename', isAuthenticated, ownsServer, validate(schemas.serverRename), async (req, res) => {
         try {
             const serverId = req.params.id;
-            const { name } = req.body; // Expecting the new name for the server in the request body
+            const { name } = req.body;
 
             await axios.post(`${settings.pterodactyl.domain}/api/client/servers/${serverId}/settings/rename`,
                 { name: name },
@@ -85,7 +86,7 @@ module.exports.load = async function (app, db) {
                         'Authorization': `Bearer ${settings.pterodactyl.client_key}`
                     }
                 });
-            res.status(204).send(); // No content response on success
+            res.status(204).send();
         } catch (error) {
             console.error('Error renaming server:', error);
             res.status(500).json({ error: "Internal server error" });

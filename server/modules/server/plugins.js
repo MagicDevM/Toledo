@@ -2,6 +2,7 @@ const express = require("express");
 const axios = require("axios");
 const FormData = require("form-data");
 const { isAuthenticated, ownsServer, PANEL_URL, API_KEY } = require("./core.js");
+const { validate, schemas } = require('../../handlers/validate');
 
 /* --------------------------------------------- */
 /* Heliactyl Next Module                        */
@@ -503,17 +504,9 @@ module.exports.load = async function (app, db) {
   });
 
   // POST /api/plugins/install/:serverId - Install plugin
-  router.post("/plugins/install/:serverId", isAuthenticated, ownsServer, async (req, res) => {
+  router.post("/plugins/install/:serverId", isAuthenticated, ownsServer, validate(schemas.pluginInstall), async (req, res) => {
     const { serverId } = req.params;
     const { pluginId, platform = 'spigot' } = req.body;
-
-    if (!pluginId) {
-      return res.status(400).json({ error: "Plugin ID is required" });
-    }
-
-    if (!cache.platforms.includes(platform)) {
-      return res.status(400).json({ error: "Invalid platform" });
-    }
 
     try {
       let downloadUrl, pluginName;

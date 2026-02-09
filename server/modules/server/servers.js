@@ -6,6 +6,7 @@ const axios = require('axios');
 const getPteroUser = require('../../handlers/getPteroUser');
 const log = require('../../handlers/log');
 const cache = require('../../handlers/cache');
+const { validate, schemas } = require('../../handlers/validate');
 
 // Dynamic eggs helper - will be initialized in load()
 let getEggsFromDB = null;
@@ -314,17 +315,11 @@ module.exports.load = async function (app, db) {
     });
 
     // POST /api/v5/servers - Create new server
-    router.post('/servers', async (req, res) => {
+    router.post('/servers', validate(schemas.serverCreate), async (req, res) => {
         try {
             if (!req.session.pterodactyl) return res.status(401).json({ error: 'Unauthorized' });
 
             const { name, egg, location, ram, disk, cpu } = req.body;
-
-            // Validate required fields
-            if (!name?.trim()) return res.status(400).json({ error: 'Server name is required' });
-            if (!egg) return res.status(400).json({ error: 'Server type is required' });
-            if (!location) return res.status(400).json({ error: 'Location is required' });
-            if (!ram || !disk || !cpu) return res.status(400).json({ error: 'Resource values are required' });
 
             // Get user's current resource usage and limits (with cache)
             const user = await cache.getOrSet(
@@ -412,7 +407,7 @@ module.exports.load = async function (app, db) {
 
             // Create server specification
             const serverSpec = {
-                name: name.trim(),
+                name: name,
                 user: await db.get(`users-${req.session.userinfo.id}`),
                 egg: eggInfo.info.egg,
                 docker_image: eggInfo.info.docker_image,
@@ -461,17 +456,12 @@ module.exports.load = async function (app, db) {
     });
 
     // PATCH /api/v5/servers/:idOrIdentifier - Modify server
-    router.patch('/servers/:idOrIdentifier', async (req, res) => {
+    router.patch('/servers/:idOrIdentifier', validate(schemas.serverModify), async (req, res) => {
         try {
             if (!req.session.pterodactyl) return res.status(401).json({ error: 'Unauthorized' });
 
             const { ram, disk, cpu } = req.body;
             const idOrIdentifier = req.params.idOrIdentifier;
-
-            // Validate input
-            if (!ram || !disk || !cpu) {
-                return res.status(400).json({ error: 'Missing required resource values' });
-            }
 
             // Get user's current resources and limits (with cache)
             const user = await cache.getOrSet(

@@ -3,6 +3,7 @@ const settings = loadConfig("./config.toml");
 const axios = require("axios");
 const { v4: uuidv4 } = require('uuid');
 const { paginate, getPaginationParams } = require("../handlers/pagination");
+const { validate, schemas } = require("../handlers/validate");
 
 // Pterodactyl API helper
 const pteroApi = axios.create({
@@ -243,43 +244,26 @@ module.exports.load = async function (app, db) {
   }
 
   // Create a new ticket
-  app.post("/api/tickets", async (req, res) => {
+  app.post("/api/tickets", validate(schemas.ticketCreate), async (req, res) => {
     if (!req.session.pterodactyl) return res.status(401).json({ error: "Unauthorized" });
 
     try {
       const { subject, description, priority, category } = req.body;
 
-      // Validate required fields
-      if (!subject || !description || !priority || !category) {
-        return res.status(400).json({ error: "Missing required fields" });
-      }
-
-      // Validate priority
-      const validPriorities = ['low', 'medium', 'high', 'urgent'];
-      if (!validPriorities.includes(priority.toLowerCase())) {
-        return res.status(400).json({ error: "Invalid priority level" });
-      }
-
-      // Validate category
-      const validCategories = ['technical', 'billing', 'general', 'abuse'];
-      if (!validCategories.includes(category.toLowerCase())) {
-        return res.status(400).json({ error: "Invalid category" });
-      }
-
       const ticket = {
         id: uuidv4(),
         userId: req.session.userinfo.id,
-        subject: subject.trim(),
-        description: description.trim(),
-        priority: priority.toLowerCase(),
-        category: category.toLowerCase(),
+        subject: subject,
+        description: description,
+        priority: priority,
+        category: category,
         status: 'open',
         created: Date.now(),
         updated: Date.now(),
         messages: [{
           id: uuidv4(),
           userId: req.session.userinfo.id,
-          content: description.trim(),
+          content: description,
           timestamp: Date.now(),
           isStaff: false
         }]
@@ -396,14 +380,11 @@ module.exports.load = async function (app, db) {
   });
 
   // Add message to ticket
-  app.post("/api/tickets/:id/messages", async (req, res) => {
+  app.post("/api/tickets/:id/messages", validate(schemas.ticketMessage), async (req, res) => {
     if (!req.session.pterodactyl) return res.status(401).json({ error: "Unauthorized" });
 
     try {
       const { content } = req.body;
-      if (!content || !content.trim()) {
-        return res.status(400).json({ error: "Message content is required" });
-      }
 
       let tickets = await db.get('tickets') || [];
       const ticketIndex = tickets.findIndex(t => t.id === req.params.id);
@@ -423,7 +404,7 @@ module.exports.load = async function (app, db) {
       const message = {
         id: uuidv4(),
         userId: req.session.userinfo.id,
-        content: content.trim(),
+        content: content,
         timestamp: Date.now(),
         isStaff: isAdmin
       };
@@ -457,14 +438,11 @@ module.exports.load = async function (app, db) {
   });
 
   // Update ticket status (open/closed)
-  app.patch("/api/tickets/:id/status", async (req, res) => {
+  app.patch("/api/tickets/:id/status", validate(schemas.ticketStatus), async (req, res) => {
     if (!req.session.pterodactyl) return res.status(401).json({ error: "Unauthorized" });
 
     try {
       const { status } = req.body;
-      if (!status || !['open', 'closed'].includes(status)) {
-        return res.status(400).json({ error: "Invalid status" });
-      }
 
       let tickets = await db.get('tickets') || [];
       const ticketIndex = tickets.findIndex(t => t.id === req.params.id);
@@ -518,18 +496,13 @@ module.exports.load = async function (app, db) {
   });
 
   // Update ticket priority (admin only)
-  app.patch("/api/tickets/:id/priority", async (req, res) => {
+  app.patch("/api/tickets/:id/priority", validate(schemas.ticketPriority), async (req, res) => {
     if (!await checkAdmin(req, res, settings, db)) {
       return res.status(403).json({ error: "Unauthorized" });
     }
 
     try {
       const { priority } = req.body;
-      const validPriorities = ['low', 'medium', 'high', 'urgent'];
-
-      if (!priority || !validPriorities.includes(priority.toLowerCase())) {
-        return res.status(400).json({ error: "Invalid priority level" });
-      }
 
       let tickets = await db.get('tickets') || [];
       const ticketIndex = tickets.findIndex(t => t.id === req.params.id);
@@ -539,7 +512,7 @@ module.exports.load = async function (app, db) {
       }
 
       const ticket = tickets[ticketIndex];
-      ticket.priority = priority.toLowerCase();
+      ticket.priority = priority;
       ticket.updated = Date.now();
 
       // Add system message about priority change

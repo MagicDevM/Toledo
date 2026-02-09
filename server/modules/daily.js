@@ -2,6 +2,7 @@ const indexjs = require("../app.js");
 const fs = require("fs");
 const loadConfig = require("../handlers/config.js");
 const settings = loadConfig("./config.toml");
+const { validate, schemas } = require('../handlers/validate');
 
 const HeliactylModule = {
   "name": "Daily Rewards",
@@ -650,16 +651,11 @@ module.exports.load = function (app, db) {
   });
 
   // Purchase streak protection
-  app.post('/api/daily-rewards/protection', async (req, res) => {
+  app.post('/api/daily-rewards/protection', validate(schemas.dailyProtection), async (req, res) => {
     try {
       if (!req.session.userinfo) return res.status(401).json({ error: 'Unauthorized' });
 
       const { level } = req.body;
-
-      if (!level) {
-        return res.status(400).json({ error: 'Missing protection level', code: 'MISSING_LEVEL' });
-      }
-
       const userId = req.session.userinfo.id;
       const result = await dailyRewardsManager.purchaseStreakProtection(userId, level);
 

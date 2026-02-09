@@ -5,6 +5,7 @@
 const express = require("express");
 const axios = require("axios");
 const { isAuthenticated, PANEL_URL, API_KEY, ADMIN_KEY } = require("./core.js");
+const { validate, schemas } = require('../../handlers/validate');
 
 /* --------------------------------------------- */
 /* Heliactyl Next Module                                  */
@@ -34,7 +35,7 @@ module.exports.load = async function (app, db) {
   const router = express.Router();
 
   // PUT /api/server/:id/startup - Update startup configuration
-  router.put('/server/:serverId/startup', isAuthenticated, async (req, res) => {
+  router.put('/server/:serverId/startup', isAuthenticated, validate(schemas.serverStartup), async (req, res) => {
     try {
       const serverId = req.params.serverId;
       const { startup, environment, egg, image, skip_scripts } = req.body;

@@ -4,6 +4,7 @@ const { v4: uuidv4 } = require('uuid');
 const loadConfig = require("../handlers/config.js");
 const settings = loadConfig("./config.toml");
 const axios = require("axios");
+const { validate, schemas } = require('../handlers/validate');
 
 const RESEND_API_KEY = settings.api.client.resend.api_key;
 
@@ -142,23 +143,8 @@ module.exports.load = async function (app, db) {
   });
 
   // Registration route
-  app.post("/auth/register", rateLimit, async (req, res) => {
+  app.post("/auth/register", rateLimit, validate(schemas.authRegister), async (req, res) => {
     const { username, email, password } = req.body;
-
-    if (!username || !email || !password) {
-      return res.status(400).json({ error: "Missing required fields" });
-    }
-
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return res.status(400).json({ error: "Invalid email format" });
-    }
-
-    // Check password strength
-    if (password.length < 12 || !/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/[0-9]/.test(password) || !/[^A-Za-z0-9]/.test(password)) {
-      return res.status(400).json({ error: "Password must be at least 12 characters long and contain uppercase, lowercase, number, and special character" });
-    }
 
     // Check if email is already in use
     const existingUser = await db.get(`user-${email}`);
@@ -228,12 +214,8 @@ module.exports.load = async function (app, db) {
     res.status(201).json({ message: "User registered successfully" });
   });
 
-  app.post("/auth/login", rateLimit, async (req, res) => {
-    const { email, password } = req.body;
-
-    if (!email || !password) {
-      return res.status(400).json({ error: "Missing email or password" });
-    }
+  app.post("/auth/login", rateLimit, validate(schemas.authLogin), async (req, res) => {
+    const { email, password, remember } = req.body;
 
     const user = await db.get(`user-${email}`);
     if (!user) {
@@ -318,12 +300,8 @@ module.exports.load = async function (app, db) {
   });
 
   // Password reset request route
-  app.post("/auth/reset-password-request", async (req, res) => {
+  app.post("/auth/reset-password-request", validate(schemas.authResetRequest), async (req, res) => {
     const { email } = req.body;
-
-    if (!email) {
-      return res.status(400).json({ error: "Email is required" });
-    }
 
     const user = await db.get(`user-${email}`);
     if (!user) {
@@ -355,21 +333,13 @@ module.exports.load = async function (app, db) {
   });
 
   // Password reset route
-  app.post("/auth/reset-password", async (req, res) => {
-    const { token, newPassword } = req.body;
-
-    if (!token || !newPassword) {
-      return res.status(400).json({ error: "Token and new password are required" });
-    }
+  app.post("/auth/reset-password", validate(schemas.authResetPassword), async (req, res) => {
+    const { token, password } = req.body;
+    const newPassword = password;
 
     const resetInfo = await db.get(`reset-${token}`);
     if (!resetInfo || resetInfo.expiry < Date.now()) {
       return res.status(400).json({ error: "Invalid or expired token" });
-    }
-
-    // Check password strength
-    if (newPassword.length < 12 || !/[A-Z]/.test(newPassword) || !/[a-z]/.test(newPassword) || !/[0-9]/.test(newPassword) || !/[^A-Za-z0-9]/.test(newPassword)) {
-      return res.status(400).json({ error: "Password must be at least 12 characters long and contain uppercase, lowercase, number, and special character" });
     }
 
     const userEmail = await db.get(`userid-${resetInfo.userId}`);
@@ -394,12 +364,8 @@ module.exports.load = async function (app, db) {
   });
 
   // Magic link login request
-  app.post("/auth/magic-link", rateLimit, async (req, res) => {
+  app.post("/auth/magic-link", rateLimit, validate(schemas.authMagicLink), async (req, res) => {
     const { email } = req.body;
-
-    if (!email) {
-      return res.status(400).json({ error: "Email is required" });
-    }
 
     const user = await db.get(`user-${email}`);
     if (!user) {

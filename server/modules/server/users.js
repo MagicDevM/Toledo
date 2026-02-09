@@ -9,6 +9,7 @@ const loadConfig = require("../../handlers/config.js");
 const settings = loadConfig("./config.toml");
 const Database = require("../../db.js");
 const db = new Database(settings.database);
+const { validate, schemas } = require('../../handlers/validate');
 
 /* --------------------------------------------- */
 /* Heliactyl Next Module                                  */
@@ -165,14 +166,10 @@ module.exports.load = async function (app, db) {
   });
 
   // POST /api/server/:id/users - Create user
-  router.post('/server/:id/users', isAuthenticated, ownsServer, async (req, res) => {
+  router.post('/server/:id/users', isAuthenticated, ownsServer, validate(schemas.subuserCreate), async (req, res) => {
     try {
       const serverId = req.params.id;
       const { email } = req.body;
-
-      if (!email) {
-        return res.status(400).json({ error: 'Email is required' });
-      }
 
       const response = await axios.post(
         `${PANEL_URL}/api/client/servers/${serverId}/users`,

@@ -5,6 +5,7 @@
 const express = require("express");
 const axios = require("axios");
 const { isAuthenticated, ownsServer, logActivity, PANEL_URL, API_KEY } = require("./core.js");
+const { validate, schemas } = require('../../handlers/validate');
 
 /* --------------------------------------------- */
 /* Heliactyl Next Module                                  */
@@ -33,14 +34,10 @@ module.exports.load = async function (app, db) {
   const router = express.Router();
 
   // POST /api/server/:id/files/delete
-  router.post("/server/:id/files/delete", isAuthenticated, ownsServer, async (req, res) => {
+  router.post("/server/:id/files/delete", isAuthenticated, ownsServer, validate(schemas.fileDelete), async (req, res) => {
     try {
       const serverId = req.params.id;
       const { root, files } = req.body;
-
-      if (!files || !Array.isArray(files) || files.length === 0) {
-        return res.status(400).json({ error: 'Files array is required' });
-      }
 
       await axios.post(
         `${PANEL_URL}/api/client/servers/${serverId}/files/delete`,
@@ -63,14 +60,10 @@ module.exports.load = async function (app, db) {
   });
 
   // POST /api/server/:id/files/compress
-  router.post("/server/:id/files/compress", isAuthenticated, ownsServer, async (req, res) => {
+  router.post("/server/:id/files/compress", isAuthenticated, ownsServer, validate(schemas.fileCompress), async (req, res) => {
     try {
       const serverId = req.params.id;
       const { root, files } = req.body;
-
-      if (!files || !Array.isArray(files) || files.length === 0) {
-        return res.status(400).json({ error: 'Files array is required' });
-      }
 
       const response = await axios.post(
         `${PANEL_URL}/api/client/servers/${serverId}/files/compress`,
@@ -93,14 +86,10 @@ module.exports.load = async function (app, db) {
   });
 
   // POST /api/server/:id/files/decompress
-  router.post("/server/:id/files/decompress", isAuthenticated, ownsServer, async (req, res) => {
+  router.post("/server/:id/files/decompress", isAuthenticated, ownsServer, validate(schemas.fileDecompress), async (req, res) => {
     try {
       const serverId = req.params.id;
       const { root, file } = req.body;
-
-      if (!file) {
-        return res.status(400).json({ error: 'File is required' });
-      }
 
       await axios.post(
         `${PANEL_URL}/api/client/servers/${serverId}/files/decompress`,
