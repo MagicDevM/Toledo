@@ -1,4 +1,3 @@
-// src/services/minecraftService.js
 import axios from 'axios';
 
 // Function to get Minecraft server status
@@ -7,7 +6,7 @@ export const fetchServerStatus = async (serverAddress) => {
     // Using a custom User-Agent as required by the API
     const response = await axios.get(`https://api.mcsrvstat.us/3/${serverAddress}`, {
       headers: {
-        'User-Agent': 'Altare-Admin-Panel/1.0'
+        'User-Agent': 'Heliactyl-Admin-Panel/1.0'
       }
     });
 

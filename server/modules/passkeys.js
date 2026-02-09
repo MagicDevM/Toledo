@@ -63,7 +63,7 @@ module.exports.load = async function (app, db) {
   };
 
   // Constants
-  const rpName = 'Altare';
+  const rpName = 'Heliactyl';
   const rpID = new URL(settings.website.domain).hostname;
   const expectedOrigin = settings.website.domain;
 
