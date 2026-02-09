@@ -8,3 +8,4 @@ heliactyl.db-shm
 heliactyl.db-wal
 sessions.db
 backups
+pnpm-lock.yaml
