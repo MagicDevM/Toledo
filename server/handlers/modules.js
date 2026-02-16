@@ -2,8 +2,87 @@
 
 const fs = require("fs").promises;
 const path = require("path");
-const semver = require("semver");
 const createLogger = require("../handlers/console.js");
+
+/**
+ * Parse a semver version into [major, minor, patch] array
+ * @param {string} version - Version (e.g., "1.2.3")
+ * @returns {number[]} - [major, minor, patch]
+ */
+function parseVersion(version) {
+  const parts = version.replace(/^v/, "").split(".").map(Number);
+  return [parts[0] || 0, parts[1] || 0, parts[2] || 0];
+}
+
+/**
+ * Check if a version satisfies a semver range
+ * Supports: ^x.y.z, ~x.y.z, >=x.y.z, <=x.y.z, >x.y.z, <x.y.z, x.y.z, *
+ * @param {string} version - Version to test (e.g., "10.0.0")
+ * @param {string} range - Range constraint (e.g., "^10.0.0", ">=9.0.0")
+ * @returns {boolean}
+ */
+function satisfies(version, range) {
+  if (range === "*") return true;
+
+  const v = parseVersion(version);
+
+  // ^x.y.z — compatible with minor/patch updates
+  if (range.startsWith("^")) {
+    const r = parseVersion(range.slice(1));
+    if (v[0] !== r[0]) return false;
+    if (v[0] === 0) {
+      // ^0.y.z — only patch updates
+      return v[1] === r[1] && v[2] >= r[2];
+    }
+    return (v[1] > r[1]) || (v[1] === r[1] && v[2] >= r[2]);
+  }
+
+  // ~x.y.z — compatible with patch updates only
+  if (range.startsWith("~")) {
+    const r = parseVersion(range.slice(1));
+    return v[0] === r[0] && v[1] === r[1] && v[2] >= r[2];
+  }
+
+  // >=x.y.z
+  if (range.startsWith(">=")) {
+    const r = parseVersion(range.slice(2));
+    if (v[0] < r[0]) return false;
+    if (v[0] === r[0] && v[1] < r[1]) return false;
+    if (v[0] === r[0] && v[1] === r[1] && v[2] < r[2]) return false;
+    return true;
+  }
+
+  // <=x.y.z
+  if (range.startsWith("<=")) {
+    const r = parseVersion(range.slice(2));
+    if (v[0] > r[0]) return false;
+    if (v[0] === r[0] && v[1] > r[1]) return false;
+    if (v[0] === r[0] && v[1] === r[1] && v[2] > r[2]) return false;
+    return true;
+  }
+
+  // >x.y.z
+  if (range.startsWith(">")) {
+    const r = parseVersion(range.slice(1));
+    if (v[0] > r[0]) return true;
+    if (v[0] === r[0] && v[1] > r[1]) return true;
+    if (v[0] === r[0] && v[1] === r[1] && v[2] > r[2]) return true;
+    return false;
+  }
+
+  // <x.y.z
+  if (range.startsWith("<")) {
+    const r = parseVersion(range.slice(1));
+    if (v[0] < r[0]) return true;
+    if (v[0] === r[0] && v[1] < r[1]) return true;
+    if (v[0] === r[0] && v[1] === r[1] && v[2] < r[2]) return true;
+    return false;
+  }
+
+  // Exact version
+  const r = parseVersion(range);
+  return v[0] === r[0] && v[1] === r[1] && v[2] === r[2];
+}
 const logger = createLogger();
 
 class ModuleLoader {
@@ -46,7 +125,7 @@ class ModuleLoader {
     }
 
     // Platform version check
-    if (!semver.satisfies(this.platformVersion, manifest.target_platform)) {
+    if (!satisfies(this.platformVersion, manifest.target_platform)) {
       this.logger.error(`Module ${moduleId} targets platform ${manifest.target_platform}, but current platform is ${this.platformVersion}`);
       return false;
     }
