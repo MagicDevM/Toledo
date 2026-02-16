@@ -1042,19 +1042,20 @@ const FileManagerPage = () => {
           }
         }}
       >
-        <DialogContent className="max-w-6xl h-[85vh] flex flex-col p-0 gap-0 overflow-hidden">
-          <div className="flex items-center justify-between p-4 border-b bg-muted/30">
+        <DialogContent className="max-w-6xl h-[85vh] flex flex-col p-0 gap-0 overflow-hidden bg-[#1e1e1e] [&>button]:hidden">
+          <div className="flex items-center justify-between p-4 border-b bg-[#252526]">
             <div className="flex items-center space-x-2">
               {getFileIcon(selectedFile || {})}
-              <span className="font-medium">{selectedFile?.name}</span>
+              <span className="font-medium text-white">{selectedFile?.name}</span>
               {isEditorDirty && <span className="text-xs text-yellow-500 font-medium px-2 py-0.5 bg-yellow-500/10 rounded-full">Unsaved</span>}
             </div>
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-4">
               <Button
                 variant={isEditorDirty ? "default" : "outline"}
                 size="sm"
                 onClick={handleFileSave}
                 disabled={!isEditorDirty || isSaving}
+                className={isEditorDirty ? "bg-white text-black hover:bg-white/90" : ""}
               >
                 {isSaving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
                 Save
@@ -1062,7 +1063,19 @@ const FileManagerPage = () => {
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => setSelectedFile(null)}
+                onClick={() => {
+                  if (isEditorDirty) {
+                    if (window.confirm('You have unsaved changes. Close anyway?')) {
+                      setSelectedFile(null);
+                      setEditorContent('');
+                      setIsEditorDirty(false);
+                    }
+                  } else {
+                    setSelectedFile(null);
+                    setEditorContent('');
+                  }
+                }}
+                className="text-white hover:text-white hover:bg-white/10"
               >
                 <X className="h-4 w-4" />
               </Button>

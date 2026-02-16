@@ -206,7 +206,7 @@ const BackupsPage = () => {
             </Alert>
           )}
           <DialogFooter>
-            <Button variant="secondary" onClick={() => setIsCreateModalOpen(false)}>
+            <Button variant="secondary" onClick={() => setIsCreateModalOpen(false)} className="text-white hover:text-white">
               Cancel
             </Button>
             <Button onClick={handleCreateBackup} disabled={createLoading}>
@@ -235,7 +235,7 @@ const BackupsPage = () => {
             </Alert>
           )}
           <DialogFooter>
-            <Button variant="secondary" onClick={() => setIsDeleteModalOpen(false)}>
+            <Button variant="secondary" onClick={() => setIsDeleteModalOpen(false)} className="text-white hover:text-white">
               Cancel
             </Button>
             <Button
