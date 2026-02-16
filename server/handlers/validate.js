@@ -241,9 +241,9 @@ const schemas = {
 
   // Egg management (admin)
   eggUpdate: z.object({
-    displayName: z.string().min(1).max(100).optional().trim(),
-    description: z.string().max(500).optional().trim(),
-    category: z.string().min(1).max(50).optional().trim(),
+    displayName: z.string().min(1).max(100).trim().optional(),
+    description: z.string().max(500).trim().optional(),
+    category: z.string().min(1).max(50).trim().optional(),
     minimum: z.object({
       ram: z.number().int().min(0),
       disk: z.number().int().min(0),
@@ -262,13 +262,13 @@ const schemas = {
   eggCategory: z.object({
     id: z.string().min(1).max(50).trim(),
     name: z.string().min(1).max(100).trim(),
-    icon: z.string().max(50).optional().trim(),
+    icon: z.string().max(50).trim().optional(),
     order: z.number().int().min(0).optional()
   }),
 
   eggCategoryUpdate: z.object({
-    name: z.string().min(1).max(100).optional().trim(),
-    icon: z.string().max(50).optional().trim(),
+    name: z.string().min(1).max(100).trim().optional(),
+    icon: z.string().max(50).trim().optional(),
     order: z.number().int().min(0).optional()
   }),
 
@@ -335,8 +335,8 @@ const schemas = {
       .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
       .regex(/[0-9]/, 'Password must contain at least one number')
       .regex(/[^A-Za-z0-9]/, 'Password must contain at least one special character'),
-    firstName: z.string().max(50).optional().trim(),
-    lastName: z.string().max(50).optional().trim()
+    firstName: z.string().max(50).trim().optional(),
+    lastName: z.string().max(50).trim().optional()
   }),
 
   authLogin: z.object({
@@ -414,17 +414,17 @@ const schemas = {
 
   // File management
   fileDelete: z.object({
-    root: z.string().optional().trim(),
+    root: z.string().trim().optional(),
     files: z.array(z.string().trim()).min(1, 'At least one file path is required')
   }),
 
   fileCompress: z.object({
-    root: z.string().optional().trim(),
+    root: z.string().trim().optional(),
     files: z.array(z.string().trim()).min(1, 'At least one file path is required')
   }),
 
   fileDecompress: z.object({
-    root: z.string().optional().trim(),
+    root: z.string().trim().optional(),
     file: z.string({ required_error: 'File path is required' }).min(1).trim()
   }),
 
@@ -434,7 +434,7 @@ const schemas = {
   }),
 
   fileCreateFolder: z.object({
-    root: z.string().optional().trim(),
+    root: z.string().trim().optional(),
     name: z.string({ required_error: 'Folder name is required' })
       .min(1, 'Folder name cannot be empty')
       .max(255, 'Folder name cannot exceed 255 characters')
@@ -455,16 +455,16 @@ const schemas = {
       .max(32, 'Username cannot exceed 32 characters')
       .trim(),
     email: z.string({ required_error: 'Email is required' }).email('Invalid email format').trim(),
-    first_name: z.string().max(50).optional().trim(),
-    last_name: z.string().max(50).optional().trim(),
+    first_name: z.string().max(50).trim().optional(),
+    last_name: z.string().max(50).trim().optional(),
     password: z.string().min(8, 'Password must be at least 8 characters').optional()
   }),
 
   adminUpdateUser: z.object({
-    email: z.string().email('Invalid email format').optional().trim(),
-    username: z.string().min(3).max(32).optional().trim(),
-    first_name: z.string().max(50).optional().trim(),
-    last_name: z.string().max(50).optional().trim(),
+    email: z.string().email('Invalid email format').trim().optional(),
+    username: z.string().min(3).max(32).trim().optional(),
+    first_name: z.string().max(50).trim().optional(),
+    last_name: z.string().max(50).trim().optional(),
     password: z.string().min(8).optional()
   }),
 
@@ -473,14 +473,14 @@ const schemas = {
     name: z.string({ required_error: 'Node name is required' }).min(1).max(100).trim(),
     fqdn: z.string({ required_error: 'FQDN is required' }).min(1).max(255).trim(),
     port: z.number({ required_error: 'Port is required' }).int().min(1).max(65535),
-    webhookUrl: z.string().max(500).optional().trim()
+    webhookUrl: z.string().max(500).trim().optional()
   }),
 
   nodeUpdate: z.object({
-    name: z.string().min(1).max(100).optional().trim(),
-    fqdn: z.string().min(1).max(255).optional().trim(),
+    name: z.string().min(1).max(100).trim().optional(),
+    fqdn: z.string().min(1).max(255).trim().optional(),
     port: z.number().int().min(1).max(65535).optional(),
-    webhookUrl: z.string().max(500).optional().trim()
+    webhookUrl: z.string().max(500).trim().optional()
   }),
 
   // 2FA verification
@@ -536,10 +536,10 @@ const schemas = {
 
   // Server startup configuration
   serverStartup: z.object({
-    startup: z.string().optional().trim(),
+    startup: z.string().trim().optional(),
     environment: z.record(z.string()).optional(),
     egg: z.number().int().positive().optional(),
-    image: z.string().optional().trim(),
+    image: z.string().trim().optional(),
     skip_scripts: z.boolean().optional()
   }),
 
@@ -551,7 +551,7 @@ const schemas = {
 
   // File rename
   fileRename: z.object({
-    root: z.string().optional().trim(),
+    root: z.string().trim().optional(),
     files: z.array(z.object({
       from: z.string().min(1, 'Source path required').trim(),
       to: z.string().min(1, 'Destination path required').trim()
