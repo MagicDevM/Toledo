@@ -966,6 +966,112 @@ module.exports.load = async function (app, db) {
     }
   }
 
+  // Get multiple users' coins in bulk (MUST be before /api/users/:id/coins)
+  app.get("/api/users/bulk/coins", async (req, res) => {
+    if (!await checkAdminStatus(req, res, settings, db)) {
+      return res.status(403).json({ error: "Unauthorized" });
+    }
+
+    try {
+      const ids = req.query.ids;
+      if (!ids) {
+        return res.status(400).json({ error: "Missing ids parameter" });
+      }
+
+      const userIds = ids.split(',').map(id => id.trim()).filter(id => id);
+      if (userIds.length === 0) {
+        return res.status(400).json({ error: "Invalid ids parameter" });
+      }
+
+      // Single DB call to get all mappings
+      const allKeys = await db.getAll();
+      const userMappings = {};
+      
+      for (const [key, value] of Object.entries(allKeys)) {
+        if (key.startsWith('users-')) {
+          userMappings[value] = key.replace('users-', '');
+        }
+      }
+
+      // Build results
+      const results = {};
+      for (const pterodactylId of userIds) {
+        const pteroId = parseInt(pterodactylId);
+        let userId = null;
+        
+        // Direct check first (user provided Heliactyl ID)
+        if (allKeys['users-' + pterodactylId]) {
+          userId = pterodactylId;
+        } else if (userMappings[pteroId]) {
+          userId = userMappings[pteroId];
+        }
+        
+        if (userId) {
+          results[pterodactylId] = await db.get("coins-" + userId) || 0;
+        }
+      }
+
+      res.json(results);
+    } catch (error) {
+      console.error("Error fetching bulk user coins:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Get multiple users' resources in bulk (MUST be before /api/users/:id/resources)
+  app.get("/api/users/bulk/resources", async (req, res) => {
+    if (!await checkAdminStatus(req, res, settings, db)) {
+      return res.status(403).json({ error: "Unauthorized" });
+    }
+
+    try {
+      const ids = req.query.ids;
+      if (!ids) {
+        return res.status(400).json({ error: "Missing ids parameter" });
+      }
+
+      const userIds = ids.split(',').map(id => id.trim()).filter(id => id);
+      if (userIds.length === 0) {
+        return res.status(400).json({ error: "Invalid ids parameter" });
+      }
+
+      // Single DB call to get all mappings
+      const allKeys = await db.getAll();
+      const userMappings = {};
+      
+      for (const [key, value] of Object.entries(allKeys)) {
+        if (key.startsWith('users-')) {
+          userMappings[value] = key.replace('users-', '');
+        }
+      }
+
+      // Build results
+      const results = {};
+      for (const pterodactylId of userIds) {
+        const pteroId = parseInt(pterodactylId);
+        let userId = null;
+        
+        // Direct check first (user provided Heliactyl ID)
+        if (allKeys['users-' + pterodactylId]) {
+          userId = pterodactylId;
+        } else if (userMappings[pteroId]) {
+          userId = userMappings[pteroId];
+        }
+        
+        if (userId) {
+          results[pterodactylId] = await db.get("extra-" + userId) || {
+            ram: 0, disk: 0, cpu: 0, servers: 0
+          };
+        }
+      }
+
+      res.json(results);
+    } catch (error) {
+      console.error("Error fetching bulk user resources:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
   // Get user coins
   app.get("/api/users/:id/coins", async (req, res) => {
     if (!await checkAdminStatus(req, res, settings, db)) {

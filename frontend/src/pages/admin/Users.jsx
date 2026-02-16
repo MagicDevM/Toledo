@@ -339,25 +339,19 @@ export default function UsersPage() {
     queryFn: async () => {
       if (currentPageUserIds.length === 0) return {};
 
+      const idsParam = currentPageUserIds.join(',');
+      const [coinsRes, resourcesRes] = await Promise.all([
+        axios.get(`/api/users/bulk/coins?ids=${idsParam}`),
+        axios.get(`/api/users/bulk/resources?ids=${idsParam}`)
+      ]);
+
       const details = {};
-      await Promise.all(currentPageUserIds.map(async (userId) => {
-        try {
-          const [coinsRes, resourcesRes] = await Promise.all([
-            axios.get(`/api/users/${userId}/coins`),
-            axios.get(`/api/users/${userId}/resources`)
-          ]);
-          details[userId] = {
-            coins: coinsRes.data.coins || 0,
-            resources: resourcesRes.data || { ram: 0, disk: 0, cpu: 0, servers: 0 }
-          };
-        } catch (error) {
-          console.error(`Error fetching details for user ${userId}:`, error);
-          details[userId] = {
-            coins: 0,
-            resources: { ram: 0, disk: 0, cpu: 0, servers: 0 }
-          };
-        }
-      }));
+      currentPageUserIds.forEach(userId => {
+        details[userId] = {
+          coins: coinsRes.data[userId] || 0,
+          resources: resourcesRes.data[userId] || { ram: 0, disk: 0, cpu: 0, servers: 0 }
+        };
+      });
       return details;
     },
     enabled: currentPageUserIds.length > 0,
