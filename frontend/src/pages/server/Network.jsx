@@ -130,17 +130,19 @@ const AllocationsPage = () => {
                       <TableCell>{allocation.is_primary ? 'Yes' : 'No'}</TableCell>
                       <TableCell>{allocation.alias || 'N/A'}</TableCell>
                       <TableCell>
-                        <Button
-                          size="sm"
-                          variant="destructive"
-                          onClick={() => {
-                            setSelectedAllocation(allocation);
-                            setIsDeleteModalOpen(true);
-                          }}
-                        >
-                          <Trash2 className="w-4 h-4 mr-2" />
-                          Delete
-                        </Button>
+                        {!allocation.is_primary && (
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => {
+                              setSelectedAllocation(allocation);
+                              setIsDeleteModalOpen(true);
+                            }}
+                          >
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            Delete
+                          </Button>
+                        )}
                       </TableCell>
                     </TableRow>
                   ))}

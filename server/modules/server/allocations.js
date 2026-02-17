@@ -54,8 +54,8 @@ module.exports.load = async function (app, db) {
         id: allocation.attributes.id,
         ip: allocation.attributes.ip,
         port: allocation.attributes.port,
-        is_primary: allocation.attributes.primary,
-        alias: allocation.attributes.alias || null,
+        is_primary: allocation.attributes.is_default,
+        alias: allocation.attributes.ip_alias || null,
       }));
 
       res.json(allocations);
@@ -90,8 +90,8 @@ module.exports.load = async function (app, db) {
         id: response.data.attributes.id,
         ip: response.data.attributes.ip,
         port: response.data.attributes.port,
-        is_primary: response.data.attributes.primary,
-        alias: response.data.attributes.alias || null,
+        is_primary: response.data.attributes.is_default,
+        alias: response.data.attributes.ip_alias || null,
       };
 
       res.status(201).json(newAllocation);
@@ -108,6 +108,29 @@ module.exports.load = async function (app, db) {
   router.delete('/server/:id/allocations/:allocationId', isAuthenticated, ownsServer, async (req, res) => {
     try {
       const { id: serverId, allocationId } = req.params;
+
+      // First, fetch allocations to check if this is the primary
+      const allocationsResponse = await axios.get(
+        `${PANEL_URL}/api/client/servers/${serverId}/network/allocations`,
+        {
+          headers: {
+            'Authorization': `Bearer ${API_KEY}`,
+            'Accept': 'application/json',
+          },
+        }
+      );
+
+      const allocationToDelete = allocationsResponse.data.data.find(
+        alloc => alloc.attributes.id.toString() === allocationId
+      );
+
+      if (!allocationToDelete) {
+        return res.status(404).json({ error: 'Allocation not found' });
+      }
+
+      if (allocationToDelete.attributes.is_default) {
+        return res.status(400).json({ error: 'Cannot delete the primary allocation' });
+      }
 
       await axios.delete(
         `${PANEL_URL}/api/client/servers/${serverId}/network/allocations/${allocationId}`,
