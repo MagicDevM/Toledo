@@ -177,6 +177,63 @@ server {
 }
 ```
 
+## Geographic Load Balancing (Optional)
+
+Route users to the nearest Heliactyl instance using NGINX GeoIP2 + CockroachDB for cross-region data replication.
+
+**Stack:** NGINX + GeoIP2 module, MaxMind GeoLite2 DB, CockroachDB cluster, 2+ regional servers.
+
+### Setup
+
+**1. Install GeoIP2 on the entry-point server:**
+```bash
+apt install libnginx-mod-http-geoip2 geoipupdate
+# Add your MaxMind license to /etc/GeoIP.conf, then run: geoipupdate
+```
+
+**2. Add to `nginx.conf` inside `http {}`:**
+```nginx
+geoip2 /var/lib/GeoIP/GeoLite2-Country.mmdb {
+    $geoip2_continent_code continent code;
+}
+
+map $geoip2_continent_code $backend {
+    default  usa_backend;
+    EU       europe_backend;
+    AS       asia_backend;
+    NA       usa_backend;
+    SA       usa_backend;
+    OC       asia_backend;
+    AF       europe_backend;
+}
+
+upstream europe_backend { server 127.0.0.1:3000; keepalive 32; }
+upstream asia_backend    { server <ASIA_IP>:3000;  keepalive 32; }
+upstream usa_backend     { server <USA_IP>:3000;   keepalive 32; }
+```
+> Use `127.0.0.1` for the local server to avoid hairpin NAT issues on cloud providers.
+
+**3. In your site config, use the dynamic backend:**
+```nginx
+location / {
+    proxy_pass http://$backend;
+}
+```
+
+**4. If behind Cloudflare**, add to `nginx.conf` so GeoIP sees real visitor IPs:
+```nginx
+set_real_ip_from 103.21.244.0/22;   # ... add all Cloudflare ranges
+set_real_ip_from 173.245.48.0/20;   # Full list: https://cloudflare.com/ips
+real_ip_header CF-Connecting-IP;
+```
+
+**5. Database** — use CockroachDB for automatic replication:
+```toml
+[settings]
+database = { url = "postgresql://root@localhost:26257/heliactyl?sslmode=disable" }
+```
+Each instance connects to its local CockroachDB node; replication is handled automatically.
+
 ## License
 
 This project is licensed under the Heliactyl Next Public Use License - see the LICENSE file for details.
