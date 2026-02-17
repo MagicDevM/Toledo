@@ -10,7 +10,6 @@ const fs = require("fs").promises;
 const fsSync = require("fs");
 const express = require("express");
 const session = require("express-session");
-const SQLiteStore = require('connect-sqlite3')(session);
 const nocache = require('nocache');
 const cookieParser = require('cookie-parser');
 const path = require('path');
@@ -60,11 +59,28 @@ app.use(express.json({
   limit: "500kb"
 }));
 
-const sessionConfig = {
-  store: new SQLiteStore({
+// Configure session store based on database type
+const dbUrl = typeof settings.database === 'object' ? settings.database.url : settings.database;
+const isPostgres = dbUrl && (dbUrl.startsWith('postgresql://') || dbUrl.startsWith('postgres://'));
+
+let sessionStore;
+if (isPostgres) {
+  const PgStore = require('connect-pg-simple')(session);
+  sessionStore = new PgStore({
+    conString: dbUrl,
+    tableName: 'session',
+    createTableIfMissing: true
+  });
+} else {
+  const SQLiteStore = require('connect-sqlite3')(session);
+  sessionStore = new SQLiteStore({
     db: 'sessions.db',
     dir: './'
-  }),
+  });
+}
+
+const sessionConfig = {
+  store: sessionStore,
   secret: settings.website.secret,
   resave: false,
   saveUninitialized: false,

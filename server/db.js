@@ -4,11 +4,10 @@
 
 /**
  * @module HeliactylNextDB
- * @version 0.4.0
- * @description SQLite database adapter for Heliactyl Next 4.x with big fancy features or something.
+ * @version 0.5.0
+ * @description Multi-database adapter for Heliactyl Next - Supports SQLite and PostgreSQL (CockroachDB compatible)
  */
 
-const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const winston = require('winston');
 const LRU = require('lru-cache');
@@ -27,11 +26,12 @@ const dbLogger = winston.createLogger({
 /**
  * @class HeliactylDB
  * @description Main database class that handles all database operations with queuing and TTL support
+ * @supports SQLite, PostgreSQL, CockroachDB
  */
 class HeliactylDB {
   /**
    * @constructor
-   * @param {string} dbPath - Path to SQLite database file (obviously)
+   * @param {string} dbPath - Database connection string (sqlite://path or postgresql://user:pass@host/db)
    * @throws {Error} If database path is not provided or connection fails... 
    */
   constructor(dbPath) {
@@ -39,12 +39,25 @@ class HeliactylDB {
       throw new Error('Database path is required');
     }
 
-    const resolvedPath = path.resolve(dbPath.replace('sqlite://', ''));
-    this.db = new sqlite3.Database(resolvedPath, (err) => {
-      if (err) {
-        throw new Error(`Failed to connect to database: ${err.message}`);
-      }
-    });
+    // Handle both string and object configs
+    if (typeof dbPath === 'object' && dbPath.url) {
+      this.dbPath = dbPath.url;
+    } else if (typeof dbPath === 'string') {
+      this.dbPath = dbPath;
+    } else {
+      throw new Error('Database path must be a string or an object with a url property');
+    }
+
+    this.isPostgres = this.dbPath.startsWith('postgresql://') || this.dbPath.startsWith('postgres://');
+    this.isSQLite = this.dbPath.startsWith('sqlite://') || (!this.isPostgres && !this.dbPath.includes('://'));
+
+    if (this.isSQLite) {
+      this.initSQLite();
+    } else if (this.isPostgres) {
+      this.initPostgreSQL();
+    } else {
+      throw new Error(`Unsupported database type: ${dbPath}. Use sqlite:// or postgresql://`);
+    }
 
     this.namespace = 'heliactyl';
     this.ttlSupport = false;
@@ -64,9 +77,6 @@ class HeliactylDB {
       updateAgeOnHas: true
     });
 
-    // Enable WAL mode for better concurrency
-    this.db.run('PRAGMA journal_mode = WAL');
-
     // Initialize the database table
     this.initializeDatabase().catch(err => {
       console.error('Failed to initialize database:', err);
@@ -82,12 +92,65 @@ class HeliactylDB {
   }
 
   /**
+   * Initialize SQLite connection
+   * @private
+   */
+  initSQLite() {
+    const sqlite3 = require('sqlite3').verbose();
+    const resolvedPath = path.resolve(this.dbPath.replace('sqlite://', ''));
+    this.db = new sqlite3.Database(resolvedPath, (err) => {
+      if (err) {
+        throw new Error(`Failed to connect to SQLite database: ${err.message}`);
+      }
+    });
+    this.dbType = 'sqlite';
+    // Enable WAL mode for better concurrency
+    this.db.run('PRAGMA journal_mode = WAL');
+  }
+
+  /**
+   * Initialize PostgreSQL/CockroachDB connection
+   * @private
+   */
+  initPostgreSQL() {
+    const { Pool } = require('pg');
+    this.pool = new Pool({
+      connectionString: this.dbPath,
+      max: 20, // Maximum number of clients in the pool
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 2000,
+    });
+    this.dbType = 'postgresql';
+    
+    // Test connection
+    this.pool.query('SELECT NOW()', (err) => {
+      if (err) {
+        console.error('Failed to connect to PostgreSQL database:', err.message);
+      } else {
+        console.log('Connected to PostgreSQL/CockroachDB');
+      }
+    });
+  }
+
+  /**
    * @async
    * @method initializeDatabase
    * @description Initializes database tables and indexes
    * @returns {Promise<void>}
    */
   async initializeDatabase() {
+    if (this.dbType === 'sqlite') {
+      return this.initializeSQLite();
+    } else {
+      return this.initializePostgreSQL();
+    }
+  }
+
+  /**
+   * Initialize SQLite database
+   * @private
+   */
+  async initializeSQLite() {
     return this.executeQuery(() => new Promise((resolve, reject) => {
       // First check if keyv table exists
       this.db.get("SELECT name FROM sqlite_master WHERE type='table' AND name='keyv'", (err, row) => {
@@ -140,6 +203,44 @@ class HeliactylDB {
         });
       });
     }));
+  }
+
+  /**
+   * Initialize PostgreSQL/CockroachDB database
+   * @private
+   */
+  async initializePostgreSQL() {
+    try {
+      // Check if keyv table exists
+      const keyvCheck = await this.pool.query(
+        "SELECT table_name FROM information_schema.tables WHERE table_name = 'keyv'"
+      );
+      
+      if (keyvCheck.rows.length > 0) {
+        console.log('Using Heliactyl Next Legacy compatibility mode - Found existing keyv database');
+        this.tableName = 'keyv';
+        this.namespace = 'keyv';
+        return;
+      }
+
+      // Create table for PostgreSQL/CockroachDB
+      const createTableSQL = `
+        CREATE TABLE IF NOT EXISTS heliactyl (
+          key VARCHAR(255) PRIMARY KEY,
+          value TEXT NOT NULL,
+          created_at INTEGER DEFAULT (EXTRACT(EPOCH FROM NOW()))
+        )`;
+      
+      await this.pool.query(createTableSQL);
+      
+      // Create index
+      await this.pool.query('CREATE INDEX IF NOT EXISTS idx_heliactyl_key ON heliactyl (key)');
+      
+      console.log('PostgreSQL/CockroachDB table initialized successfully');
+    } catch (err) {
+      console.error('Failed to initialize PostgreSQL database:', err);
+      throw err;
+    }
   }
 
   /**
@@ -263,12 +364,24 @@ class HeliactylDB {
   async cleanupExpired() {
     if (!this.ttlSupport) return;
 
-    return this.executeQuery(() => new Promise((resolve, reject) => {
-      this.db.run(`DELETE FROM ${this.tableName} WHERE json_extract(value, "$.expires") < ?`, [Date.now()], (err) => {
-        if (err) reject(err);
-        else resolve();
-      });
-    }));
+    if (this.dbType === 'sqlite') {
+      return this.executeQuery(() => new Promise((resolve, reject) => {
+        this.db.run(`DELETE FROM ${this.tableName} WHERE json_extract(value, "$.expires") < ?`, [Date.now()], (err) => {
+          if (err) reject(err);
+          else resolve();
+        });
+      }));
+    } else {
+      // PostgreSQL - Use regex to extract expires field from JSON
+      try {
+        await this.pool.query(
+          `DELETE FROM ${this.tableName} WHERE (value::jsonb->>'expires')::bigint < $1`,
+          [Date.now()]
+        );
+      } catch (err) {
+        console.error('Failed to cleanup expired entries:', err);
+      }
+    }
   }
 
   /**
@@ -282,29 +395,55 @@ class HeliactylDB {
   async get(key) {
     if (!key) throw new Error('Key is required');
 
-    return this.executeQuery(() => new Promise((resolve, reject) => {
-      this.db.get(`SELECT value FROM ${this.tableName} WHERE [key] = ?`, [`${this.namespace}:${key}`], (err, row) => {
-        if (err) {
-          reject(err);
-        } else {
-          if (row) {
-            try {
-              const parsed = JSON.parse(row.value);
-              if (this.ttlSupport && parsed.expires && parsed.expires < Date.now()) {
-                this.delete(key).catch(console.error);
-                resolve(undefined);
-              } else {
-                resolve(parsed.value);
-              }
-            } catch (e) {
-              reject(new Error(`Failed to parse stored value: ${e.message}`));
-            }
+    const fullKey = `${this.namespace}:${key}`;
+
+    if (this.dbType === 'sqlite') {
+      return this.executeQuery(() => new Promise((resolve, reject) => {
+        this.db.get(`SELECT value FROM ${this.tableName} WHERE key = ?`, [fullKey], (err, row) => {
+          if (err) {
+            reject(err);
           } else {
-            resolve(undefined);
+            if (row) {
+              try {
+                const parsed = JSON.parse(row.value);
+                if (this.ttlSupport && parsed.expires && parsed.expires < Date.now()) {
+                  this.delete(key).catch(console.error);
+                  resolve(undefined);
+                } else {
+                  resolve(parsed.value);
+                }
+              } catch (e) {
+                reject(new Error(`Failed to parse stored value: ${e.message}`));
+              }
+            } else {
+              resolve(undefined);
+            }
           }
+        });
+      }));
+    } else {
+      // PostgreSQL/CockroachDB
+      try {
+        const result = await this.pool.query(
+          `SELECT value FROM ${this.tableName} WHERE key = $1`,
+          [fullKey]
+        );
+        
+        if (result.rows.length > 0) {
+          const parsed = JSON.parse(result.rows[0].value);
+          if (this.ttlSupport && parsed.expires && parsed.expires < Date.now()) {
+            await this.delete(key);
+            return undefined;
+          } else {
+            return parsed.value;
+          }
+        } else {
+          return undefined;
         }
-      });
-    }));
+      } catch (err) {
+        throw new Error(`Failed to get value: ${err.message}`);
+      }
+    }
   }
 
   /**
@@ -320,21 +459,35 @@ class HeliactylDB {
   async set(key, value, ttl) {
     if (!key) throw new Error('Key is required');
 
+    const fullKey = `${this.namespace}:${key}`;
     const expires = this.ttlSupport && ttl ? Date.now() + ttl : undefined;
     const data = JSON.stringify({
       value,
       expires
     });
 
-    return this.executeQuery(() => new Promise((resolve, reject) => {
-      this.db.run(`INSERT OR REPLACE INTO ${this.tableName} ([key], value) VALUES (?, ?)`, [`${this.namespace}:${key}`, data], (err) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve();
-        }
-      });
-    }));
+    if (this.dbType === 'sqlite') {
+      return this.executeQuery(() => new Promise((resolve, reject) => {
+        this.db.run(`INSERT OR REPLACE INTO ${this.tableName} (key, value) VALUES (?, ?)`, [fullKey, data], (err) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve();
+          }
+        });
+      }));
+    } else {
+      // PostgreSQL/CockroachDB - UPSERT syntax
+      try {
+        await this.pool.query(
+          `INSERT INTO ${this.tableName} (key, value) VALUES ($1, $2)
+           ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value`,
+          [fullKey, data]
+        );
+      } catch (err) {
+        throw new Error(`Failed to set value: ${err.message}`);
+      }
+    }
   }
 
   /**
@@ -348,15 +501,25 @@ class HeliactylDB {
   async delete(key) {
     if (!key) throw new Error('Key is required');
 
-    return this.executeQuery(() => new Promise((resolve, reject) => {
-      this.db.run(`DELETE FROM ${this.tableName} WHERE [key] = ?`, [`${this.namespace}:${key}`], (err) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve();
-        }
-      });
-    }));
+    const fullKey = `${this.namespace}:${key}`;
+
+    if (this.dbType === 'sqlite') {
+      return this.executeQuery(() => new Promise((resolve, reject) => {
+        this.db.run(`DELETE FROM ${this.tableName} WHERE key = ?`, [fullKey], (err) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve();
+          }
+        });
+      }));
+    } else {
+      try {
+        await this.pool.query(`DELETE FROM ${this.tableName} WHERE key = $1`, [fullKey]);
+      } catch (err) {
+        throw new Error(`Failed to delete value: ${err.message}`);
+      }
+    }
   }
 
   /**
@@ -366,15 +529,25 @@ class HeliactylDB {
    * @returns {Promise<void>}
    */
   async clear() {
-    return this.executeQuery(() => new Promise((resolve, reject) => {
-      this.db.run(`DELETE FROM ${this.tableName} WHERE [key] LIKE ?`, [`${this.namespace}:%`], (err) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve();
-        }
-      });
-    }));
+    const pattern = `${this.namespace}:%`;
+
+    if (this.dbType === 'sqlite') {
+      return this.executeQuery(() => new Promise((resolve, reject) => {
+        this.db.run(`DELETE FROM ${this.tableName} WHERE key LIKE ?`, [pattern], (err) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve();
+          }
+        });
+      }));
+    } else {
+      try {
+        await this.pool.query(`DELETE FROM ${this.tableName} WHERE key LIKE $1`, [pattern]);
+      } catch (err) {
+        throw new Error(`Failed to clear values: ${err.message}`);
+      }
+    }
   }
 
   /**
@@ -388,15 +561,26 @@ class HeliactylDB {
   async has(key) {
     if (!key) throw new Error('Key is required');
 
-    return this.executeQuery(() => new Promise((resolve, reject) => {
-      this.db.get(`SELECT 1 FROM ${this.tableName} WHERE [key] = ?`, [`${this.namespace}:${key}`], (err, row) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(!!row);
-        }
-      });
-    }));
+    const fullKey = `${this.namespace}:${key}`;
+
+    if (this.dbType === 'sqlite') {
+      return this.executeQuery(() => new Promise((resolve, reject) => {
+        this.db.get(`SELECT 1 FROM ${this.tableName} WHERE key = ?`, [fullKey], (err, row) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(!!row);
+          }
+        });
+      }));
+    } else {
+      try {
+        const result = await this.pool.query(`SELECT 1 FROM ${this.tableName} WHERE key = $1`, [fullKey]);
+        return result.rows.length > 0;
+      } catch (err) {
+        throw new Error(`Failed to check key: ${err.message}`);
+      }
+    }
   }
 
   /**
@@ -405,13 +589,17 @@ class HeliactylDB {
    * @description Closes database connection
    * @returns {Promise<void>}
    */
-  close() {
-    return new Promise((resolve, reject) => {
-      this.db.close((err) => {
-        if (err) reject(err);
-        else resolve();
+  async close() {
+    if (this.dbType === 'sqlite') {
+      return new Promise((resolve, reject) => {
+        this.db.close((err) => {
+          if (err) reject(err);
+          else resolve();
+        });
       });
-    });
+    } else {
+      await this.pool.end();
+    }
   }
 
   /**
@@ -488,27 +676,50 @@ class HeliactylDB {
    * @returns {Promise<Object>} Object containing all key-value pairs
    */
   async getAll() {
-    return this.executeQuery(() => new Promise((resolve, reject) => {
-      this.db.all(`SELECT [key], value FROM ${this.tableName} WHERE [key] LIKE ?`, [`${this.namespace}:%`], (err, rows) => {
-        if (err) {
-          reject(err);
-        } else {
-          const result = {};
-          rows.forEach(row => {
-            const key = row.key.replace(`${this.namespace}:`, '');
-            try {
-              const parsed = JSON.parse(row.value);
-              if (!(this.ttlSupport && parsed.expires && parsed.expires < Date.now())) {
-                result[key] = parsed.value;
+    const pattern = `${this.namespace}:%`;
+
+    if (this.dbType === 'sqlite') {
+      return this.executeQuery(() => new Promise((resolve, reject) => {
+        this.db.all(`SELECT key, value FROM ${this.tableName} WHERE key LIKE ?`, [pattern], (err, rows) => {
+          if (err) {
+            reject(err);
+          } else {
+            const result = {};
+            rows.forEach(row => {
+              const key = row.key.replace(`${this.namespace}:`, '');
+              try {
+                const parsed = JSON.parse(row.value);
+                if (!(this.ttlSupport && parsed.expires && parsed.expires < Date.now())) {
+                  result[key] = parsed.value;
+                }
+              } catch (e) {
+                console.error(`Failed to parse value for key ${key}:`, e);
               }
-            } catch (e) {
-              console.error(`Failed to parse value for key ${key}:`, e);
+            });
+            resolve(result);
+          }
+        });
+      }));
+    } else {
+      try {
+        const result = await this.pool.query(`SELECT key, value FROM ${this.tableName} WHERE key LIKE $1`, [pattern]);
+        const output = {};
+        result.rows.forEach(row => {
+          const key = row.key.replace(`${this.namespace}:`, '');
+          try {
+            const parsed = JSON.parse(row.value);
+            if (!(this.ttlSupport && parsed.expires && parsed.expires < Date.now())) {
+              output[key] = parsed.value;
             }
-          });
-          resolve(result);
-        }
-      });
-    }));
+          } catch (e) {
+            console.error(`Failed to parse value for key ${key}:`, e);
+          }
+        });
+        return output;
+      } catch (err) {
+        throw new Error(`Failed to get all values: ${err.message}`);
+      }
+    }
   }
 
   /**
@@ -549,19 +760,33 @@ class HeliactylDB {
    * @returns {Promise<string[]>} Array of matching keys
    */
   async search(pattern) {
-    return this.executeQuery(() => new Promise((resolve, reject) => {
-      this.db.all(
-        `SELECT [key] FROM ${this.tableName} WHERE [key] LIKE ?`,
-        [`${this.namespace}:${pattern}`],
-        (err, rows) => {
-          if (err) {
-            reject(err);
-          } else {
-            resolve(rows.map(row => row.key.replace(`${this.namespace}:`, '')));
+    const fullPattern = `${this.namespace}:${pattern}`;
+
+    if (this.dbType === 'sqlite') {
+      return this.executeQuery(() => new Promise((resolve, reject) => {
+        this.db.all(
+          `SELECT key FROM ${this.tableName} WHERE key LIKE ?`,
+          [fullPattern],
+          (err, rows) => {
+            if (err) {
+              reject(err);
+            } else {
+              resolve(rows.map(row => row.key.replace(`${this.namespace}:`, '')));
+            }
           }
-        }
-      );
-    }));
+        );
+      }));
+    } else {
+      try {
+        const result = await this.pool.query(
+          `SELECT key FROM ${this.tableName} WHERE key LIKE $1`,
+          [fullPattern]
+        );
+        return result.rows.map(row => row.key.replace(`${this.namespace}:`, ''));
+      } catch (err) {
+        throw new Error(`Failed to search keys: ${err.message}`);
+      }
+    }
   }
 
   /**
@@ -573,33 +798,67 @@ class HeliactylDB {
    * @returns {Promise<void>}
    */
   async setMultiple(entries, ttl) {
-    return this.executeQuery(() => new Promise((resolve, reject) => {
-      const stmt = this.db.prepare(`INSERT OR REPLACE INTO ${this.tableName} ([key], value) VALUES (?, ?)`);
+    const entriesList = Object.entries(entries);
+    
+    if (this.dbType === 'sqlite') {
+      return this.executeQuery(() => new Promise((resolve, reject) => {
+        const stmt = this.db.prepare(`INSERT OR REPLACE INTO ${this.tableName} (key, value) VALUES (?, ?)`);
 
-      this.db.serialize(() => {
-        this.db.run('BEGIN TRANSACTION');
+        this.db.serialize(() => {
+          this.db.run('BEGIN TRANSACTION');
 
+          try {
+            for (const [key, value] of entriesList) {
+              const data = JSON.stringify({
+                value,
+                expires: this.ttlSupport && ttl ? Date.now() + ttl : undefined
+              });
+              stmt.run(`${this.namespace}:${key}`, data);
+            }
+
+            this.db.run('COMMIT', (err) => {
+              if (err) reject(err);
+              else resolve();
+            });
+          } catch (err) {
+            this.db.run('ROLLBACK');
+            reject(err);
+          } finally {
+            stmt.finalize();
+          }
+        });
+      }));
+    } else {
+      // PostgreSQL/CockroachDB - Use batch insert with ON CONFLICT
+      try {
+        const client = await this.pool.connect();
         try {
-          for (const [key, value] of Object.entries(entries)) {
+          await client.query('BEGIN');
+          
+          for (const [key, value] of entriesList) {
+            const fullKey = `${this.namespace}:${key}`;
             const data = JSON.stringify({
               value,
               expires: this.ttlSupport && ttl ? Date.now() + ttl : undefined
             });
-            stmt.run(`${this.namespace}:${key}`, data);
+            await client.query(
+              `INSERT INTO ${this.tableName} (key, value) VALUES ($1, $2)
+               ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value`,
+              [fullKey, data]
+            );
           }
-
-          this.db.run('COMMIT', (err) => {
-            if (err) reject(err);
-            else resolve();
-          });
+          
+          await client.query('COMMIT');
         } catch (err) {
-          this.db.run('ROLLBACK');
-          reject(err);
+          await client.query('ROLLBACK');
+          throw err;
         } finally {
-          stmt.finalize();
+          client.release();
         }
-      });
-    }));
+      } catch (err) {
+        throw new Error(`Failed to set multiple values: ${err.message}`);
+      }
+    }
   }
 }
 

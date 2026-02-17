@@ -132,7 +132,7 @@ const schemas = {
     egg: z.string({ required_error: 'Egg/server type is required' })
       .min(1, 'Egg cannot be empty')
       .trim(),
-    location: z.number({ invalid_type_error: 'Location must be a number' })
+    location: z.coerce.number({ invalid_type_error: 'Location must be a number' })
       .int('Location must be a whole number')
       .positive('Location must be positive'),
     ram: z.number({ invalid_type_error: 'RAM must be a number' })
