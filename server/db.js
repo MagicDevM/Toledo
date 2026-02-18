@@ -448,6 +448,76 @@ class HeliactylDB {
 
   /**
    * @async
+   * @method getMany
+   * @description Retrieves multiple values by keys in a single query
+   * @param {string[]} keys - Array of keys to retrieve
+   * @returns {Promise<Object>} Object mapping keys to their values
+   */
+  async getMany(keys) {
+    if (!keys || !keys.length) return {};
+
+    const fullKeys = keys.map(k => `${this.namespace}:${k}`);
+    const result = {};
+
+    if (this.dbType === 'sqlite') {
+      return new Promise((resolve, reject) => {
+        const placeholders = fullKeys.map(() => '?').join(',');
+        this.db.all(
+          `SELECT key, value FROM ${this.tableName} WHERE key IN (${placeholders})`,
+          fullKeys,
+          (err, rows) => {
+            if (err) return reject(err);
+            for (const row of (rows || [])) {
+              try {
+                const parsed = JSON.parse(row.value);
+                const originalKey = row.key.replace(`${this.namespace}:`, '');
+                if (this.ttlSupport && parsed.expires && parsed.expires < Date.now()) {
+                  this.delete(originalKey).catch(console.error);
+                } else {
+                  result[originalKey] = parsed.value;
+                }
+              } catch (e) { /* skip unparseable */ }
+            }
+            // Fill missing keys with undefined
+            for (const key of keys) {
+              if (!(key in result)) result[key] = undefined;
+            }
+            resolve(result);
+          }
+        );
+      });
+    } else {
+      // PostgreSQL/CockroachDB - single query for all keys
+      try {
+        const placeholders = fullKeys.map((_, i) => `$${i + 1}`).join(',');
+        const res = await this.pool.query(
+          `SELECT key, value FROM ${this.tableName} WHERE key IN (${placeholders})`,
+          fullKeys
+        );
+        for (const row of res.rows) {
+          try {
+            const parsed = JSON.parse(row.value);
+            const originalKey = row.key.replace(`${this.namespace}:`, '');
+            if (this.ttlSupport && parsed.expires && parsed.expires < Date.now()) {
+              this.delete(originalKey).catch(console.error);
+            } else {
+              result[originalKey] = parsed.value;
+            }
+          } catch (e) { /* skip unparseable */ }
+        }
+        // Fill missing keys with undefined
+        for (const key of keys) {
+          if (!(key in result)) result[key] = undefined;
+        }
+        return result;
+      } catch (err) {
+        throw new Error(`Failed to getMany: ${err.message}`);
+      }
+    }
+  }
+
+  /**
+   * @async
    * @method set
    * @description Sets a value with optional TTL
    * @param {string} key - Key to set

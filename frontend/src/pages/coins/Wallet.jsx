@@ -46,12 +46,12 @@ export default function WalletPage() {
   const [recipientId, setRecipientId] = useState('');
   const [transferAmount, setTransferAmount] = useState('');
 
-  // Fetch user info for Receive ID
+  // Fetch user info for Receive ID (uses consolidated init endpoint)
   const { data: userInfo } = useQuery({
     queryKey: ['user'],
     queryFn: async () => {
-      const response = await axios.get('/api/user');
-      return response.data;
+      const response = await axios.get('/api/v5/init');
+      return response.data.user;
     }
   });
 

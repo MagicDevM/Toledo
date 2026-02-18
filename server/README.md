@@ -146,6 +146,15 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
     }
 
+    # Cache static assets (filenames contain hashes, so immutable is safe)
+    location /assets/ {
+        proxy_pass http://localhost:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        expires 30d;
+        add_header Cache-Control "public, immutable";
+    }
+
     # WebSocket support
     location /ws {
         proxy_pass http://localhost:3000;

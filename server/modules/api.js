@@ -1,5 +1,17 @@
 const loadConfig = require("../handlers/config");
 const settings = loadConfig("./config.toml");
+const getPteroUser = require("../handlers/getPteroUser");
+const cache = require("../handlers/cache");
+const axios = require("axios");
+
+const pteroApi = axios.create({
+  baseURL: settings.pterodactyl.domain,
+  headers: {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+    'Authorization': `Bearer ${settings.pterodactyl.key}`
+  }
+});
 
 const HeliactylModule = {
   "name": "API v5",
@@ -113,5 +125,116 @@ module.exports.load = async function (app, db) {
       },
       Index: 0
     });
+  });
+
+  // Consolidated init endpoint - replaces 5+ separate calls on page load
+  app.get("/api/v5/init", async (req, res) => {
+    try {
+      if (!req.session || !req.session.userinfo) {
+        return res.status(401).json({
+          authenticated: false,
+          message: 'Not authenticated'
+        });
+      }
+
+      const userId = req.session.userinfo.id;
+      const userData = req.session.userinfo;
+      const twoFactorPending = !!req.session.twoFactorPending;
+
+      // Batch all DB reads in a single query
+      const dbKeys = [`2fa-${userId}`, `coins-${userId}`, `users-${userId}`];
+      if (req.session.pterodactyl) {
+        dbKeys.push(`subuser-servers-${req.session.pterodactyl.username}`);
+        dbKeys.push(`subuser-servers-discord-${userId}`);
+      }
+      const dbData = await db.getMany(dbKeys);
+
+      // 2FA
+      const twoFactorData = dbData[`2fa-${userId}`];
+      const twoFactorEnabled = twoFactorData?.enabled || false;
+
+      // Coins
+      const coins = dbData[`coins-${userId}`] || 0;
+
+      // Admin check (uses session cache like original)
+      let isAdmin = false;
+      const cacheKey = 'adminStatusCache';
+      const cacheExpiry = 5 * 60 * 1000;
+      if (req.session[cacheKey] && req.session[cacheKey].timestamp) {
+        const age = Date.now() - req.session[cacheKey].timestamp;
+        if (age < cacheExpiry) {
+          isAdmin = req.session[cacheKey].isAdmin;
+        }
+      }
+      if (!isAdmin && req.session.pterodactyl) {
+        try {
+          const pteroUserId = dbData[`users-${userId}`];
+          if (pteroUserId) {
+            const adminRes = await pteroApi.get(`/api/application/users/${pteroUserId}?include=servers`);
+            isAdmin = adminRes.data.attributes.root_admin === true;
+            req.session[cacheKey] = { isAdmin, timestamp: Date.now() };
+          }
+        } catch (e) { /* not admin */ }
+      }
+
+      // Servers (uses existing cache layer)
+      let servers = [];
+      let subuserServers = [];
+      try {
+        const user = await cache.getOrSet(
+          `ptero:user:${userId}:servers`,
+          () => getPteroUser(userId, db),
+          300
+        );
+        if (user) {
+          servers = user.attributes.relationships.servers.data;
+        }
+      } catch (e) { /* servers failed, non-blocking */ }
+
+      // Subuser servers
+      if (req.session.pterodactyl) {
+        const pteroSubs = dbData[`subuser-servers-${req.session.pterodactyl.username}`] || [];
+        const discordSubs = dbData[`subuser-servers-discord-${userId}`] || [];
+        const serverIds = new Set(pteroSubs.map(s => s.id));
+        subuserServers = [...pteroSubs];
+        discordSubs.forEach(s => {
+          if (!serverIds.has(s.id)) {
+            subuserServers.push(s);
+            serverIds.add(s.id);
+          }
+        });
+      }
+
+      res.json({
+        state: {
+          authenticated: !twoFactorPending,
+          twoFactorPending,
+          twoFactorEnabled,
+          site_name: settings.website.name || "Heliactyl"
+        },
+        user: {
+          id: userData.id,
+          username: userData.username,
+          email: userData.email,
+          global_name: userData.global_name || userData.username
+        },
+        coins,
+        admin: isAdmin,
+        settings: {
+          name: settings.website.name || "Heliactyl",
+          logo: settings.website.logo || "https://i.imgur.com/gUUze6A.png",
+          domain: settings.website.domain,
+          pterodactyl: settings.pterodactyl.domain
+        },
+        servers,
+        subuserServers
+      });
+    } catch (error) {
+      console.error('Error in /api/v5/init:', error);
+      return res.status(500).json({
+        authenticated: false,
+        message: 'Internal server error'
+      });
+    }
   });
 }

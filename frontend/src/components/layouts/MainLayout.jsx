@@ -222,40 +222,24 @@ const MainLayout = () => {
     { icon: <ArrowRightOnRectangleIcon className="w-4 h-4" />, label: 'Logout', action: handleLogout, className: 'text-red-400 hover:text-red-300 hover:bg-red-950/30' }
   ];
 
-  // Initial data loading
+  // Initial data loading - single consolidated call
   useEffect(() => {
     const fetchData = async () => {
-      // Fetch user and coins first/independently to ensure UI loads even if servers fail
       try {
-        const [coinsResponse, userResponse, adminResponse] = await Promise.all([
-          axios.get('/api/coins').catch(() => ({ data: { coins: 0 } })),
-          axios.get('/api/user').catch(() => ({ data: { username: 'User', email: '...', global_name: 'User' } })),
-          axios.get('/api/admin').catch(() => ({ data: { admin: false } }))
-        ]);
-
-        setBalances({ coins: coinsResponse.data.coins || 0 });
+        const { data } = await axios.get('/api/v5/init');
+        
+        setBalances({ coins: data.coins || 0 });
         setUserData({
-          username: userResponse.data.username || 'User',
-          id: userResponse.data.id || '00000',
-          email: userResponse.data.email || '...',
-          global_name: userResponse.data.global_name || userResponse.data.username || 'User'
+          username: data.user?.username || 'User',
+          id: data.user?.id || '00000',
+          email: data.user?.email || '...',
+          global_name: data.user?.global_name || data.user?.username || 'User'
         });
-        setIsAdmin(adminResponse.data.admin || false);
+        setIsAdmin(data.admin || false);
+        setServers(data.servers || []);
+        setSubuserServers(data.subuserServers || []);
       } catch (error) {
-        console.error('Error fetching user data:', error);
-      }
-
-      // Fetch servers separately
-      try {
-        const [serversResponse, subuserServersResponse] = await Promise.all([
-          axios.get('/api/v5/servers'),
-          axios.get('/api/subuser-servers')
-        ]);
-        setServers(serversResponse.data || []);
-        setSubuserServers(subuserServersResponse.data || []);
-      } catch (error) {
-        console.error('Error fetching servers:', error);
-        // Don't block UI if servers fail
+        console.error('Error fetching init data:', error);
       }
     };
 

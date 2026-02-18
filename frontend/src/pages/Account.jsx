@@ -20,17 +20,15 @@ const AccountPage = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch user data
-        const userResponse = await fetch('/api/user');
-        const userData = await userResponse.json();
-        setUserData(userData);
+        // Use consolidated init endpoint for user + coins
+        const initResponse = await fetch('/api/v5/init');
+        const initData = await initResponse.json();
+        if (initData.user) {
+          setUserData(initData.user);
+        }
+        setCoinsBalance(initData.coins || 0);
 
-        // Fetch coins balance
-        const coinsResponse = await fetch('/api/coins');
-        const coinsData = await coinsResponse.json();
-        setCoinsBalance(coinsData.coins);
-
-        // Fetch SFTP password
+        // Fetch SFTP password (not in init)
         const passwordResponse = await fetch('/api/password');
         const passwordData = await passwordResponse.json();
         setSftpPassword(passwordData.password);
