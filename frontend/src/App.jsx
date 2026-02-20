@@ -48,6 +48,7 @@ import AdminNodes from './pages/admin/Nodes';
 import AdminTickets from './pages/admin/Tickets';
 import AdminRadar from './pages/admin/Radar';
 import AdminEggs from './pages/admin/Eggs';
+import AdminUpdater from './pages/admin/Updater';
 
 import Support from './pages/Support';
 
@@ -320,6 +321,7 @@ export default function App() {
             <Route path="/admin/tickets" element={<AdminTickets />} />
             <Route path="/admin/radar" element={<AdminRadar />} />
             <Route path="/admin/eggs" element={<AdminEggs />} />
+            <Route path="/admin/updater" element={<AdminUpdater />} />
           </Route>
 
           {/* 404 catch-all route */}

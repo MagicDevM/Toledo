@@ -214,7 +214,8 @@ const MainLayout = () => {
     { icon: ServerStackIcon, label: 'Nodes', path: '/admin/nodes' },
     { icon: CubeIcon, label: 'Eggs', path: '/admin/eggs' },
     { icon: TicketIcon, label: 'Tickets', path: '/admin/tickets' },
-    { icon: SignalIcon, label: 'Radar', path: '/admin/radar' }
+    { icon: SignalIcon, label: 'Radar', path: '/admin/radar' },
+    { icon: CloudArrowDownIcon, label: 'Updater', path: '/admin/updater' }
   ];
 
   const menuItems = [
