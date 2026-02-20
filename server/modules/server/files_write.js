@@ -57,9 +57,6 @@ module.exports.load = async function (app, db) {
       if (response.status !== 204) {
         console.error("Error writing file:", response.statusText);
         return res.status(response.status).json({ error: response.statusText });
-      } else {
-        await logActivity(db, serverId, 'Write File', { file });
-        res.status(204).send();
       }
 
       await logActivity(db, serverId, 'Write File', { file });

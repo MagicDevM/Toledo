@@ -30,6 +30,7 @@ app.use(logger.requestLogger());
 app.use(compression({ threshold: 1024 }));
 app.use(cookieParser());
 app.use(express.json({ limit: "500kb" }));
+app.use(express.text({ limit: "5mb", type: "text/plain" }));
 
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");

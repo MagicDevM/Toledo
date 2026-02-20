@@ -71,8 +71,8 @@ class HeliactylDB {
 
     // Initialize LRU cache for hot data
     this.cache = new LRU({
-      max: 500, // Max 500 items
-      ttl: 1000 * 60 * 5, // 5 minutes default TTL
+      max: 2500,
+      ttl: 1000 * 30, // 30s - fast refresh for multi-region consistency
       updateAgeOnGet: true,
       updateAgeOnHas: true
     });
@@ -118,7 +118,7 @@ class HeliactylDB {
       connectionString: this.dbPath,
       max: 20, // Maximum number of clients in the pool
       idleTimeoutMillis: 30000,
-      connectionTimeoutMillis: 2000,
+      connectionTimeoutMillis: 5000, // Higher for cross-region CockroachDB
     });
     this.dbType = 'postgresql';
     
@@ -397,8 +397,14 @@ class HeliactylDB {
 
     const fullKey = `${this.namespace}:${key}`;
 
+    // Read-through cache: check LRU before hitting DB
+    const cached = this.cache.get(fullKey);
+    if (cached !== undefined) return cached;
+
+    let value;
+
     if (this.dbType === 'sqlite') {
-      return this.executeQuery(() => new Promise((resolve, reject) => {
+      value = await this.executeQuery(() => new Promise((resolve, reject) => {
         this.db.get(`SELECT value FROM ${this.tableName} WHERE key = ?`, [fullKey], (err, row) => {
           if (err) {
             reject(err);
@@ -428,22 +434,27 @@ class HeliactylDB {
           `SELECT value FROM ${this.tableName} WHERE key = $1`,
           [fullKey]
         );
-        
+
         if (result.rows.length > 0) {
           const parsed = JSON.parse(result.rows[0].value);
           if (this.ttlSupport && parsed.expires && parsed.expires < Date.now()) {
             await this.delete(key);
-            return undefined;
+            value = undefined;
           } else {
-            return parsed.value;
+            value = parsed.value;
           }
-        } else {
-          return undefined;
         }
       } catch (err) {
         throw new Error(`Failed to get value: ${err.message}`);
       }
     }
+
+    // Populate cache on DB hit
+    if (value !== undefined && value !== null) {
+      this.cache.set(fullKey, value);
+    }
+
+    return value;
   }
 
   /**
@@ -456,15 +467,36 @@ class HeliactylDB {
   async getMany(keys) {
     if (!keys || !keys.length) return {};
 
-    const fullKeys = keys.map(k => `${this.namespace}:${k}`);
     const result = {};
+    const missKeys = []; // Keys not found in cache
+
+    // Check LRU cache first for each key
+    for (const key of keys) {
+      const fullKey = `${this.namespace}:${key}`;
+      const cached = this.cache.get(fullKey);
+      if (cached !== undefined) {
+        result[key] = cached;
+      } else {
+        missKeys.push(key);
+      }
+    }
+
+    // All keys served from cache — skip DB entirely
+    if (missKeys.length === 0) {
+      for (const key of keys) {
+        if (!(key in result)) result[key] = undefined;
+      }
+      return result;
+    }
+
+    const missFullKeys = missKeys.map(k => `${this.namespace}:${k}`);
 
     if (this.dbType === 'sqlite') {
-      return new Promise((resolve, reject) => {
-        const placeholders = fullKeys.map(() => '?').join(',');
+      await new Promise((resolve, reject) => {
+        const placeholders = missFullKeys.map(() => '?').join(',');
         this.db.all(
           `SELECT key, value FROM ${this.tableName} WHERE key IN (${placeholders})`,
-          fullKeys,
+          missFullKeys,
           (err, rows) => {
             if (err) return reject(err);
             for (const row of (rows || [])) {
@@ -475,24 +507,22 @@ class HeliactylDB {
                   this.delete(originalKey).catch(console.error);
                 } else {
                   result[originalKey] = parsed.value;
+                  // Populate cache on DB hit
+                  this.cache.set(row.key, parsed.value);
                 }
               } catch (e) { /* skip unparseable */ }
             }
-            // Fill missing keys with undefined
-            for (const key of keys) {
-              if (!(key in result)) result[key] = undefined;
-            }
-            resolve(result);
+            resolve();
           }
         );
       });
     } else {
-      // PostgreSQL/CockroachDB - single query for all keys
+      // PostgreSQL/CockroachDB - single query for cache misses only
       try {
-        const placeholders = fullKeys.map((_, i) => `$${i + 1}`).join(',');
+        const placeholders = missFullKeys.map((_, i) => `$${i + 1}`).join(',');
         const res = await this.pool.query(
           `SELECT key, value FROM ${this.tableName} WHERE key IN (${placeholders})`,
-          fullKeys
+          missFullKeys
         );
         for (const row of res.rows) {
           try {
@@ -502,18 +532,21 @@ class HeliactylDB {
               this.delete(originalKey).catch(console.error);
             } else {
               result[originalKey] = parsed.value;
+              // Populate cache on DB hit
+              this.cache.set(row.key, parsed.value);
             }
           } catch (e) { /* skip unparseable */ }
         }
-        // Fill missing keys with undefined
-        for (const key of keys) {
-          if (!(key in result)) result[key] = undefined;
-        }
-        return result;
       } catch (err) {
         throw new Error(`Failed to getMany: ${err.message}`);
       }
     }
+
+    // Fill missing keys with undefined
+    for (const key of keys) {
+      if (!(key in result)) result[key] = undefined;
+    }
+    return result;
   }
 
   /**
@@ -537,7 +570,7 @@ class HeliactylDB {
     });
 
     if (this.dbType === 'sqlite') {
-      return this.executeQuery(() => new Promise((resolve, reject) => {
+      await this.executeQuery(() => new Promise((resolve, reject) => {
         this.db.run(`INSERT OR REPLACE INTO ${this.tableName} (key, value) VALUES (?, ?)`, [fullKey, data], (err) => {
           if (err) {
             reject(err);
@@ -558,6 +591,9 @@ class HeliactylDB {
         throw new Error(`Failed to set value: ${err.message}`);
       }
     }
+
+    // Write-through: update cache after successful DB write
+    this.cache.set(fullKey, value);
   }
 
   /**
@@ -572,6 +608,9 @@ class HeliactylDB {
     if (!key) throw new Error('Key is required');
 
     const fullKey = `${this.namespace}:${key}`;
+
+    // Invalidate cache immediately
+    this.cache.delete(fullKey);
 
     if (this.dbType === 'sqlite') {
       return this.executeQuery(() => new Promise((resolve, reject) => {
@@ -600,6 +639,9 @@ class HeliactylDB {
    */
   async clear() {
     const pattern = `${this.namespace}:%`;
+
+    // Flush entire LRU cache — all keys belong to this namespace
+    this.cache.clear();
 
     if (this.dbType === 'sqlite') {
       return this.executeQuery(() => new Promise((resolve, reject) => {
@@ -888,7 +930,13 @@ class HeliactylDB {
 
             this.db.run('COMMIT', (err) => {
               if (err) reject(err);
-              else resolve();
+              else {
+                // Populate cache for all written entries
+                for (const [key, value] of entriesList) {
+                  this.cache.set(`${this.namespace}:${key}`, value);
+                }
+                resolve();
+              }
             });
           } catch (err) {
             this.db.run('ROLLBACK');
@@ -924,6 +972,11 @@ class HeliactylDB {
           throw err;
         } finally {
           client.release();
+        }
+
+        // Populate cache for all written entries
+        for (const [key, value] of entriesList) {
+          this.cache.set(`${this.namespace}:${key}`, value);
         }
       } catch (err) {
         throw new Error(`Failed to set multiple values: ${err.message}`);
