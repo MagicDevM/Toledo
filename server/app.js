@@ -27,10 +27,18 @@ const wsInstance = require("express-ws")(app);
 wsInstance.getWss().on("connection", logger.wsRequestLogger.bind(logger));
 
 app.use(logger.requestLogger());
-app.use(compression());
+app.use(compression({ threshold: 1024 }));
 app.use(cookieParser());
-app.use(express.text());
 app.use(express.json({ limit: "500kb" }));
+
+app.use((req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("X-Powered-By", `10th Gen Heliactyl Next (${PLATFORM_CODENAME})`);
+  res.setHeader("X-Heliactyl", `Heliactyl Next v${VERSION} - "${PLATFORM_CODENAME}"`);
+  next();
+});
+
+app.use("/assets", express.static(path.join(__dirname, "public"), { maxAge: "7d" }));
 app.use(nocache());
 
 const dbUrl = typeof settings.database === "object" ? settings.database.url : settings.database;
@@ -62,25 +70,10 @@ app.use(session({
 app.use((req, res, next) => {
   if (!req.session) {
     logger.error("Session store error occurred");
-    return req.session.regenerate((err) => {
-      if (err) {
-        logger.error("Failed to regenerate session", err);
-        return res.status(500).send("Internal Server Error");
-      }
-      next();
-    });
+    return res.status(500).send("Internal Server Error");
   }
   next();
 });
-
-app.use((req, res, next) => {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("X-Powered-By", `10th Gen Heliactyl Next (${PLATFORM_CODENAME})`);
-  res.setHeader("X-Heliactyl", `Heliactyl Next v${VERSION} - "${PLATFORM_CODENAME}"`);
-  next();
-});
-
-app.use("/assets", express.static(path.join(__dirname, "public")));
 
 const moduleExports = { app, db, VERSION, PLATFORM_CODENAME, API_LEVEL };
 module.exports = moduleExports;
@@ -89,16 +82,8 @@ global.__rootdir = __dirname;
 (async () => {
   try {
     const moduleLoader = new ModuleLoader(app, db, VERSION, API_LEVEL);
-    const loadedModules = await moduleLoader.loadAllModules();
+    await moduleLoader.loadAllModules();
     global.moduleInfo = moduleLoader.getLoadedModuleInfo();
-
-    app.use((req, res, next) => {
-      if (req.method !== "GET") return next();
-      if (req.path.startsWith("/")) return next();
-      if (req.path.startsWith("/assets/")) return next();
-      const fullPath = "/" + req.path + (req.url.includes("?") ? req.url.substring(req.url.indexOf("?")) : "");
-      res.redirect(301, fullPath);
-    });
 
     const server = app.listen(settings.website.port, "0.0.0.0", () => {
       const bootTime = process.hrtime(startTime);
