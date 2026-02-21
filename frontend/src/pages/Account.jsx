@@ -192,8 +192,8 @@ const AccountPage = () => {
 
       {/* Tabs Container */}
       <div className="space-y-6">
-        <div className="border-b border-[#2e3337]">
-          <div className="flex space-x-2">
+        <div className="border-b border-[#2e3337] overflow-x-auto">
+          <div className="flex space-x-2 min-w-max">
             <button
               onClick={() => setActiveTab('account')}
               className={`flex items-center gap-2 px-4 py-2 border-b-2 font-medium transition ${activeTab === 'account'

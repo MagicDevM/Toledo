@@ -197,8 +197,8 @@ export default function WalletPage() {
       </div>
 
       {/* Tabs */}
-      <div className="border-b border-[#2e3337]">
-        <div className="flex space-x-2">
+      <div className="border-b border-[#2e3337] overflow-x-auto">
+        <div className="flex space-x-2 min-w-max">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             return (

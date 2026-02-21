@@ -286,8 +286,8 @@ export default function ServerBoostsPage() {
       )}
 
       {/* Tab navigation */}
-      <div className="border-b border-[#2e3337]">
-        <div className="flex space-x-2">
+      <div className="border-b border-[#2e3337] overflow-x-auto">
+        <div className="flex space-x-2 min-w-max">
           <button
             onClick={() => setActiveTab('active')}
             className={`flex items-center gap-2 px-4 py-2 border-b-2 font-medium transition ${activeTab === 'active'
@@ -647,7 +647,7 @@ export default function ServerBoostsPage() {
 
               <div className="space-y-2">
                 <label className="text-sm text-[#95a1ad] block">Select extension duration:</label>
-                <div className="grid grid-cols-5 gap-2">
+                <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
                   {boostTypes && confirmDialog.boost && boostTypes[confirmDialog.boost.boostType]?.prices && Object.keys(boostTypes[confirmDialog.boost.boostType].prices).map(duration => (
                     <button
                       key={duration}

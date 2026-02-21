@@ -217,7 +217,7 @@ const SettingsPage = () => {
       </div>
 
       <Tabs defaultValue="general">
-        <TabsList>
+        <TabsList className="flex flex-wrap h-auto gap-1 bg-transparent p-0">
           <TabsTrigger value="general" className="flex items-center gap-2">
             <Settings className="w-4 h-4" />
             General

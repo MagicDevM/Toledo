@@ -417,7 +417,7 @@ export default function StakingPage({ embedded = false }) {
               {showCalculator && (
                 <div className="space-y-2">
                   <label className="text-sm text-[#95a1ad] block">Calculate for (days)</label>
-                  <div className="grid grid-cols-4 gap-2">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                     {[7, 14, 30, 60].map(days => (
                       <button
                         key={days}

@@ -129,7 +129,7 @@ function UserForm({ user, onSubmit, isSubmitting }) {
 
   return (
     <div className="grid gap-6 py-4">
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-2">
           <label className="text-sm font-medium">Email</label>
           <Input
@@ -148,7 +148,7 @@ function UserForm({ user, onSubmit, isSubmitting }) {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-2">
           <label className="text-sm font-medium">First Name</label>
           <Input
@@ -179,14 +179,14 @@ function UserForm({ user, onSubmit, isSubmitting }) {
         />
       </div>
 
-      <Tabs defaultValue="resources">
-        <TabsList>
+<Tabs defaultValue="resources">
+        <TabsList className="flex flex-wrap h-auto gap-1 bg-transparent p-0">
           <TabsTrigger value="resources">Resources</TabsTrigger>
           <TabsTrigger value="permissions">Permissions</TabsTrigger>
         </TabsList>
 
         <TabsContent value="resources" className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">Coins</label>
               <Input
@@ -205,7 +205,7 @@ function UserForm({ user, onSubmit, isSubmitting }) {
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">RAM (MB)</label>
               <Input

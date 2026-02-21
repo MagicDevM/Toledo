@@ -144,8 +144,8 @@ function SystemStats() {
     { icon: CircuitBoard, label: 'Active Nodes', value: stats?.nodes || 0 }
   ];
 
-  return (
-    <div className="grid grid-cols-3 gap-4">
+return (
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
       {statCards.map((stat, i) => (
         <Card key={i}>
           <CardContent className="pt-6">
@@ -567,9 +567,9 @@ export default function AdminOverview() {
           </Card>
         </div>
 
-        <div className="grid gap-6 grid-cols-4">
-          {/* Main Configuration Section */}
-          <div className="col-span-3">
+        <div className="grid gap-6 grid-cols-1 lg:grid-cols-4">
+{/* Main Configuration Section */}
+          <div className="col-span-1 lg:col-span-3">
             <Card className="flex flex-col h-[calc(100vh-20rem)]">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">

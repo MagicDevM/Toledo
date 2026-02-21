@@ -104,7 +104,7 @@ function NodeDetailsModal({ node, isOpen, onClose }) {
               <CardTitle className="text-base">Resources</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2 text-sm font-medium text-neutral-400">
                     <MemoryStick className="w-4 h-4" />

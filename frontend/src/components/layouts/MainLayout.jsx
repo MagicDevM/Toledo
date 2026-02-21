@@ -3,6 +3,7 @@ import { Link, useLocation, useParams, useNavigate, Outlet } from 'react-router-
 import { AnimatePresence, motion } from 'framer-motion';
 import axios from 'axios';
 import { useSettings } from '../../hooks/useSettings';
+import { Menu, X } from 'lucide-react';
 import {
   ServerStackIcon, WindowIcon, FolderIcon, GlobeAltIcon, PuzzlePieceIcon,
   CloudArrowDownIcon, UsersIcon, Cog6ToothIcon, CubeIcon,
@@ -13,6 +14,7 @@ import {
   ChevronDownIcon, EllipsisVerticalIcon, LinkIcon,
   ShieldCheckIcon, TicketIcon, SignalIcon, ServerIcon
 } from '@heroicons/react/24/outline';
+import { Sheet, SheetContent } from '@/components/ui/sheet';
 
 // Sidebar context for visibility management
 const SidebarContext = createContext({
@@ -84,10 +86,11 @@ const MainLayout = () => {
   const [servers, setServers] = useState([]);
   const [subuserServers, setSubuserServers] = useState([]);
   const [selectedServerId, setSelectedServerId] = useState(null);
-  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const [menuDropdownOpen, setMenuDropdownOpen] = useState(false);
   const [serverName, setServerName] = useState("");
   const [isAdmin, setIsAdmin] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const userDropdownRef = useRef(null);
   const menuDropdownRef = useRef(null);
@@ -498,10 +501,205 @@ const MainLayout = () => {
             </div>
           </aside>
 
+          {/* Mobile Header */}
+          <header className="lg:hidden fixed top-0 left-0 right-0 h-14 bg-[#08090c] border-b border-white/5 flex items-center justify-between px-4 z-30">
+            <button 
+              onClick={() => setMobileMenuOpen(true)} 
+              className="p-2 hover:bg-white/5 rounded-md transition-colors"
+            >
+              <Menu className="w-6 h-6" />
+            </button>
+            <span className="font-semibold">{settings?.name || "Heliactyl"}</span>
+            <div className="w-10" />
+          </header>
+
+          {/* Mobile Navigation Drawer */}
+          <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+            <SheetContent side="left" className="w-72 bg-[#08090c] p-0 border-r border-white/5">
+              <div className="flex flex-col h-full">
+                {/* Logo */}
+                <div className="flex items-center justify-between px-4 h-16 border-b border-white/5">
+                  <Link 
+                    to="/dashboard" 
+                    className="flex items-center gap-3"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <span className="text-white font-semibold">{settings?.name || "Heliactyl"}</span>
+                  </Link>
+                </div>
+
+                {/* Server title when in server view */}
+                {showServerSection && (
+                  <div className="py-2 px-4 border-b border-white/5">
+                    <button
+                      onClick={() => {
+                        navigate('/dashboard');
+                        setMobileMenuOpen(false);
+                      }}
+                      className="flex text-white/70 hover:text-white transition duration-200 text-sm items-center"
+                    >
+                      <ArrowLeftIcon className="w-4 h-4 mr-1.5" />
+                      <span>Back to server list</span>
+                    </button>
+                  </div>
+                )}
+
+                {/* Navigation */}
+                <div className="flex-1 overflow-y-auto py-4">
+                  {!showServerSection ? (
+                    <div className="px-4 mb-2">
+                      <h3 className="text-[0.6rem] font-semibold uppercase tracking-wider text-white/40">Navigation</h3>
+                    </div>
+                  ) : (
+                    <div className="px-4 mb-2">
+                      <h3 className="text-[0.6rem] font-semibold uppercase tracking-wider text-white/40">Server</h3>
+                    </div>
+                  )}
+
+                  <nav className="px-3 space-y-0.5">
+                    {!showServerSection && iconNavItems.map((item) => (
+                      <Link
+                        key={item.label}
+                        to={item.path}
+                        onClick={() => setMobileMenuOpen(false)}
+                        className={`flex items-center h-10 px-3 text-sm rounded-md transition-colors ${
+                          isActivePath(item.path)
+                            ? 'text-white bg-[#383c47]'
+                            : 'text-white/50 hover:text-white hover:bg-white/5'
+                        }`}
+                      >
+                        <item.icon className="w-4 h-4 mr-3" />
+                        {item.label}
+                      </Link>
+                    ))}
+
+                    {showServerSection && serverNavItems.map((item) => (
+                      <Link
+                        key={item.label}
+                        to={item.path}
+                        onClick={() => setMobileMenuOpen(false)}
+                        className={`flex items-center h-10 px-3 text-sm rounded-md transition-colors ${
+                          isActivePath(item.path)
+                            ? 'text-white bg-[#383c47]'
+                            : 'text-white/50 hover:text-white hover:bg-white/5'
+                        }`}
+                      >
+                        <item.icon className="w-4 h-4 mr-3" />
+                        {item.label}
+                      </Link>
+                    ))}
+                  </nav>
+
+                  {/* Admin Section */}
+                  {!showServerSection && isAdmin && (
+                    <>
+                      <div className="px-4 mt-6 mb-2">
+                        <h3 className="text-[0.6rem] font-semibold uppercase tracking-wider text-white/40">Admin</h3>
+                      </div>
+                      <nav className="px-3 space-y-0.5">
+                        {adminNavItems.map((item) => (
+                          <Link
+                            key={item.label}
+                            to={item.path}
+                            onClick={() => setMobileMenuOpen(false)}
+                            className={`flex items-center h-10 px-3 text-sm rounded-md transition-colors ${
+                              isActivePath(item.path)
+                                ? 'text-white bg-[#383c47]'
+                                : 'text-white/50 hover:text-white hover:bg-white/5'
+                            }`}
+                          >
+                            <item.icon className="w-4 h-4 mr-3" />
+                            {item.label}
+                          </Link>
+                        ))}
+                      </nav>
+                    </>
+                  )}
+                </div>
+
+                {/* Bottom Section */}
+                <div className="border-t border-white/5 p-4">
+                  {/* Coins Balance */}
+                  <div className="px-4 py-3 bg-[#191b20]/50 rounded-xl mb-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs text-white/40">Coins</span>
+                      <span className="text-xs font-medium text-white">{balances.coins.toFixed(2)}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Link
+                        to="/wallet?action=send"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="flex-1 flex items-center justify-center gap-1 text-[0.65rem] rounded-l-lg rounded-r font-medium bg-[#202229]/70 hover:bg-[#202229] text-white py-1.5 px-2 transition-all duration-200"
+                      >
+                        <PaperAirplaneIcon className="w-3 h-3 mr-0.5 text-white/70" />
+                        Send
+                      </Link>
+                      <Link
+                        to="/wallet?action=receive"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="flex-1 flex items-center justify-center gap-1 text-[0.65rem] rounded-r-lg rounded-l font-medium bg-[#202229]/70 hover:bg-[#202229] text-white py-1.5 px-2 transition-all duration-200"
+                      >
+                        <ArrowDownLeftIcon className="w-3 h-3 mr-0.5 text-white/70" />
+                        Receive
+                      </Link>
+                    </div>
+                  </div>
+
+                  {/* User Profile */}
+                  <div className="flex items-center gap-3 border border-white/5 rounded-xl py-3 px-3">
+                    <div className="h-8 w-8 bg-[#191b20] rounded-lg flex items-center justify-center">
+                      <span className="text-xs text-white/70 font-semibold">
+                        {getInitials(userData.global_name)}
+                      </span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{userData.global_name}</p>
+                      <p className="text-[0.6rem] text-white/40 truncate">{userData.email}</p>
+                    </div>
+                  </div>
+
+                  {/* Quick Actions */}
+                  <div className="mt-3 space-y-1">
+                    <button
+                      onClick={() => {
+                        navigate('/account');
+                        setMobileMenuOpen(false);
+                      }}
+                      className="flex items-center w-full px-3 py-2.5 text-sm text-left hover:bg-white/5 rounded-md transition-colors"
+                    >
+                      <UserIcon className="w-4 h-4 mr-3" />
+                      My account
+                    </button>
+                    <button
+                      onClick={() => {
+                        handleLogout();
+                        setMobileMenuOpen(false);
+                      }}
+                      className="flex items-center w-full px-3 py-2.5 text-sm text-left text-red-400 hover:bg-red-950/30 rounded-md transition-colors"
+                    >
+                      <ArrowRightOnRectangleIcon className="w-4 h-4 mr-3" />
+                      Sign out
+                    </button>
+                  </div>
+
+                  {/* Version */}
+                  <div className="mt-4 pt-4 border-t border-white/5">
+                    <Link
+                      to="https://github.com/re-heliactyl/"
+                      className="text-[0.7rem] font-mono text-white/40 hover:text-white/60 transition"
+                    >
+                      v10.0.0 [toledo]
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            </SheetContent>
+          </Sheet>
+
           {/* Main Content - Full width */}
-          <main className={`flex-1 transition-all duration-300`}>
+          <main className={`flex-1 transition-all duration-300 pt-14 lg:pt-0`}>
             <AnimatePresence mode="wait">
-              <div className="py-16 px-16">
+              <div className="py-6 px-4 md:py-10 md:px-8 lg:py-16 lg:px-16">
                 <Outlet />
               </div>
             </AnimatePresence>

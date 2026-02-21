@@ -111,8 +111,9 @@ const AllocationsPage = () => {
               {error}
             </div>
           ) : (
-            <ScrollArea className="h-[600px]">
-              <Table>
+<ScrollArea className="h-[600px]">
+                <div className="overflow-x-auto">
+                <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>IP Address</TableHead>
@@ -146,8 +147,9 @@ const AllocationsPage = () => {
                       </TableCell>
                     </TableRow>
                   ))}
-                </TableBody>
+</TableBody>
               </Table>
+              </div>
             </ScrollArea>
           )}
         </CardContent>

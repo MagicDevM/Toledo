@@ -176,8 +176,8 @@ export default function DailyRewardsPage() {
       )}
 
       {/* Tab navigation */}
-      <div className="border-b border-[#2e3337]">
-        <div className="flex space-x-2">
+      <div className="border-b border-[#2e3337] overflow-x-auto">
+        <div className="flex space-x-2 min-w-max">
           <button
             onClick={() => setActiveTab('claim')}
             className={`flex items-center gap-2 px-4 py-2 border-b-2 font-medium transition ${activeTab === 'claim'
@@ -432,7 +432,7 @@ export default function DailyRewardsPage() {
               </div>
               <div className="p-4 space-y-4">
                 <div className="flex flex-col items-center justify-center space-y-3 p-4 border border-[#2e3337] rounded-lg bg-[#202229]">
-                  <div className="grid grid-cols-2 gap-8 w-full">
+                  <div className="grid grid-cols-2 gap-4 sm:gap-8 w-full">
                     <div className="flex flex-col items-center">
                       <p className="text-[#95a1ad] text-xs">Current Streak</p>
                       <p className="text-2xl font-bold">{claimStatus?.currentStreak || 0}</p>
@@ -472,7 +472,7 @@ export default function DailyRewardsPage() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                     <button
                       className={`p-2 rounded text-xs flex flex-col items-center justify-center space-y-1 transition ${claimStatus?.streakProtection >= 1
                           ? 'bg-[#202229] text-[#95a1ad] cursor-not-allowed'

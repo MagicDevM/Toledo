@@ -1026,8 +1026,8 @@ export default function ConsolePage() {
         </div>
       </div>
 
-      {/* Resource Stats Grid */}
-      <div className="grid grid-cols-2 gap-4">
+{/* Resource Stats Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <ResourceStat
           icon={Cpu}
           title="CPU Usage"
