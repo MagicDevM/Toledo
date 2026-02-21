@@ -7,11 +7,11 @@ const WebSocket = require("ws");
 const axios = require("axios");
 const path = require("path");
 const fs = require("fs");
-const Database = require("../../db.js");
-const db = new Database('sqlite://heliactyl.db');
-const getPteroUser = require('../../handlers/getPteroUser');
 const loadConfig = require("../../handlers/config");
-const settings = loadConfig("./config.toml");
+const settings = loadConfig("../../config.toml");
+const Database = require("../../db.js");
+const db = new Database(settings.database);
+const getPteroUser = require('../../handlers/getPteroUser');
 const NodeCache = require("node-cache");
 const serverCache = new NodeCache({ stdTTL: 60 });
 
