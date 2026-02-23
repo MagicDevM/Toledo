@@ -19,9 +19,11 @@ import {
   ChevronDown,
   Rocket
 } from 'lucide-react';
+import { useSettings } from '../hooks/useSettings';
 
 export default function ServerBoostsPage() {
   const queryClient = useQueryClient();
+  const { settings } = useSettings();
   const [activeTab, setActiveTab] = useState('active');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -91,6 +93,21 @@ export default function ServerBoostsPage() {
       return () => clearTimeout(timer);
     }
   }, [success]);
+
+  // Feature disabled check
+  if (settings?.features?.boosts === false) {
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <Rocket className="w-12 h-12 text-[#95a1ad] mx-auto" />
+          <h2 className="text-xl font-medium text-white">Server Boosts Unavailable</h2>
+          <p className="text-[#95a1ad] text-sm max-w-md">
+            Server boosts are currently disabled by the administrator. Please check back later.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   // Cancel boost
   const handleCancelBoost = async () => {

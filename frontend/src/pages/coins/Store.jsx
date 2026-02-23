@@ -18,9 +18,11 @@ import {
 } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
+import { useSettings } from '../../hooks/useSettings';
 
 export default function StorePage() {
   const queryClient = useQueryClient();
+  const { settings } = useSettings();
   const [activeTab, setActiveTab] = useState('resources');
   const [loading, setLoading] = useState({});
   const [error, setError] = useState('');
@@ -429,16 +431,18 @@ export default function StorePage() {
             <Server className="w-4 h-4" />
             Resources
           </button>
-          <button
-            onClick={() => setActiveTab('boosts')}
-            className={`flex items-center gap-2 px-4 py-2 border-b-2 font-medium transition ${activeTab === 'boosts'
-                ? 'border-white text-white'
-                : 'border-transparent text-[#95a1ad] hover:text-white hover:border-white/20'
-              }`}
-          >
-            <Rocket className="w-4 h-4" />
-            Boosts
-          </button>
+          {settings?.features?.boosts !== false && (
+            <button
+              onClick={() => setActiveTab('boosts')}
+              className={`flex items-center gap-2 px-4 py-2 border-b-2 font-medium transition ${activeTab === 'boosts'
+                  ? 'border-white text-white'
+                  : 'border-transparent text-[#95a1ad] hover:text-white hover:border-white/20'
+                }`}
+            >
+              <Rocket className="w-4 h-4" />
+              Boosts
+            </button>
+          )}
         </div>
       </div>
 
@@ -495,7 +499,7 @@ export default function StorePage() {
       )}
 
       {/* Boosts Tab Content */}
-      {activeTab === 'boosts' && (
+      {settings?.features?.boosts !== false && activeTab === 'boosts' && (
         <div className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Boost selection section */}

@@ -194,7 +194,7 @@ const [userDropdownOpen, setUserDropdownOpen] = useState(false);
     { icon: WalletIcon, label: 'Wallet', path: '/wallet' },
     { icon: CircleStackIcon, label: 'Store', path: '/coins/store' },
     { icon: GiftIcon, label: 'Daily rewards', path: '/coins/daily' },
-    { icon: BoltIcon, label: 'Boosts', path: '/boosts' },
+    ...(settings?.features?.boosts !== false ? [{ icon: BoltIcon, label: 'Boosts', path: '/boosts' }] : []),
     { icon: TicketIcon, label: 'Support', path: '/support' }
   ];
 
@@ -398,22 +398,24 @@ const [userDropdownOpen, setUserDropdownOpen] = useState(false);
                     <span className="text-xs text-white/40">Coins</span>
                     <span className="text-xs font-medium text-white">{balances.coins.toFixed(2)}</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Link
-                      to="/wallet?action=send"
-                      className="flex-1 flex items-center justify-center gap-1 text-[0.65rem] rounded-l-lg rounded-r font-medium bg-[#202229]/70 hover:bg-[#202229] text-white py-1.5 px-2 transition-all duration-200 active:scale-95"
-                    >
-                      <PaperAirplaneIcon className="w-3 h-3 mr-0.5 text-white/70" />
-                      Send
-                    </Link>
-                    <Link
-                      to="/wallet?action=receive"
-                      className="flex-1 flex items-center justify-center gap-1 text-[0.65rem] rounded-r-lg rounded-l font-medium bg-[#202229]/70 hover:bg-[#202229] text-white py-1.5 px-2 transition-all duration-200 active:scale-95"
-                    >
-                      <ArrowDownLeftIcon className="w-3 h-3 mr-0.5 text-white/70" />
-                      Receive
-                    </Link>
-                  </div>
+                  {settings?.features?.coinTransfer !== false && (
+                    <div className="flex items-center gap-2">
+                      <Link
+                        to="/wallet?action=send"
+                        className="flex-1 flex items-center justify-center gap-1 text-[0.65rem] rounded-l-lg rounded-r font-medium bg-[#202229]/70 hover:bg-[#202229] text-white py-1.5 px-2 transition-all duration-200 active:scale-95"
+                      >
+                        <PaperAirplaneIcon className="w-3 h-3 mr-0.5 text-white/70" />
+                        Send
+                      </Link>
+                      <Link
+                        to="/wallet?action=receive"
+                        className="flex-1 flex items-center justify-center gap-1 text-[0.65rem] rounded-r-lg rounded-l font-medium bg-[#202229]/70 hover:bg-[#202229] text-white py-1.5 px-2 transition-all duration-200 active:scale-95"
+                      >
+                        <ArrowDownLeftIcon className="w-3 h-3 mr-0.5 text-white/70" />
+                        Receive
+                      </Link>
+                    </div>
+                  )}
                 </div>
                 {/* User Profile Section */}
                 <div className="flex items-center gap-3 border border-white/5 shadow-xs rounded-xl py-3 px-3">
@@ -625,24 +627,26 @@ const [userDropdownOpen, setUserDropdownOpen] = useState(false);
                       <span className="text-xs text-white/40">Coins</span>
                       <span className="text-xs font-medium text-white">{balances.coins.toFixed(2)}</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Link
-                        to="/wallet?action=send"
-                        onClick={() => setMobileMenuOpen(false)}
-                        className="flex-1 flex items-center justify-center gap-1 text-[0.65rem] rounded-l-lg rounded-r font-medium bg-[#202229]/70 hover:bg-[#202229] text-white py-1.5 px-2 transition-all duration-200"
-                      >
-                        <PaperAirplaneIcon className="w-3 h-3 mr-0.5 text-white/70" />
-                        Send
-                      </Link>
-                      <Link
-                        to="/wallet?action=receive"
-                        onClick={() => setMobileMenuOpen(false)}
-                        className="flex-1 flex items-center justify-center gap-1 text-[0.65rem] rounded-r-lg rounded-l font-medium bg-[#202229]/70 hover:bg-[#202229] text-white py-1.5 px-2 transition-all duration-200"
-                      >
-                        <ArrowDownLeftIcon className="w-3 h-3 mr-0.5 text-white/70" />
-                        Receive
-                      </Link>
-                    </div>
+                    {settings?.features?.coinTransfer !== false && (
+                      <div className="flex items-center gap-2">
+                        <Link
+                          to="/wallet?action=send"
+                          onClick={() => setMobileMenuOpen(false)}
+                          className="flex-1 flex items-center justify-center gap-1 text-[0.65rem] rounded-l-lg rounded-r font-medium bg-[#202229]/70 hover:bg-[#202229] text-white py-1.5 px-2 transition-all duration-200"
+                        >
+                          <PaperAirplaneIcon className="w-3 h-3 mr-0.5 text-white/70" />
+                          Send
+                        </Link>
+                        <Link
+                          to="/wallet?action=receive"
+                          onClick={() => setMobileMenuOpen(false)}
+                          className="flex-1 flex items-center justify-center gap-1 text-[0.65rem] rounded-r-lg rounded-l font-medium bg-[#202229]/70 hover:bg-[#202229] text-white py-1.5 px-2 transition-all duration-200"
+                        >
+                          <ArrowDownLeftIcon className="w-3 h-3 mr-0.5 text-white/70" />
+                          Receive
+                        </Link>
+                      </div>
+                    )}
                   </div>
 
                   {/* User Profile */}

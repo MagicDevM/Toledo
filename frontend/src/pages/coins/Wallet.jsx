@@ -30,10 +30,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useSettings } from '../../hooks/useSettings';
 
 export default function WalletPage() {
   const queryClient = useQueryClient();
   const location = useLocation();
+  const { settings } = useSettings();
   const [activeTab, setActiveTab] = useState('overview');
   const [amount, setAmount] = useState('');
   const [loading, setLoading] = useState({ checkout: false, purchase: false, transfer: false });
@@ -250,6 +252,7 @@ export default function WalletPage() {
               <div className="text-3xl font-bold text-white mb-4">
                 {(billingInfo?.balances?.coins || 0).toLocaleString()} <span className="text-sm text-[#95a1ad] font-normal">coins</span>
               </div>
+              {settings?.features?.coinTransfer !== false && (
               <div className="flex gap-2">
                 <button 
                   onClick={() => setIsSendOpen(true)}
@@ -266,6 +269,7 @@ export default function WalletPage() {
                   Receive
                 </button>
               </div>
+              )}
             </div>
           </div>
 
@@ -491,74 +495,78 @@ export default function WalletPage() {
       )}
 
       {/* Send Dialog */}
-      <Dialog open={isSendOpen} onOpenChange={setIsSendOpen}>
-        <DialogContent className="bg-[#202229] border border-white/5 text-white sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Send Coins</DialogTitle>
-            <DialogDescription className="text-[#95a1ad]">
-              Transfer coins to another user immediately.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-[#95a1ad]">Recipient ID</label>
-              <input
-                placeholder="Enter user ID"
-                value={recipientId}
-                onChange={(e) => setRecipientId(e.target.value)}
-                className="w-full bg-[#394047] focus:bg-[#394047]/50 border border-white/5 focus:border-white/5 focus:ring-1 focus:ring-white/20 rounded-md p-2 text-sm focus:outline-none transition-colors text-white placeholder-white/30"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-[#95a1ad]">Amount</label>
-              <input
-                type="number"
-                placeholder="Amount to send"
-                value={transferAmount}
-                onChange={(e) => setTransferAmount(e.target.value)}
-                className="w-full bg-[#394047] focus:bg-[#394047]/50 border border-white/5 focus:border-white/5 focus:ring-1 focus:ring-white/20 rounded-md p-2 text-sm focus:outline-none transition-colors text-white placeholder-white/30"
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setIsSendOpen(false)} className="text-[#95a1ad] hover:text-white hover:bg-white/5">Cancel</Button>
-            <Button 
-              onClick={handleTransfer} 
-              disabled={loading.transfer || !recipientId || !transferAmount}
-              className="bg-white text-black hover:bg-white/90"
-            >
-              {loading.transfer ? <RefreshCw className="w-4 h-4 animate-spin mr-2" /> : <Send className="w-4 h-4 mr-2" />}
-              Send Coins
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+{settings?.features?.coinTransfer !== false && (
+<Dialog open={isSendOpen} onOpenChange={setIsSendOpen}>
+  <DialogContent className="bg-[#202229] border border-white/5 text-white sm:max-w-md">
+    <DialogHeader>
+      <DialogTitle>Send Coins</DialogTitle>
+      <DialogDescription className="text-[#95a1ad]">
+        Transfer coins to another user immediately.
+      </DialogDescription>
+    </DialogHeader>
+    <div className="space-y-4 py-4">
+      <div className="space-y-2">
+        <label className="text-sm font-medium text-[#95a1ad]">Recipient ID</label>
+        <input
+          placeholder="Enter user ID"
+          value={recipientId}
+          onChange={(e) => setRecipientId(e.target.value)}
+          className="w-full bg-[#394047] focus:bg-[#394047]/50 border border-white/5 focus:border-white/5 focus:ring-1 focus:ring-white/20 rounded-md p-2 text-sm focus:outline-none transition-colors text-white placeholder-white/30"
+        />
+      </div>
+      <div className="space-y-2">
+        <label className="text-sm font-medium text-[#95a1ad]">Amount</label>
+        <input
+          type="number"
+          placeholder="Amount to send"
+          value={transferAmount}
+          onChange={(e) => setTransferAmount(e.target.value)}
+          className="w-full bg-[#394047] focus:bg-[#394047]/50 border border-white/5 focus:border-white/5 focus:ring-1 focus:ring-white/20 rounded-md p-2 text-sm focus:outline-none transition-colors text-white placeholder-white/30"
+        />
+      </div>
+    </div>
+    <DialogFooter>
+      <Button variant="ghost" onClick={() => setIsSendOpen(false)} className="text-[#95a1ad] hover:text-white hover:bg-white/5">Cancel</Button>
+      <Button 
+        onClick={handleTransfer} 
+        disabled={loading.transfer || !recipientId || !transferAmount}
+        className="bg-white text-black hover:bg-white/90"
+      >
+        {loading.transfer ? <RefreshCw className="w-4 h-4 animate-spin mr-2" /> : <Send className="w-4 h-4 mr-2" />}
+        Send Coins
+      </Button>
+    </DialogFooter>
+  </DialogContent>
+</Dialog>
+)}
 
       {/* Receive Dialog */}
-      <Dialog open={isReceiveOpen} onOpenChange={setIsReceiveOpen}>
-        <DialogContent className="bg-[#202229] border border-white/5 text-white sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Receive Coins</DialogTitle>
-            <DialogDescription className="text-[#95a1ad]">
-              Share your User ID with others to receive coins.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex flex-col items-center justify-center py-6 space-y-4">
-            <div className="p-4 bg-[#1a1c1e] rounded-lg border border-dashed border-[#2e3337] w-full text-center">
-              <p className="text-xs text-[#95a1ad] mb-1">Your User ID</p>
-              <p className="text-2xl font-mono font-bold tracking-wider select-all">{userInfo?.id || 'Loading...'}</p>
-            </div>
-            <p className="text-xs text-[#95a1ad] text-center max-w-xs">
-              Transactions are irreversible. Only share this ID with trusted users.
-            </p>
-          </div>
-          <DialogFooter>
-            <Button onClick={() => setIsReceiveOpen(false)} className="w-full bg-white text-black hover:bg-white/90">
-              Close
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+{settings?.features?.coinTransfer !== false && (
+<Dialog open={isReceiveOpen} onOpenChange={setIsReceiveOpen}>
+  <DialogContent className="bg-[#202229] border border-white/5 text-white sm:max-w-md">
+    <DialogHeader>
+      <DialogTitle>Receive Coins</DialogTitle>
+      <DialogDescription className="text-[#95a1ad]">
+        Share your User ID with others to receive coins.
+      </DialogDescription>
+    </DialogHeader>
+    <div className="flex flex-col items-center justify-center py-6 space-y-4">
+      <div className="p-4 bg-[#1a1c1e] rounded-lg border border-dashed border-[#2e3337] w-full text-center">
+        <p className="text-xs text-[#95a1ad] mb-1">Your User ID</p>
+        <p className="text-2xl font-mono font-bold tracking-wider select-all">{userInfo?.id || 'Loading...'}</p>
+      </div>
+      <p className="text-xs text-[#95a1ad] text-center max-w-xs">
+        Transactions are irreversible. Only share this ID with trusted users.
+      </p>
+    </div>
+    <DialogFooter>
+      <Button onClick={() => setIsReceiveOpen(false)} className="w-full bg-white text-black hover:bg-white/90">
+        Close
+      </Button>
+    </DialogFooter>
+  </DialogContent>
+</Dialog>
+)}
     </div>
   );
 }

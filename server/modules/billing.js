@@ -412,6 +412,9 @@ module.exports.load = async function (app, db) {
   // Transfer coins to another user
   router.post('/billing/transfer-coins', validate(schemas.coinTransfer), async (req, res) => {
     try {
+      if (settings.api?.client?.coins?.transfer?.enabled === false) {
+        return res.status(403).json({ error: 'Coin transfers are currently disabled' });
+      }
       const { recipientEmail, amount } = req.body;
       const userId = req.session.userinfo.id;
 

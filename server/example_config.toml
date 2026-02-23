@@ -173,6 +173,9 @@ display = "Minecraft: Bedrock Edition - PocketmineMP"
 [api.client.coins]
 enabled = true
 
+    [api.client.coins.transfer]
+    enabled = true
+
     [api.client.coins.store]
     enabled = true
 
@@ -187,6 +190,9 @@ enabled = true
 
       [api.client.coins.store.servers]
       cost = 200
+
+    [api.client.coins.boosts]
+    enabled = true
 
 # ---------------------------------
 # Logging Configuration

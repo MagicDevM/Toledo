@@ -2,6 +2,7 @@ node_modules
 package-lock.json
 bun.lock
 config.toml
+config_local.toml
 logs/
 heliactyl.db
 heliactyl.db-shm
@@ -9,3 +10,4 @@ heliactyl.db-wal
 sessions.db
 backups
 pnpm-lock.yaml
+pnpm-workspace.yaml

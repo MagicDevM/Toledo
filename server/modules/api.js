@@ -83,7 +83,11 @@ module.exports.load = async function (app, db) {
       name: settings.website.name || "Heliactyl",
       logo: settings.website.logo || "https://i.imgur.com/gUUze6A.png",
       domain: settings.website.domain,
-      pterodactyl: settings.pterodactyl.domain
+      pterodactyl: settings.pterodactyl.domain,
+      features: {
+        coinTransfer: settings.api?.client?.coins?.transfer?.enabled ?? true,
+        boosts: settings.api?.client?.coins?.boosts?.enabled ?? true,
+      }
     });
   });
 
@@ -224,7 +228,11 @@ module.exports.load = async function (app, db) {
           name: settings.website.name || "Heliactyl",
           logo: settings.website.logo || "https://i.imgur.com/gUUze6A.png",
           domain: settings.website.domain,
-          pterodactyl: settings.pterodactyl.domain
+          pterodactyl: settings.pterodactyl.domain,
+          features: {
+            coinTransfer: settings.api?.client?.coins?.transfer?.enabled ?? true,
+            boosts: settings.api?.client?.coins?.boosts?.enabled ?? true,
+          }
         },
         servers,
         subuserServers

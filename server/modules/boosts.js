@@ -722,10 +722,18 @@ class BoostManager {
 module.exports.load = function (app, db) {
   const boostManager = new BoostManager(db);
 
+  // Middleware to check if boosts are enabled
+  function boostsEnabled(req, res, next) {
+    if (settings.api?.client?.coins?.boosts?.enabled === false) {
+      return res.status(403).json({ error: 'Server boosts are currently disabled' });
+    }
+    next();
+  }
+
   // ==== API ENDPOINTS ====
 
   // Get available boost types
-  app.get('/api/boosts/types', async (req, res) => {
+  app.get('/api/boosts/types', boostsEnabled, async (req, res) => {
     try {
       const boostTypes = await boostManager.getAvailableBoosts();
       res.json(boostTypes);
@@ -736,7 +744,7 @@ module.exports.load = function (app, db) {
   });
 
   // Get active boosts for a server
-  app.get('/api/boosts/server/:serverId', async (req, res) => {
+  app.get('/api/boosts/server/:serverId', boostsEnabled, async (req, res) => {
     try {
       if (!req.session.userinfo) return res.status(401).json({ error: 'Unauthorized' });
 
@@ -759,7 +767,7 @@ module.exports.load = function (app, db) {
   });
 
   // Get all active boosts for the user
-  app.get('/api/boosts/active', async (req, res) => {
+  app.get('/api/boosts/active', boostsEnabled, async (req, res) => {
     try {
       if (!req.session.userinfo) return res.status(401).json({ error: 'Unauthorized' });
 
@@ -774,7 +782,7 @@ module.exports.load = function (app, db) {
   });
 
   // Get scheduled boosts
-  app.get('/api/boosts/scheduled', async (req, res) => {
+  app.get('/api/boosts/scheduled', boostsEnabled, async (req, res) => {
     try {
       if (!req.session.userinfo) return res.status(401).json({ error: 'Unauthorized' });
 
@@ -789,7 +797,7 @@ module.exports.load = function (app, db) {
   });
 
   // Get boost history
-  app.get('/api/boosts/history', async (req, res) => {
+  app.get('/api/boosts/history', boostsEnabled, async (req, res) => {
     try {
       if (!req.session.userinfo) return res.status(401).json({ error: 'Unauthorized' });
 
@@ -806,7 +814,7 @@ module.exports.load = function (app, db) {
   });
 
   // Apply boost to a server
-  app.post('/api/boosts/apply', validate(schemas.boostApply), async (req, res) => {
+  app.post('/api/boosts/apply', boostsEnabled, validate(schemas.boostApply), async (req, res) => {
     try {
       if (!req.session.userinfo) return res.status(401).json({ error: 'Unauthorized' });
 
@@ -852,7 +860,7 @@ module.exports.load = function (app, db) {
   });
 
   // Cancel an active boost
-  app.post('/api/boosts/cancel', validate(schemas.boostCancel), async (req, res) => {
+  app.post('/api/boosts/cancel', boostsEnabled, validate(schemas.boostCancel), async (req, res) => {
     try {
       if (!req.session.userinfo) return res.status(401).json({ error: 'Unauthorized' });
 
@@ -876,7 +884,7 @@ module.exports.load = function (app, db) {
   });
 
   // Extend an active boost
-  app.post('/api/boosts/extend', validate(schemas.boostExtend), async (req, res) => {
+  app.post('/api/boosts/extend', boostsEnabled, validate(schemas.boostExtend), async (req, res) => {
     try {
       if (!req.session.userinfo) return res.status(401).json({ error: 'Unauthorized' });
 
@@ -905,7 +913,7 @@ module.exports.load = function (app, db) {
   });
 
   // Schedule a boost for the future
-  app.post('/api/boosts/schedule', validate(schemas.boostSchedule), async (req, res) => {
+  app.post('/api/boosts/schedule', boostsEnabled, validate(schemas.boostSchedule), async (req, res) => {
     try {
       if (!req.session.userinfo) return res.status(401).json({ error: 'Unauthorized' });
 
@@ -952,7 +960,7 @@ module.exports.load = function (app, db) {
   });
 
   // Cancel a scheduled boost
-  app.post('/api/boosts/cancel-scheduled', validate(schemas.boostCancelScheduled), async (req, res) => {
+  app.post('/api/boosts/cancel-scheduled', boostsEnabled, validate(schemas.boostCancelScheduled), async (req, res) => {
     try {
       if (!req.session.userinfo) return res.status(401).json({ error: 'Unauthorized' });
 
