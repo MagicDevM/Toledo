@@ -370,7 +370,8 @@ export default function Dashboard() {
     queryFn: async () => {
       const { data } = await axios.get('/api/v5/resources');
       return data;
-    }
+    },
+    staleTime: 30000,
   });
 
   const { data: activeBoosts } = useQuery({
@@ -380,7 +381,8 @@ export default function Dashboard() {
       return data;
     },
     // Don't block loading
-    retry: false
+    retry: false,
+    staleTime: 30000,
   });
 
   const { data: platformStats } = useQuery({
@@ -389,7 +391,8 @@ export default function Dashboard() {
       const { data } = await axios.get('/api/stats');
       return data;
     },
-    retry: false
+    retry: false,
+    staleTime: 30000,
   });
 
   // Calculate boosted resources

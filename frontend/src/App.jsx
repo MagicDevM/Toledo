@@ -220,7 +220,7 @@ const ProtectedRoute = ({ children }) => {
     };
 
     checkAuth();
-  }, [navigate]);
+  }, []);
 
   if (isChecking) {
     return (

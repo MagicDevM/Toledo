@@ -110,7 +110,7 @@ function NodeDetails({ node, onClose }) {
       return data;
     },
     enabled: !!node?.id,
-    refetchInterval: 5000
+    refetchInterval: 30000
   });
 
   return (
@@ -222,7 +222,7 @@ export default function RadarPage() {
       const { data } = await axios.get('/api/radar/nodes');
       return data;
     },
-    refetchInterval: 10000
+    refetchInterval: 30000
   });
 
   const handleCreateNode = async (formData) => {

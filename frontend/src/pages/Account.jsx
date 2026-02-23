@@ -49,7 +49,7 @@ const AccountPage = () => {
       } catch (error) {
         console.error('Failed to fetch coins balance:', error);
       }
-    }, 3000);
+    }, 30000);
 
     return () => clearInterval(coinsInterval);
   }, []);

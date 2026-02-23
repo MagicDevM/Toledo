@@ -3,6 +3,7 @@ const settings = loadConfig("./config.toml");
 const getPteroUser = require("../handlers/getPteroUser");
 const cache = require("../handlers/cache");
 const axios = require("axios");
+const LRU = require("lru-cache");
 
 const pteroApi = axios.create({
   baseURL: settings.pterodactyl.domain,
@@ -12,6 +13,29 @@ const pteroApi = axios.create({
     'Authorization': `Bearer ${settings.pterodactyl.key}`
   }
 });
+
+const settingsCache = new LRU({
+  max: 1,
+  ttl: 1000 * 30 // 30s
+});
+
+function getPublicSettings() {
+  const cached = settingsCache.get('public');
+  if (cached) return cached;
+
+  const payload = {
+    name: settings.website.name || "Heliactyl",
+    logo: settings.website.logo || "https://i.imgur.com/gUUze6A.png",
+    domain: settings.website.domain,
+    pterodactyl: settings.pterodactyl.domain,
+    features: {
+      coinTransfer: settings.api?.client?.coins?.transfer?.enabled ?? true,
+      boosts: settings.api?.client?.coins?.boosts?.enabled ?? true,
+    }
+  };
+  settingsCache.set('public', payload);
+  return payload;
+}
 
 const HeliactylModule = {
   "name": "API v5",
@@ -79,16 +103,7 @@ module.exports.load = async function (app, db) {
   });
 
   app.get("/api/v5/settings", async (req, res) => {
-    res.json({
-      name: settings.website.name || "Heliactyl",
-      logo: settings.website.logo || "https://i.imgur.com/gUUze6A.png",
-      domain: settings.website.domain,
-      pterodactyl: settings.pterodactyl.domain,
-      features: {
-        coinTransfer: settings.api?.client?.coins?.transfer?.enabled ?? true,
-        boosts: settings.api?.client?.coins?.boosts?.enabled ?? true,
-      }
-    });
+    res.json(getPublicSettings());
   });
 
   app.get("/api/coins", async (req, res) => {
@@ -224,16 +239,7 @@ module.exports.load = async function (app, db) {
         },
         coins,
         admin: isAdmin,
-        settings: {
-          name: settings.website.name || "Heliactyl",
-          logo: settings.website.logo || "https://i.imgur.com/gUUze6A.png",
-          domain: settings.website.domain,
-          pterodactyl: settings.pterodactyl.domain,
-          features: {
-            coinTransfer: settings.api?.client?.coins?.transfer?.enabled ?? true,
-            boosts: settings.api?.client?.coins?.boosts?.enabled ?? true,
-          }
-        },
+        settings: getPublicSettings(),
         servers,
         subuserServers
       });
