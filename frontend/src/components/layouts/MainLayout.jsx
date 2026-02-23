@@ -701,7 +701,7 @@ const [userDropdownOpen, setUserDropdownOpen] = useState(false);
           </Sheet>
 
           {/* Main Content - Full width */}
-          <main className={`flex-1 transition-all duration-300 pt-14 lg:pt-0`}>
+          <main className={`flex-1 min-w-0 transition-all duration-300 pt-14 lg:pt-0`}>
             <AnimatePresence mode="wait">
               <div className="py-6 px-4 md:py-10 md:px-8 lg:py-16 lg:px-16">
                 <Outlet />

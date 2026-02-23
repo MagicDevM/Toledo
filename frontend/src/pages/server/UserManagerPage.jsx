@@ -96,7 +96,7 @@ const UsersPage = () => {
             </div>
           ) : (
             <ScrollArea className="h-[600px]">
-              <Table>
+              <div className="overflow-x-auto"><Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>Username</TableHead>
@@ -125,7 +125,7 @@ const UsersPage = () => {
                     </TableRow>
                   ))}
                 </TableBody>
-              </Table>
+              </Table></div>
             </ScrollArea>
           )}
         </CardContent>

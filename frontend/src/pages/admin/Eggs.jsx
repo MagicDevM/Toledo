@@ -354,7 +354,7 @@ export default function AdminEggs() {
           </CardHeader>
           <CardContent>
             <ScrollArea className="h-[600px]">
-              <Table>
+              <div className="overflow-x-auto"><Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>Status</TableHead>
@@ -470,7 +470,7 @@ export default function AdminEggs() {
                     ))
                   )}
                 </TableBody>
-              </Table>
+              </Table></div>
             </ScrollArea>
           </CardContent>
         </Card>

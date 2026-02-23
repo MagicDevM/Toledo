@@ -268,7 +268,7 @@ export default function App() {
   // Otherwise render the console application
   return (
     <ErrorBoundary siteName={siteName}>
-      <div className="dark text-white bg-[#151719]">
+      <div className="dark text-white bg-[#151719] overflow-x-clip">
         <Routes>
           {/* Root route with conditional redirect */}
           <Route path="/" element={<RootRedirect />} />

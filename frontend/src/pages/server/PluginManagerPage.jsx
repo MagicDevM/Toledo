@@ -641,7 +641,7 @@ const PluginsPage = () => {
                   </Button>
                 </div>
               ) : (
-                <Table>
+                <div className="overflow-x-auto"><Table>
                   <TableHeader>
                     <TableRow>
                       <TableHead>Name</TableHead>
@@ -662,7 +662,7 @@ const PluginsPage = () => {
                       </TableRow>
                     ))}
                   </TableBody>
-                </Table>
+                </Table></div>
               )}
             </CardContent>
           </Card>

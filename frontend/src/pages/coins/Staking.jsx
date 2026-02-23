@@ -417,7 +417,7 @@ export default function StakingPage({ embedded = false }) {
               {showCalculator && (
                 <div className="space-y-2">
                   <label className="text-sm text-[#95a1ad] block">Calculate for (days)</label>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  <div className="grid grid-cols-1 md:grid-cols-2 sm:grid-cols-4 gap-2">
                     {[7, 14, 30, 60].map(days => (
                       <button
                         key={days}
@@ -486,7 +486,7 @@ export default function StakingPage({ embedded = false }) {
               <div className="flex space-x-2">
                 <button
                   onClick={() => setActiveTab('active')}
-                  className={`flex items-center gap-2 px-4 py-2 border-b-2 font-medium transition ${activeTab === 'active'
+                  className={`flex items-center gap-2 px-4 py-2 border-b-2 font-medium transition whitespace-nowrap ${activeTab === 'active'
                       ? 'border-white text-white'
                       : 'border-transparent text-[#95a1ad] hover:text-white hover:border-white/20'
                     }`}
@@ -496,7 +496,7 @@ export default function StakingPage({ embedded = false }) {
                 </button>
                 <button
                   onClick={() => setActiveTab('history')}
-                  className={`flex items-center gap-2 px-4 py-2 border-b-2 font-medium transition ${activeTab === 'history'
+                  className={`flex items-center gap-2 px-4 py-2 border-b-2 font-medium transition whitespace-nowrap ${activeTab === 'history'
                       ? 'border-white text-white'
                       : 'border-transparent text-[#95a1ad] hover:text-white hover:border-white/20'
                     }`}
@@ -528,7 +528,7 @@ export default function StakingPage({ embedded = false }) {
                               </p>
                             </div>
                           </div>
-                          <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2 text-sm">
                             <div>
                               <p className="text-[#95a1ad]">Staked Amount:</p>
                               <p>{(stake.amount || 0).toLocaleString()} coins</p>
@@ -619,7 +619,7 @@ export default function StakingPage({ embedded = false }) {
                           </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm mt-3">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2 text-sm mt-3">
                           <div>
                             <p className="text-[#95a1ad]">Plan:</p>
                             <p>{stake.planDetails?.name || 'Unknown plan'}</p>

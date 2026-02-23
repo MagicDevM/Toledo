@@ -177,10 +177,10 @@ export default function DailyRewardsPage() {
 
       {/* Tab navigation */}
       <div className="border-b border-[#2e3337] overflow-x-auto">
-        <div className="flex space-x-2 min-w-max">
+        <div className="flex space-x-2 w-max pb-px">
           <button
             onClick={() => setActiveTab('claim')}
-            className={`flex items-center gap-2 px-4 py-2 border-b-2 font-medium transition ${activeTab === 'claim'
+            className={`flex items-center gap-2 px-4 py-2 border-b-2 font-medium transition whitespace-nowrap ${activeTab === 'claim'
                 ? 'border-white text-white'
                 : 'border-transparent text-[#95a1ad] hover:text-white hover:border-white/20'
               }`}
@@ -190,7 +190,7 @@ export default function DailyRewardsPage() {
           </button>
           <button
             onClick={() => setActiveTab('history')}
-            className={`flex items-center gap-2 px-4 py-2 border-b-2 font-medium transition ${activeTab === 'history'
+            className={`flex items-center gap-2 px-4 py-2 border-b-2 font-medium transition whitespace-nowrap ${activeTab === 'history'
                 ? 'border-white text-white'
                 : 'border-transparent text-[#95a1ad] hover:text-white hover:border-white/20'
               }`}
@@ -200,7 +200,7 @@ export default function DailyRewardsPage() {
           </button>
           <button
             onClick={() => setActiveTab('leaderboard')}
-            className={`flex items-center gap-2 px-4 py-2 border-b-2 font-medium transition ${activeTab === 'leaderboard'
+            className={`flex items-center gap-2 px-4 py-2 border-b-2 font-medium transition whitespace-nowrap ${activeTab === 'leaderboard'
                 ? 'border-white text-white'
                 : 'border-transparent text-[#95a1ad] hover:text-white hover:border-white/20'
               }`}
@@ -238,7 +238,7 @@ export default function DailyRewardsPage() {
                       </div>
                     )}
 
-                    <div className="grid grid-cols-3 gap-4 w-full max-w-md">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-md">
                       <div className="bg-[#202229] p-3 rounded-lg border border-white/5 flex flex-col items-center">
                         <p className="text-xs text-[#95a1ad]">Base</p>
                         <p className="font-medium">{claimResult.baseAmount}</p>
@@ -282,7 +282,7 @@ export default function DailyRewardsPage() {
                         <span className="font-medium">{claimStatus.nextReward.amount} coins</span>
                       </div>
 
-                      <div className="grid grid-cols-3 gap-2 text-xs mt-3">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-xs mt-3">
                         <div className="p-2 rounded bg-[#1a1c1e] flex flex-col items-center">
                           <span className="text-[#95a1ad]">Base</span>
                           <span>{claimStatus.nextReward.baseAmount}</span>
@@ -432,7 +432,7 @@ export default function DailyRewardsPage() {
               </div>
               <div className="p-4 space-y-4">
                 <div className="flex flex-col items-center justify-center space-y-3 p-4 border border-[#2e3337] rounded-lg bg-[#202229]">
-                  <div className="grid grid-cols-2 gap-4 sm:gap-8 w-full">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-8 w-full">
                     <div className="flex flex-col items-center">
                       <p className="text-[#95a1ad] text-xs">Current Streak</p>
                       <p className="text-2xl font-bold">{claimStatus?.currentStreak || 0}</p>

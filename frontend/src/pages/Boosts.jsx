@@ -304,10 +304,10 @@ export default function ServerBoostsPage() {
 
       {/* Tab navigation */}
       <div className="border-b border-[#2e3337] overflow-x-auto">
-        <div className="flex space-x-2 min-w-max">
+        <div className="flex space-x-2 w-max pb-px">
           <button
             onClick={() => setActiveTab('active')}
-            className={`flex items-center gap-2 px-4 py-2 border-b-2 font-medium transition ${activeTab === 'active'
+            className={`flex items-center gap-2 px-4 py-2 border-b-2 font-medium transition whitespace-nowrap ${activeTab === 'active'
                 ? 'border-white text-white'
                 : 'border-transparent text-[#95a1ad] hover:text-white hover:border-white/20'
               }`}
@@ -317,7 +317,7 @@ export default function ServerBoostsPage() {
           </button>
           <button
             onClick={() => setActiveTab('scheduled')}
-            className={`flex items-center gap-2 px-4 py-2 border-b-2 font-medium transition ${activeTab === 'scheduled'
+            className={`flex items-center gap-2 px-4 py-2 border-b-2 font-medium transition whitespace-nowrap ${activeTab === 'scheduled'
                 ? 'border-white text-white'
                 : 'border-transparent text-[#95a1ad] hover:text-white hover:border-white/20'
               }`}
@@ -327,7 +327,7 @@ export default function ServerBoostsPage() {
           </button>
           <button
             onClick={() => setActiveTab('history')}
-            className={`flex items-center gap-2 px-4 py-2 border-b-2 font-medium transition ${activeTab === 'history'
+            className={`flex items-center gap-2 px-4 py-2 border-b-2 font-medium transition whitespace-nowrap ${activeTab === 'history'
                 ? 'border-white text-white'
                 : 'border-transparent text-[#95a1ad] hover:text-white hover:border-white/20'
               }`}
@@ -664,7 +664,7 @@ export default function ServerBoostsPage() {
 
               <div className="space-y-2">
                 <label className="text-sm text-[#95a1ad] block">Select extension duration:</label>
-                <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+                <div className="grid grid-cols-1 md:grid-cols-3 sm:grid-cols-5 gap-2">
                   {boostTypes && confirmDialog.boost && boostTypes[confirmDialog.boost.boostType]?.prices && Object.keys(boostTypes[confirmDialog.boost.boostType].prices).map(duration => (
                     <button
                       key={duration}

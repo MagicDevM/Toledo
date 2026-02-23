@@ -117,3 +117,5 @@
 html.dark body {
   background-color: #15171a !important;
 }
+
+body { overflow-x: hidden; background-color: #08090c; }

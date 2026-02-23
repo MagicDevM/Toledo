@@ -200,14 +200,14 @@ export default function WalletPage() {
 
       {/* Tabs */}
       <div className="border-b border-[#2e3337] overflow-x-auto">
-        <div className="flex space-x-2 min-w-max">
+        <div className="flex space-x-2 w-max pb-px">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             return (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-4 py-2 border-b-2 font-medium transition ${
+                className={`flex items-center gap-2 px-4 py-2 border-b-2 font-medium transition whitespace-nowrap ${
                   activeTab === tab.id
                     ? 'border-white text-white'
                     : 'border-transparent text-[#95a1ad] hover:text-white hover:border-white/20'

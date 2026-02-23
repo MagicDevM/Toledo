@@ -314,7 +314,7 @@ export default function AdminUpdater() {
                 <CardDescription>Update status for all connected nodes</CardDescription>
               </CardHeader>
               <CardContent>
-                <Table>
+                <div className="overflow-x-auto"><Table>
                   <TableHeader>
                     <TableRow>
                       <TableHead>Server Name</TableHead>
@@ -369,7 +369,7 @@ export default function AdminUpdater() {
                       ))
                     )}
                   </TableBody>
-                </Table>
+                </Table></div>
               </CardContent>
             </Card>
           </TabsContent>

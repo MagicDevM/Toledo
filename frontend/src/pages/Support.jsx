@@ -106,7 +106,7 @@ const CreateTicketDialog = ({ isOpen, onClose }) => {
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium text-[#95a1ad]">Category</label>
               <Select 
@@ -427,7 +427,7 @@ export default function Support() {
         </div>
         <div className="flex items-center gap-4">
           <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger className="w-[180px] bg-[#1a1d21] border-[#2e3337]/50 text-white">
+            <SelectTrigger className="w-full sm:w-[180px] bg-[#1a1d21] border-[#2e3337]/50 text-white">
               <SelectValue placeholder="Sort by" />
             </SelectTrigger>
             <SelectContent className="bg-[#1a1d21] border-[#2e3337]/50">

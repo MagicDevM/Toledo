@@ -231,7 +231,7 @@ const LogsPage = () => {
           ) : (
             <>
               <ScrollArea className="h-[600px]">
-                <Table>
+                <div className="overflow-x-auto"><Table>
                   <TableHeader>
                     <TableRow>
                       <TableHead className="w-1/4">Timestamp</TableHead>
@@ -272,7 +272,7 @@ const LogsPage = () => {
                       ))
                     )}
                   </TableBody>
-                </Table>
+                </Table></div>
               </ScrollArea>
 
               {/* Pagination controls */}

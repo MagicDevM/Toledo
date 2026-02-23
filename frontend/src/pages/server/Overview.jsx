@@ -895,7 +895,7 @@ export default function ConsolePage() {
               </div>
             </div>
           </PopoverTrigger>
-          <PopoverContent className="w-72 p-4">
+          <PopoverContent className="w-[90vw] md:w-72 p-4">
             <div className="space-y-3">
               <h4 className="font-medium text-sm">SFTP Details</h4>
 
@@ -1109,7 +1109,7 @@ export default function ConsolePage() {
       {/* Installation Progress Overlay */}
       {isInstalling && (
         <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center">
-          <Card className="w-[400px]">
+          <Card className="w-full max-w-[400px]">
             <CardContent className="pt-6">
               <div className="flex flex-col items-center gap-4">
                 <Loader2 className="h-8 w-8 animate-spin" />

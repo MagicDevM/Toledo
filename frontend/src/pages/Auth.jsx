@@ -25,7 +25,7 @@ const Toast = ({ toast, setToast }) => {
   if (!toast.visible) return null;
 
   return (
-    <div className="fixed top-4 right-4 z-50 bg-[#202229] border border-white/5 rounded-lg p-4 w-80 shadow-lg">
+    <div className="fixed top-4 right-4 z-50 bg-[#202229] border border-white/5 rounded-lg p-4 w-[90vw] sm:w-80 shadow-lg max-w-full">
       <div className="flex justify-between items-start">
         <div>
           <h3 className="font-medium text-white">{toast.title}</h3>

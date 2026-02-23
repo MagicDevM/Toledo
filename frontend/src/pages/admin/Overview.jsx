@@ -272,7 +272,7 @@ function BackupsDialog({ isOpen, onClose }) {
           )}
 
           <ScrollArea className="h-[400px] rounded-md border border-neutral-800">
-            <Table>
+            <div className="overflow-x-auto"><Table>
               <TableHeader>
                 <TableRow>
                   <TableHead className="text-neutral-400">Date</TableHead>
@@ -336,7 +336,7 @@ function BackupsDialog({ isOpen, onClose }) {
                   </>
                 )}
               </TableBody>
-            </Table>
+            </Table></div>
           </ScrollArea>
         </div>
 

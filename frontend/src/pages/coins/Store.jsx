@@ -420,10 +420,10 @@ export default function StorePage() {
 
       {/* Tab navigation */}
       <div className="border-b border-[#2e3337] overflow-x-auto">
-        <div className="flex space-x-2 min-w-max">
+        <div className="flex space-x-2 w-max pb-px">
           <button
             onClick={() => setActiveTab('resources')}
-            className={`flex items-center gap-2 px-4 py-2 border-b-2 font-medium transition ${activeTab === 'resources'
+            className={`flex items-center gap-2 px-4 py-2 border-b-2 font-medium transition whitespace-nowrap ${activeTab === 'resources'
                 ? 'border-white text-white'
                 : 'border-transparent text-[#95a1ad] hover:text-white hover:border-white/20'
               }`}
@@ -434,7 +434,7 @@ export default function StorePage() {
           {settings?.features?.boosts !== false && (
             <button
               onClick={() => setActiveTab('boosts')}
-              className={`flex items-center gap-2 px-4 py-2 border-b-2 font-medium transition ${activeTab === 'boosts'
+              className={`flex items-center gap-2 px-4 py-2 border-b-2 font-medium transition whitespace-nowrap ${activeTab === 'boosts'
                   ? 'border-white text-white'
                   : 'border-transparent text-[#95a1ad] hover:text-white hover:border-white/20'
                 }`}
@@ -549,7 +549,7 @@ export default function StorePage() {
 
                   <div className="space-y-2">
                     <label className="text-sm text-[#95a1ad] block">Duration</label>
-                    <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+                    <div className="grid grid-cols-1 md:grid-cols-3 sm:grid-cols-5 gap-2">
                       {selectedBoostType && boostTypes?.[selectedBoostType]?.prices && Object.keys(boostTypes[selectedBoostType].prices).map(duration => (
                         <button
                           key={duration}
@@ -644,7 +644,7 @@ export default function StorePage() {
                       <div className="pt-3 border-t border-[#2e3337]">
                         <div className="space-y-3">
                           <p className="text-sm font-medium">Resource Multipliers:</p>
-                          <div className="grid grid-cols-3 gap-3">
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                             <div className="flex flex-col items-center p-2 rounded bg-[#202229]">
                               <MemoryStick className="w-4 h-4 text-[#95a1ad] mb-1" />
                               <span className="text-xs text-[#95a1ad]">RAM</span>
@@ -804,7 +804,7 @@ export default function StorePage() {
 
                   <div className="pt-3 border-t border-[#2e3337] mt-2">
                     <p className="text-sm font-medium mb-2">Resource Multipliers:</p>
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
                       <div className="flex flex-col items-center p-2 rounded bg-[#1a1c1e] text-center">
                         <span className="text-xs text-[#95a1ad]">RAM</span>
                         <span className="text-sm">{confirmDialog?.resourceMultipliers?.ram}x</span>

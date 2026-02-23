@@ -562,7 +562,7 @@ export default function UsersPage() {
         </CardHeader>
         <CardContent className="overflow-x-auto">
           <div className="min-w-[800px]">
-            <Table>
+            <div className="overflow-x-auto"><Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>User</TableHead>
@@ -703,7 +703,7 @@ export default function UsersPage() {
                   ))
                 )}
               </TableBody>
-            </Table>
+            </Table></div>
           </div>
 
           {/* Pagination */}

@@ -208,7 +208,7 @@ export default function NodesPage() {
           </div>
         </CardHeader>
         <CardContent>
-          <Table>
+          <div className="overflow-x-auto"><Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Node</TableHead>
@@ -255,7 +255,7 @@ export default function NodesPage() {
                 ))
               )}
             </TableBody>
-          </Table>
+          </Table></div>
 
           {/* Pagination */}
           <div className="flex items-center justify-between mt-4">

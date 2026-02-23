@@ -350,7 +350,7 @@ export default function AdminSupportDashboard() {
             value={filters.priority}
             onValueChange={(value) => setFilters(prev => ({ ...prev, priority: value }))}
           >
-            <SelectTrigger className="w-[150px]">
+            <SelectTrigger className="w-full sm:w-[150px]">
               <SelectValue placeholder="Priority" />
             </SelectTrigger>
             <SelectContent>
@@ -366,7 +366,7 @@ export default function AdminSupportDashboard() {
             value={filters.category}
             onValueChange={(value) => setFilters(prev => ({ ...prev, category: value }))}
           >
-            <SelectTrigger className="w-[150px]">
+            <SelectTrigger className="w-full sm:w-[150px]">
               <SelectValue placeholder="Category" />
             </SelectTrigger>
             <SelectContent>
@@ -382,7 +382,7 @@ export default function AdminSupportDashboard() {
             value={filters.status}
             onValueChange={(value) => setFilters(prev => ({ ...prev, status: value }))}
           >
-            <SelectTrigger className="w-[150px]">
+            <SelectTrigger className="w-full sm:w-[150px]">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
@@ -396,7 +396,7 @@ export default function AdminSupportDashboard() {
             placeholder="Search tickets..."
             value={filters.search}
             onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
-            className="w-[200px]"
+            className="w-full md:w-[200px]"
           />
 
           <Button onClick={exportTickets}>
@@ -413,7 +413,7 @@ export default function AdminSupportDashboard() {
             value={filters.sortBy}
             onValueChange={(value) => setFilters(prev => ({ ...prev, sortBy: value }))}
           >
-            <SelectTrigger className="w-[150px]">
+            <SelectTrigger className="w-full sm:w-[150px]">
               <SelectValue placeholder="Sort by" />
             </SelectTrigger>
             <SelectContent>
@@ -442,7 +442,7 @@ export default function AdminSupportDashboard() {
         </div>
       </div>
 
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-4 md:grid-cols-2 gap-4">
         <StatsCard
           title="Total Tickets"
           value={stats?.total || '-'}

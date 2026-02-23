@@ -228,7 +228,7 @@ const TwoFactorAuth = () => {
               </p>
 
               <div className="bg-[#202229] border border-[#2e3337] rounded-lg p-4 mb-3">
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                   {backupCodes.map((code, index) => (
                     <div key={index} className="font-mono text-sm">
                       {code}

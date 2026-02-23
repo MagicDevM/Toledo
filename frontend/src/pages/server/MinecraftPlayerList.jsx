@@ -175,7 +175,7 @@ const MinecraftPlayerList = ({ serverIdentifier }) => {
   return (
     <div className="mb-2">
       {/* Player stats card */}
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 md:grid-cols-3 gap-4 mb-6">
         <Popover>
           <PopoverTrigger asChild>
             <div className="border border-white/5 p-4 rounded-lg cursor-pointer hover:bg-white/8 transition-colors">
@@ -198,7 +198,7 @@ const MinecraftPlayerList = ({ serverIdentifier }) => {
           {/* Player list popup */}
           {playerCount > 0 && (
             <PopoverContent
-              className="w-80 p-0 bg-[#202229] rounded-lg shadow-xl animate-in fade-in-0 zoom-in-95"
+              className="w-[90vw] md:w-80 p-0 bg-[#202229] rounded-lg shadow-xl animate-in fade-in-0 zoom-in-95"
               align="start"
               side="bottom"
             >

@@ -137,7 +137,7 @@ const BackupsPage = () => {
             </div>
           ) : (
 <ScrollArea className="h-[600px]">
-              <Table>
+              <div className="overflow-x-auto"><Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>Name</TableHead>
@@ -186,7 +186,7 @@ const BackupsPage = () => {
                     </TableRow>
                   ))}
                 </TableBody>
-              </Table>
+              </Table></div>
             </ScrollArea>
           )}
         </CardContent>

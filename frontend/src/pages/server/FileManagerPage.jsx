@@ -747,7 +747,7 @@ const FileManagerPage = () => {
                   exit={{ opacity: 0, y: -10 }}
                   transition={{ duration: 0.2 }}
                 >
-                  <Table>
+                  <div className="overflow-x-auto"><Table>
                     <TableHeader>
                       <TableRow>
                         <TableHead className="w-12">
@@ -816,7 +816,7 @@ const FileManagerPage = () => {
                         </TableRow>
                       )}
                     </TableBody>
-                  </Table>
+                  </Table></div>
                 </motion.div>
               ) : (
                 <motion.div

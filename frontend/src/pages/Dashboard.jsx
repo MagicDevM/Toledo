@@ -267,7 +267,7 @@ function CreateServerModal({ isOpen, onClose }) {
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
               <label className="text-sm text-[#95a1ad] block">RAM (MB)</label>
               <input
@@ -475,7 +475,7 @@ export default function Dashboard() {
       {/* Platform Statistics */}
       <div className="mt-8">
         <h2 className="text-lg font-medium mb-4">Platform Statistics</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 md:grid-cols-4 gap-4">
           <div className="border border-[#2e3337]/50 bg-transparent rounded-lg p-4">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-[#202229] rounded-lg">
