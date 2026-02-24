@@ -8,7 +8,7 @@
 # Heliactyl Release Information
 # ---------------------------------
 platform_codename = "Toledo"
-platform_level = 305 # channel: stable - 27-04-2025 (Toledo)
+platform_level = 335 # channel: development - 24-02-2026 (Toledo)
 version = "10.0.0"
 
 # ---------------------------------
@@ -86,86 +86,26 @@ accountSwitcher = true
 # Package Configuration
 # ---------------------------------
 [api.client.packages.list.default]
-ram = 4_096
-disk = 10_240
-cpu = 150
-servers = 4
+ram = 2048
+disk = 3072
+cpu = 100
+servers = 2
 
+# ---------------------------------
+# Location Configuration
+# --------------------------------
 [api.client.locations.1]
-name = "Warsaw, PL (Zone 1A)"
+name = "France, Paris"
+
+[api.client.locations.2]
+name = "United States, New York"
+
+[api.client.locations.3]
+name = "Singapore, Singapore"
 
 # ---------------------------------
 # Egg Configuration
 # ---------------------------------
-
-# Paper
-[api.client.eggs.paper]
-display = "Minecraft: Java Edition - Paper"
-
-  [api.client.eggs.paper.minimum]
-  ram = 1_024
-  disk = 1_024
-  cpu = 80
-
-  [api.client.eggs.paper.info]
-  egg = 1
-  docker_image = "ghcr.io/argon-foss/images:java_21"
-  startup = "java -Xms128M -Xmx{{SERVER_MEMORY}}M -Dterminal.jline=false -Dterminal.ansi=true -jar {{SERVER_JARFILE}}"
-
-    [api.client.eggs.paper.info.environment]
-    SERVER_JARFILE = "server.jar"
-    BUILD_NUMBER = "latest"
-
-    [api.client.eggs.paper.info.feature_limits]
-    databases = 4
-    backups = 4
-
-# Vanilla
-[api.client.eggs.vanilla]
-display = "Minecraft: Bedrock Edition - Vanilla"
-
-  [api.client.eggs.vanilla.minimum]
-  ram = 1_024
-  disk = 1_024
-  cpu = 80
-
-  [api.client.eggs.vanilla.info]
-  egg = 16
-  docker_image = "ghcr.io/parkervcp/yolks:debian"
-  startup = "./bedrock_server"
-
-    [api.client.eggs.vanilla.info.environment]
-    BEDROCK_VERSION = "latest"
-    LD_LIBRARY_PATH = "."
-    SERVERNAME = "Bedrock Dedicated Server"
-    GAMEMODE = "survival"
-    DIFFICULTY = "easy"
-    CHEATS = "true"
-
-    [api.client.eggs.vanilla.info.feature_limits]
-    databases = 4
-    backups = 4
-
-# PMMP
-[api.client.eggs.pmmp]
-display = "Minecraft: Bedrock Edition - PocketmineMP"
-
-  [api.client.eggs.pmmp.minimum]
-  ram = 1_024
-  disk = 1_024
-  cpu = 80
-
-  [api.client.eggs.pmmp.info]
-  egg = 17
-  docker_image = "ghcr.io/parkervcp/yolks:debian"
-  startup = "./bin/php7/bin/php ./PocketMine-MP.phar --no-wizard"
-
-    [api.client.eggs.pmmp.info.environment]
-    VERSION = "PM5"
-
-    [api.client.eggs.pmmp.info.feature_limits]
-    databases = 4
-    backups = 4
 
 # ---------------------------------
 # Coin Configuration
