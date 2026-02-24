@@ -394,7 +394,7 @@ const [userDropdownOpen, setUserDropdownOpen] = useState(false);
               <div>
                 {/* Coins Balance Section */}
                 <div className="px-4 py-3 bg-[#191b20]/50 rounded-xl mb-4">
-                  <div className="flex items-center justify-between mb-2">
+                  <div className={`flex items-center justify-between ${settings?.features?.coinTransfer !== false ? 'mb-2' : ''}`}>
                     <span className="text-xs text-white/40">Coins</span>
                     <span className="text-xs font-medium text-white">{balances.coins.toFixed(2)}</span>
                   </div>
@@ -623,7 +623,7 @@ const [userDropdownOpen, setUserDropdownOpen] = useState(false);
                 <div className="border-t border-white/5 p-4">
                   {/* Coins Balance */}
                   <div className="px-4 py-3 bg-[#191b20]/50 rounded-xl mb-4">
-                    <div className="flex items-center justify-between mb-2">
+                    <div className={`flex items-center justify-between ${settings?.features?.coinTransfer !== false ? 'mb-2' : ''}`}>
                       <span className="text-xs text-white/40">Coins</span>
                       <span className="text-xs font-medium text-white">{balances.coins.toFixed(2)}</span>
                     </div>
