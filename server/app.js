@@ -7,7 +7,7 @@ const compression = require("compression");
 const nocache = require("nocache");
 const cookieParser = require("cookie-parser");
 const path = require("path");
-const chalk = require("chalk");
+const chalk = require('./handlers/colors');
 
 const createLogger = require("./handlers/console.js");
 const loadConfig = require("./handlers/config");
@@ -80,29 +80,31 @@ const moduleExports = { app, db, VERSION, PLATFORM_CODENAME, API_LEVEL };
 module.exports = moduleExports;
 global.__rootdir = __dirname;
 
-(async () => {
-  try {
-    const moduleLoader = new ModuleLoader(app, db, VERSION, API_LEVEL);
-    await moduleLoader.loadAllModules();
-    global.moduleInfo = moduleLoader.getLoadedModuleInfo();
+if (require.main === module) {
+  (async () => {
+    try {
+      const moduleLoader = new ModuleLoader(app, db, VERSION, API_LEVEL);
+      await moduleLoader.loadAllModules();
+      global.moduleInfo = moduleLoader.getLoadedModuleInfo();
 
-    const server = app.listen(settings.website.port, "0.0.0.0", () => {
-      const bootTime = process.hrtime(startTime);
-      const bootTimeMs = (bootTime[0] * 1000 + bootTime[1] / 1000000).toFixed(2);
-      const duration = bootTimeMs > 1000 ? (bootTimeMs / 1000).toFixed(2) + "s" : bootTimeMs + "ms";
-      logger.info(
-        `${chalk.red("https server")} listening on ` +
-        chalk.cyan(`0.0.0.0:${settings.website.port} ` + chalk.gray(`(app@${VERSION} / ${PLATFORM_CODENAME}, ${duration})`)),
-        {}, true
-      );
-    });
+      const server = app.listen(settings.website.port, "0.0.0.0", () => {
+        const bootTime = process.hrtime(startTime);
+        const bootTimeMs = (bootTime[0] * 1000 + bootTime[1] / 1000000).toFixed(2);
+        const duration = bootTimeMs > 1000 ? (bootTimeMs / 1000).toFixed(2) + "s" : bootTimeMs + "ms";
+        logger.info(
+          `${chalk.red("https server")} listening on ` +
+          chalk.cyan(`0.0.0.0:${settings.website.port} ` + chalk.gray(`(app@${VERSION} / ${PLATFORM_CODENAME}, ${duration})`)),
+          {}, true
+        );
+      });
 
-    global.server = server;
-  } catch (error) {
-    logger.error("Failed to start Heliactyl", error);
-    process.exit(1);
-  }
-})();
+      global.server = server;
+    } catch (error) {
+      logger.error("Failed to start Heliactyl", error);
+      process.exit(1);
+    }
+  })();
+}
 
 process.on("uncaughtException", (error) => logger.error("Uncaught exception", error));
 process.on("unhandledRejection", (error) => logger.error("Unhandled rejection", error));
