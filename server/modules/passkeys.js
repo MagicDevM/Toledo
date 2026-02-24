@@ -1,4 +1,4 @@
-const { v4: uuidv4 } = require('uuid');
+const crypto = require('crypto');
 const axios = require('axios');
 const loadConfig = require("../handlers/config.js");
 const settings = loadConfig("./config.toml");
@@ -45,7 +45,7 @@ const {
 async function addUserNotification(db, userId, notification) {
   const notifications = await db.get(`notifications-${userId}`) || [];
   notifications.push({
-    id: uuidv4(),
+    id: crypto.randomUUID(),
     ...notification,
     timestamp: new Date().toISOString()
   });
@@ -190,7 +190,7 @@ module.exports.load = async function (app, db) {
 
       // Add the new passkey
       const newPasskey = {
-        id: uuidv4(),
+        id: crypto.randomUUID(),
         name,
         credentialID: credentialIdBase64,
         credentialPublicKey: credentialKeyBase64,

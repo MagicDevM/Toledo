@@ -1,6 +1,5 @@
 const crypto = require('crypto');
 const bcrypt = require('bcrypt');
-const { v4: uuidv4 } = require('uuid');
 const loadConfig = require("../handlers/config.js");
 const settings = loadConfig("./config.toml");
 const axios = require("axios");
@@ -159,7 +158,7 @@ module.exports.load = async function (app, db) {
     }
 
     // Generate a unique user ID
-    const userId = uuidv4();
+    const userId = crypto.randomUUID();
 
     // Hash the password
     const saltRounds = 12;

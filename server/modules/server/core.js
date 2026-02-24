@@ -10,7 +10,7 @@ const fs = require("fs");
 const loadConfig = require("../../handlers/config");
 const settings = loadConfig("./config.toml");
 const Database = require("../../db.js");
-const db = new Database(settings.database);
+let db;
 const getPteroUser = require('../../handlers/getPteroUser');
 const NodeCache = require("node-cache");
 const serverCache = new NodeCache({ stdTTL: 60 });
@@ -348,9 +348,8 @@ async function apiRequest(endpoint, method = "GET", body = null) {
   }
 }
 
-module.exports.load = async function (app, db) {
-  // Core module exports helper functions only
-  // Routes are defined in other modules (servers.js, etc.)
+module.exports.load = async function (app, _db) {
+  db = _db;
 };
 
 module.exports = {

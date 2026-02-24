@@ -8,7 +8,7 @@ const { isAuthenticated, ownsServer, PANEL_URL, API_KEY } = require("./core.js")
 const loadConfig = require("../../handlers/config.js");
 const settings = loadConfig("./config.toml");
 const Database = require("../../db.js");
-const db = new Database(settings.database);
+let db;
 const { validate, schemas } = require('../../handlers/validate');
 
 /* --------------------------------------------- */
@@ -138,7 +138,8 @@ async function updateSubuserInfo(serverId, serverOwnerId) {
 }
 
 module.exports.updateSubuserInfo = updateSubuserInfo;
-module.exports.load = async function (app, db) {
+module.exports.load = async function (app, _db) {
+  db = _db;
   const router = express.Router();
 
   // GET /api/server/:id/users - List users

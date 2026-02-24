@@ -4,7 +4,7 @@
  * @version 3.0.0
  */
 
-const chalk = require('chalk');
+const chalk = require('./colors');
 const path = require('path');
 const fs = require('fs').promises;
 const fsSync = require('fs');

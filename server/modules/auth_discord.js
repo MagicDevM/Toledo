@@ -1,9 +1,9 @@
+const crypto = require('crypto');
 const axios = require('axios');
 const { Client, GatewayIntentBits, Partials } = require('discord.js');
 const loadConfig = require("../handlers/config.js");
 const settings = loadConfig("./config.toml");
 const log = require("../handlers/log.js");
-const { v4: uuidv4 } = require('uuid');
 
 const HeliactylModule = {
   "name": "Discord OAuth2",
@@ -173,7 +173,7 @@ async function addDiscordServerMember(userId, accessToken, username) {
 async function addUserNotification(db, userId, notification) {
   const notifications = await db.get(`notifications-${userId}`) || [];
   notifications.push({
-    id: uuidv4(),
+    id: crypto.randomUUID(),
     ...notification,
     timestamp: new Date().toISOString()
   });
@@ -196,7 +196,7 @@ module.exports.HeliactylModule = HeliactylModule;
 module.exports.load = async function (app, db) {
   // OAuth login endpoint
   app.get('/auth/discord/login', (req, res) => {
-    const state = uuidv4();
+    const state = crypto.randomUUID();
     req.session.oauthState = state;
 
     const params = new URLSearchParams({

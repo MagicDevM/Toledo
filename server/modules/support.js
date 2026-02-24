@@ -1,7 +1,7 @@
+const crypto = require('crypto');
 const loadConfig = require("../handlers/config.js");
 const settings = loadConfig("./config.toml");
 const axios = require("axios");
-const { v4: uuidv4 } = require('uuid');
 const { paginate, getPaginationParams } = require("../handlers/pagination");
 const { validate, schemas } = require("../handlers/validate");
 
@@ -251,7 +251,7 @@ module.exports.load = async function (app, db) {
       const { subject, description, priority, category } = req.body;
 
       const ticket = {
-        id: uuidv4(),
+        id: crypto.randomUUID(),
         userId: req.session.userinfo.id,
         subject: subject,
         description: description,
@@ -261,7 +261,7 @@ module.exports.load = async function (app, db) {
         created: Date.now(),
         updated: Date.now(),
         messages: [{
-          id: uuidv4(),
+          id: crypto.randomUUID(),
           userId: req.session.userinfo.id,
           content: description,
           timestamp: Date.now(),
@@ -277,7 +277,7 @@ module.exports.load = async function (app, db) {
       // Create user notification
       let notifications = await db.get(`notifications-${req.session.userinfo.id}`) || [];
       notifications.push({
-        id: uuidv4(),
+        id: crypto.randomUUID(),
         type: 'ticket_created',
         message: `Ticket #${ticket.id.slice(0, 8)} has been created`,
         timestamp: Date.now(),
@@ -402,7 +402,7 @@ module.exports.load = async function (app, db) {
       }
 
       const message = {
-        id: uuidv4(),
+        id: crypto.randomUUID(),
         userId: req.session.userinfo.id,
         content: content,
         timestamp: Date.now(),
@@ -421,7 +421,7 @@ module.exports.load = async function (app, db) {
       if (notifyUserId) {
         let notifications = await db.get(`notifications-${notifyUserId}`) || [];
         notifications.push({
-          id: uuidv4(),
+          id: crypto.randomUUID(),
           type: 'ticket_reply',
           message: `New reply on ticket #${ticket.id.slice(0, 8)}`,
           timestamp: Date.now(),
@@ -464,7 +464,7 @@ module.exports.load = async function (app, db) {
 
       // Add system message about status change
       ticket.messages.push({
-        id: uuidv4(),
+        id: crypto.randomUUID(),
         userId: req.session.userinfo.id,
         content: `Ticket ${status} by ${isAdmin ? 'staff' : 'user'}`,
         timestamp: Date.now(),
@@ -479,7 +479,7 @@ module.exports.load = async function (app, db) {
       if (notifyUserId) {
         let notifications = await db.get(`notifications-${notifyUserId}`) || [];
         notifications.push({
-          id: uuidv4(),
+        id: crypto.randomUUID(),
           type: 'ticket_status',
           message: `Ticket #${ticket.id.slice(0, 8)} has been ${status}`,
           timestamp: Date.now(),
@@ -517,7 +517,7 @@ module.exports.load = async function (app, db) {
 
       // Add system message about priority change
       ticket.messages.push({
-        id: uuidv4(),
+        id: crypto.randomUUID(),
         userId: req.session.userinfo.id,
         content: `Ticket priority changed to ${priority}`,
         timestamp: Date.now(),
@@ -530,7 +530,7 @@ module.exports.load = async function (app, db) {
       // Notify user of priority change
       let notifications = await db.get(`notifications-${ticket.userId}`) || [];
       notifications.push({
-        id: uuidv4(),
+        id: crypto.randomUUID(),
         type: 'ticket_priority',
         message: `Ticket #${ticket.id.slice(0, 8)} priority changed to ${priority}`,
         timestamp: Date.now(),
