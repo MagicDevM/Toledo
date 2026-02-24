@@ -153,12 +153,12 @@ const AccountPage = () => {
       {/* User Profile Card - Always visible */}
       <div className="border border-[#2e3337] rounded-lg bg-transparent">
         <div className="p-4">
-          <div className="flex items-center gap-4">
-            <div className="h-20 w-20 rounded-full bg-[#202229] border border-white/5 flex items-center justify-center overflow-hidden">
+          <div className="flex flex-col md:flex-row items-center gap-4">
+            <div className="flex-shrink-0 h-20 w-20 rounded-full bg-[#202229] border border-white/5 flex items-center justify-center overflow-hidden">
               <img
                 src="https://i.imgur.com/YuP6YrU.png"
                 alt={userData.username}
-                className="h-full w-full object-cover"
+                className="h-full w-full object-cover flex-shrink-0"
                 onError={(e) => {
                   e.target.style.display = 'none';
                   e.target.nextSibling.style.display = 'flex';
@@ -169,13 +169,13 @@ const AccountPage = () => {
               </div>
             </div>
             <div className="flex-1">
-              <div className="flex items-center gap-3">
-                <h3 className="text-2xl font-semibold">{userData.username}</h3>
-                <div className="py-1 px-2 rounded text-xs bg-[#202229] border border-[#2e3337] font-mono">
+              <div className="flex items-center md:flex-row flex-col gap-3">
+                <h3 className="text-2xl truncate font-semibold">{userData.username}</h3>
+                <div className="py-1 px-2 rounded text-xs bg-[#202229] border border-[#2e3337] font-mono truncate">
                   {userData.id}
                 </div>
               </div>
-              <p className="mt-1 text-[#95a1ad]">
+              <p className="mt-1 text-[#95a1ad] truncate">
                 {userData.email}
               </p>
             </div>
@@ -347,15 +347,15 @@ const AccountPage = () => {
                   <ul className="space-y-2 text-sm text-[#95a1ad]">
                     <li className="flex items-center gap-2">
                       <Coins className="h-4 w-4 text-yellow-500" />
-                      When someone uses your code, you get <span className="text-yellow-500 font-medium">80 coins</span>
+                      <p>When someone uses your code, you get <span className="text-yellow-500 font-medium">80 coins</span></p>
                     </li>
                     <li className="flex items-center gap-2">
                       <Gift className="h-4 w-4 text-yellow-500" />
-                      They receive <span className="text-yellow-500 font-medium">250 coins</span> for using a referral code
+                      <p>They receive <span className="text-yellow-500 font-medium">250 coins</span> for using a referral code</p>
                     </li>
                     <li className="flex items-center gap-2">
-                      <User className="h-4 w-4" />
-                      Each user can only claim one referral code
+                      <User className="h-4 w-4 text-yellow-500" />
+                      <p>Each user can only claim one referral code</p>
                     </li>
                   </ul>
                 </div>
@@ -371,7 +371,7 @@ const AccountPage = () => {
                 </p>
               </div>
               <div className="p-4 space-y-4">
-                <div className="flex gap-3">
+                <div className="flex flex-col md:flex-row gap-3">
                   <input
                     placeholder="Enter desired code (max 15 chars)"
                     value={newCode}
@@ -402,7 +402,7 @@ const AccountPage = () => {
                 </p>
               </div>
               <div className="p-4 space-y-4">
-                <div className="flex gap-3">
+                <div className="flex flex-col md:flex-row gap-3">
                   <input
                     placeholder="Enter referral code"
                     value={claimCode}
