@@ -7,7 +7,6 @@ const axios = require("axios");
 const { isAuthenticated, ownsServer, PANEL_URL, API_KEY } = require("./core.js");
 const loadConfig = require("../../handlers/config.js");
 const settings = loadConfig("./config.toml");
-const Database = require("../../db.js");
 let db;
 const { validate, schemas } = require('../../handlers/validate');
 
