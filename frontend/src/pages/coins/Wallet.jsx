@@ -553,7 +553,7 @@ export default function WalletPage() {
     <div className="flex flex-col items-center justify-center py-6 space-y-4">
       <div className="p-4 bg-[#1a1c1e] rounded-lg border border-dashed border-[#2e3337] w-full text-center">
         <p className="text-xs text-[#95a1ad] mb-1">Your User ID</p>
-        <p className="text-2xl font-mono font-bold tracking-wider select-all">{userInfo?.id || 'Loading...'}</p>
+        <p className="text-lg md:text-2xl overflow-auto font-mono font-bold tracking-wider select-all">{userInfo?.id || 'Loading...'}</p>
       </div>
       <p className="text-xs text-[#95a1ad] text-center max-w-xs">
         Transactions are irreversible. Only share this ID with trusted users.
