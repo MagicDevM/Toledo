@@ -1,3 +1,4 @@
+const vpnCheck = require("../handlers/vpnCheck.js");
 const crypto = require('crypto');
 const axios = require('axios');
 const { Client, GatewayIntentBits, Partials } = require('discord.js');
@@ -220,6 +221,17 @@ module.exports.load = async function (app, db) {
 
     if (state !== req.session.oauthState) {
       return res.status(400).json({ error: 'Invalid state parameter' });
+    }
+
+    // Get client IP
+    const clientIp = req.headers['x-forwarded-for']?.split(',')[0] || req.socket.remoteAddress?.replace('::ffff:', '');
+    
+    // Check for VPN/proxy
+    if (clientIp) {
+      const vpnResult = await vpnCheck(null, db, clientIp);
+      if (vpnResult.blocked) {
+        return res.redirect('/auth?error=vpn');
+      }
     }
 
     try {
