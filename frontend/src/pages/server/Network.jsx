@@ -5,9 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Trash2, Plus, RefreshCw } from 'lucide-react';
+import { Trash2, Plus, RefreshCw, Star } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 
 const AllocationsPage = () => {
   const { id } = useParams();
@@ -21,6 +22,7 @@ const AllocationsPage = () => {
   const [selectedAllocation, setSelectedAllocation] = useState(null);
   const [createLoading, setCreateLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [primaryLoading, setPrimaryLoading] = useState(false);
 
   const fetchAllocations = async () => {
     setLoading(true);
@@ -68,11 +70,25 @@ const AllocationsPage = () => {
     }
   };
 
+  const handleSetPrimary = async (allocation) => {
+    setPrimaryLoading(true);
+    try {
+      await axios.post(`/api/server/${id}/allocations/${allocation.id}/set-primary`);
+      setAllocations(allocations.map(a => ({
+        ...a,
+        is_primary: a.id === allocation.id
+      })));
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setPrimaryLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchAllocations();
   }, [id]);
 
-  // Clear errors when modals are closed
   useEffect(() => {
     if (!isDeleteModalOpen) {
       setDeleteError(null);
@@ -89,19 +105,18 @@ const AllocationsPage = () => {
 
   return (
     <div className="space-y-6 p-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-white">Network</h1>
-        <Button onClick={() => setIsAddModalOpen(true)}>
-          <Plus className="w-4 h-4 mr-2" />
-          Add Allocation
+      <div className="flex justify-between items-start">
+        <div>
+          <h1 className="text-2xl font-bold text-white">Network</h1>
+          <p className="text-sm text-neutral-400 mt-1">Manage IP and port allocations for this server.</p>
+        </div>
+        <Button onClick={() => setIsAddModalOpen(true)} className="bg-white text-black hover:bg-neutral-200">
+          New allocation
         </Button>
       </div>
 
-      <Card className="border-neutral-800/50">
-        <CardHeader>
-          <CardTitle className="text-base">IP allocations</CardTitle>
-        </CardHeader>
-        <CardContent>
+      <Card className="bg-transparent border-none shadow-none">
+        <CardContent className="p-0">
           {loading ? (
             <div className="flex items-center justify-center min-h-[200px]">
               <RefreshCw className="w-6 h-6 text-neutral-400 animate-spin" />
@@ -111,43 +126,63 @@ const AllocationsPage = () => {
               {error}
             </div>
           ) : (
-<ScrollArea className="h-[600px]">
-              <div className="overflow-x-auto"><Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>IP Address</TableHead>
-                    <TableHead>Port</TableHead>
-                    <TableHead>Primary</TableHead>
-                    <TableHead>Alias</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {allocations.map((allocation) => (
-                    <TableRow key={allocation.id}>
-                      <TableCell>{allocation.ip}</TableCell>
-                      <TableCell>{allocation.port}</TableCell>
-                      <TableCell>{allocation.is_primary ? 'Yes' : 'No'}</TableCell>
-                      <TableCell>{allocation.alias || 'N/A'}</TableCell>
-                      <TableCell>
-                        {!allocation.is_primary && (
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => {
-                              setSelectedAllocation(allocation);
-                              setIsDeleteModalOpen(true);
-                            }}
-                          >
-                            <Trash2 className="w-4 h-4 mr-2" />
-                            Delete
-                          </Button>
-                        )}
-                      </TableCell>
+            <ScrollArea className="h-[600px]">
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="hover:bg-transparent border-neutral-800">
+                      <TableHead className="text-[10px] uppercase text-neutral-500 font-bold tracking-wider">Address</TableHead>
+                      <TableHead className="text-[10px] uppercase text-neutral-500 font-bold tracking-wider">Host</TableHead>
+                      <TableHead className="text-[10px] uppercase text-neutral-500 font-bold tracking-wider">Port</TableHead>
+                      <TableHead></TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table></div>
+                  </TableHeader>
+                  <TableBody>
+                    {allocations.map((allocation) => (
+                      <TableRow key={allocation.id} className="hover:bg-neutral-900/50 border-neutral-800">
+                        <TableCell>
+                          <div className="flex items-center space-x-2 py-1">
+                            <span className="font-bold text-white text-sm">
+                              {allocation.alias || allocation.ip}:{allocation.port}
+                            </span>
+                            {allocation.is_primary && (
+                              <Badge className="bg-emerald-500/10 text-emerald-400 border-none hover:bg-emerald-500/10 py-0 px-1.5 text-[9px] font-bold h-4">
+                                PRIMARY
+                              </Badge>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-neutral-400 text-sm">{allocation.alias || allocation.ip}</TableCell>
+                        <TableCell className="text-neutral-400 text-sm">{allocation.port}</TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end items-center space-x-6">
+                            {!allocation.is_primary && (
+                              <button
+                                onClick={() => handleSetPrimary(allocation)}
+                                disabled={primaryLoading}
+                                className="text-sm text-neutral-400 hover:text-white transition-colors disabled:opacity-50"
+                              >
+                                Set primary
+                              </button>
+                            )}
+                            <button
+                              onClick={() => {
+                                setSelectedAllocation(allocation);
+                                setIsDeleteModalOpen(true);
+                              }}
+                              disabled={allocation.is_primary}
+                              className="text-sm text-red-400/80 hover:text-red-400 transition-colors disabled:opacity-50 flex items-center"
+                            >
+                              <Trash2 className="w-4 h-4 mr-2" />
+                              Delete
+                            </button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             </ScrollArea>
           )}
         </CardContent>

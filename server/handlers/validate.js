@@ -249,6 +249,20 @@ const schemas = {
       disk: z.number().int().min(0),
       cpu: z.number().int().min(0)
     }).optional(),
+    maximum: z.object({
+      ram: z.number().int().min(0).nullable(),
+      disk: z.number().int().min(0).nullable(),
+      cpu: z.number().int().min(0).nullable()
+    }).optional().nullable(),
+    featureLimits: z.object({
+      databases: z.number().int().min(0),
+      backups: z.number().int().min(0)
+    }).optional(),
+    packages: z.array(z.string()).optional(),
+    order: z.number().int().optional(),
+    dockerImage: z.string().trim().optional(),
+    startup: z.string().trim().optional(),
+    environment: z.record(z.string()).optional(),
     enabled: z.boolean().optional()
   }),
 

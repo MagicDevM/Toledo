@@ -599,7 +599,7 @@ export default function AdminEggs() {
                       <Label>Database Limit</Label>
                       <Input
                         type="number"
-                        value={selectedEgg.featureLimits?.databases || 4}
+                        value={selectedEgg.featureLimits?.databases ?? 0}
                         onChange={(e) => setSelectedEgg({
                           ...selectedEgg,
                           featureLimits: {
@@ -613,7 +613,7 @@ export default function AdminEggs() {
                       <Label>Backup Limit</Label>
                       <Input
                         type="number"
-                        value={selectedEgg.featureLimits?.backups || 4}
+                        value={selectedEgg.featureLimits?.backups ?? 0}
                         onChange={(e) => setSelectedEgg({
                           ...selectedEgg,
                           featureLimits: {
