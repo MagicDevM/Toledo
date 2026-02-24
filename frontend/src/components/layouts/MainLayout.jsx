@@ -278,7 +278,7 @@ const [userDropdownOpen, setUserDropdownOpen] = useState(false);
         {/* Main container - Full width with no artificial centering */}
         <div className="w-full flex relative z-10">
           {/* Sidebar */}
-          <aside className={`hidden lg:block sticky top-0 h-screen w-56 p-4 border-r border-white/5 bg-[#08090c] flex-shrink-0 relative overflow-hidden transform transition-transform duration-300 ease-in-out ${useSidebar().sidebarVisible ? 'translate-x-0' : '-translate-x-full'
+          <aside className={`hidden lg:block sticky top-0 h-screen md:w-56 p-4 border-r border-white/5 bg-[#08090c] flex-shrink-0 relative overflow-hidden transform transition-transform duration-300 ease-in-out ${useSidebar().sidebarVisible ? 'translate-x-0' : '-translate-x-full'
             }`}>
             {/* Sidebar content */}
             <div className="flex flex-col h-full relative z-10">
@@ -491,7 +491,7 @@ const [userDropdownOpen, setUserDropdownOpen] = useState(false);
                 </div>
 
                 {/* Powered by text - Bottom of sidebar */}
-                <div className="relative py-4 pt-6 px-4">
+                <div className="relative py-4 md:pt-6 px-4">
                   <Link
                     to="https://github.com/re-heliactyl/"
                     className="text-[0.75rem] border-b font-mono border-white/10 pb-0.5 hover:border-white/15 text-white/40 transition hover:text-white/60"
@@ -703,7 +703,7 @@ const [userDropdownOpen, setUserDropdownOpen] = useState(false);
           {/* Main Content - Full width */}
           <main className={`flex-1 min-w-0 transition-all duration-300 pt-14 lg:pt-0`}>
             <AnimatePresence mode="wait">
-              <div className="py-6 px-4 md:py-10 md:px-8 lg:py-16 lg:px-16">
+              <div className="py-6 px-2 md:py-10 md:px-8 lg:py-16 lg:px-16">
                 <Outlet />
               </div>
             </AnimatePresence>
