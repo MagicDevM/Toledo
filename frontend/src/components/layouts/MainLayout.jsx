@@ -278,7 +278,7 @@ const [userDropdownOpen, setUserDropdownOpen] = useState(false);
         {/* Main container - Full width with no artificial centering */}
         <div className="w-full flex relative z-10">
           {/* Sidebar */}
-          <aside className={`hidden lg:block sticky top-0 h-screen md:w-56 p-4 border-r border-white/5 bg-[#08090c] flex-shrink-0 relative overflow-hidden transform transition-transform duration-300 ease-in-out ${useSidebar().sidebarVisible ? 'translate-x-0' : '-translate-x-full'
+          <aside className={`hidden lg:block sticky top-0 h-screen w-56 p-4 border-r border-white/5 bg-[#08090c] flex-shrink-0 relative overflow-hidden transform transition-transform duration-300 ease-in-out ${useSidebar().sidebarVisible ? 'translate-x-0' : '-translate-x-full'
             }`}>
             {/* Sidebar content */}
             <div className="flex flex-col h-full relative z-10">
@@ -504,10 +504,10 @@ const [userDropdownOpen, setUserDropdownOpen] = useState(false);
           </aside>
 
           {/* Mobile Header */}
-          <header className="lg:hidden fixed top-0 left-0 right-0 h-14 bg-[#08090c] border-b border-white/5 flex items-center justify-between px-4 z-30">
+          <header className="lg:hidden fixed top-0 left-0 right-0 h-12 bg-[#08090c] border-b border-white/5 flex items-center justify-between px-2 z-30">
             <button 
               onClick={() => setMobileMenuOpen(true)} 
-              className="p-2 hover:bg-white/5 rounded-md transition-colors"
+              className="p-1.5 hover:bg-white/5 rounded-md transition-colors"
             >
               <Menu className="w-6 h-6" />
             </button>
@@ -517,10 +517,10 @@ const [userDropdownOpen, setUserDropdownOpen] = useState(false);
 
           {/* Mobile Navigation Drawer */}
           <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-            <SheetContent side="left" className="w-72 bg-[#08090c] p-0 border-r border-white/5">
+            <SheetContent side="left" className="w-55 bg-[#08090c] p-0 border-r border-white/5">
               <div className="flex flex-col h-full">
                 {/* Logo */}
-                <div className="flex items-center justify-between px-4 h-16 border-b border-white/5">
+                <div className="flex items-center justify-between px-2 h-12 border-b border-white/5">
                   <Link 
                     to="/dashboard" 
                     className="flex items-center gap-3"
@@ -622,7 +622,7 @@ const [userDropdownOpen, setUserDropdownOpen] = useState(false);
                 {/* Bottom Section */}
                 <div className="border-t border-white/5 p-4">
                   {/* Coins Balance */}
-                  <div className="px-4 py-3 bg-[#191b20]/50 rounded-xl mb-4">
+                  <div className="hidden md:block px-4 py-3 bg-[#191b20]/50 rounded-xl mb-2">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-xs text-white/40">Coins</span>
                       <span className="text-xs font-medium text-white">{balances.coins.toFixed(2)}</span>
@@ -650,26 +650,26 @@ const [userDropdownOpen, setUserDropdownOpen] = useState(false);
                   </div>
 
                   {/* User Profile */}
-                  <div className="flex items-center gap-3 border border-white/5 rounded-xl py-3 px-3">
+                  <div className="flex items-center gap-3 border border-white/5 rounded-xl py-3 px-3 mb-2">
                     <div className="h-8 w-8 bg-[#191b20] rounded-lg flex items-center justify-center">
                       <span className="text-xs text-white/70 font-semibold">
                         {getInitials(userData.global_name)}
                       </span>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{userData.global_name}</p>
+                      <p className="text-sm font-medium text-white truncate">{userData.global_name}</p>
                       <p className="text-[0.6rem] text-white/40 truncate">{userData.email}</p>
                     </div>
                   </div>
 
                   {/* Quick Actions */}
-                  <div className="mt-3 space-y-1">
+                  <div className="space-y-1">
                     <button
                       onClick={() => {
                         navigate('/account');
                         setMobileMenuOpen(false);
                       }}
-                      className="flex items-center w-full px-3 py-2.5 text-sm text-left hover:bg-white/5 rounded-md transition-colors"
+                      className="flex items-center text-white w-full px-3 py-2.5 text-sm text-left hover:bg-white/5 rounded-md transition-colors"
                     >
                       <UserIcon className="w-4 h-4 mr-3" />
                       My account
@@ -687,7 +687,7 @@ const [userDropdownOpen, setUserDropdownOpen] = useState(false);
                   </div>
 
                   {/* Version */}
-                  <div className="mt-4 pt-4 border-t border-white/5">
+                  <div className="mt-2 border-t border-white/5">
                     <Link
                       to="https://github.com/re-heliactyl/"
                       className="text-[0.7rem] font-mono text-white/40 hover:text-white/60 transition"
