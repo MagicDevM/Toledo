@@ -188,6 +188,7 @@ client.on('error', (error) => {
 });
 
 client.login(DISCORD_BOT_TOKEN).catch((error) => {
+  console.log("Discord OAuth is not setup! which is required for the application to function. Closing webserver...");
   process.exit(1);
 });
 
