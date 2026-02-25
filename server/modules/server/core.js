@@ -9,7 +9,6 @@ const path = require("path");
 const fs = require("fs");
 const loadConfig = require("../../handlers/config");
 const settings = loadConfig("./config.toml");
-const Database = require("../../db.js");
 let db;
 const getPteroUser = require('../../handlers/getPteroUser');
 const NodeCache = require("node-cache");

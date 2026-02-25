@@ -152,5 +152,60 @@ module.exports.load = async function (app, db) {
     }
   });
 
+  // Set primary allocation
+  router.post('/server/:id/allocations/:allocationId/set-primary', isAuthenticated, ownsServer, async (req, res) => {
+    try {
+      const { id: serverId, allocationId } = req.params;
+
+      await axios.post(
+        `${PANEL_URL}/api/client/servers/${serverId}/network/allocations/${allocationId}/primary`,
+        {},
+        {
+          headers: {
+            'Authorization': `Bearer ${API_KEY}`,
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      res.status(200).json({ message: 'Primary allocation updated successfully' });
+    } catch (error) {
+      console.error('Error setting primary allocation:', error);
+      res.status(500).json({
+        error: 'Failed to set primary allocation',
+        details: error.response?.data || error.message
+      });
+    }
+  });
+
+  // Update allocation alias (notes)
+  router.post('/server/:id/allocations/:allocationId/alias', isAuthenticated, ownsServer, async (req, res) => {
+    try {
+      const { id: serverId, allocationId } = req.params;
+      const { alias } = req.body;
+
+      await axios.post(
+        `${PANEL_URL}/api/client/servers/${serverId}/network/allocations/${allocationId}`,
+        { notes: alias },
+        {
+          headers: {
+            'Authorization': `Bearer ${API_KEY}`,
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      res.status(200).json({ message: 'Allocation alias updated successfully' });
+    } catch (error) {
+      console.error('Error updating allocation alias:', error);
+      res.status(500).json({
+        error: 'Failed to update allocation alias',
+        details: error.response?.data || error.message
+      });
+    }
+  });
+
   app.use("/api", router);
 };

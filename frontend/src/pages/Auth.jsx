@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Fingerprint, AlertCircle, RefreshCw } from 'lucide-react';
 import { useSettings } from '../hooks/useSettings';
 
@@ -48,6 +48,7 @@ const AuthPage = () => {
   const [passkeySupported, setPasskeySupported] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { settings, isLoading: isSettingsLoading } = useSettings();
 
   // Toast state for simple notifications
@@ -94,6 +95,15 @@ const AuthPage = () => {
     checkPasskeySupport();
     checkAuth();
   }, [navigate]);
+
+  // Check for VPN error in URL
+  useEffect(() => {
+    const error = searchParams.get('error');
+    if (error === 'vpn') {
+      setErrorMessage('VPN detected! Please disable your VPN or proxy to continue.');
+      showToast('VPN Detected', 'Please disable your VPN or proxy to continue.');
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     if (toast.visible) {
