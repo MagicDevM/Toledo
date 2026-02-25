@@ -180,7 +180,7 @@ function CreateServerModal({ isOpen, onClose }) {
         onClick={onClose}
       ></div>
       <div
-        className={`relative bg-[#202229] border border-white/5 rounded-lg w-full max-w-lg p-6 transition-all duration-300 ${animationClass}`}
+        className={`relative bg-[#202229] border border-white/5 rounded-lg w-full max-w-xs md:max-w-lg p-6 transition-all duration-300 ${animationClass}`}
       >
         <div className="mb-4">
           <h2 className="text-lg font-medium">Create New Server</h2>

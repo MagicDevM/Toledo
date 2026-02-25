@@ -117,7 +117,7 @@ class ErrorBoundary extends React.Component {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="bg-muted/50 rounded-lg p-4 text-sm font-mono overflow-auto max-h-[200px]">
+              <div className="bg-muted/50 rounded-lg p-4 text-xs md:text-sm font-mono overflow-auto max-h-[200px]">
                 {this.state.error?.message || 'Unknown error'}
               </div>
 
@@ -149,7 +149,7 @@ class ErrorBoundary extends React.Component {
                   variant="outline"
                   size="sm"
                   onClick={this.handleRefreshNow}
-                  className="gap-2"
+                  className="gap-2 text-black"
                 >
                   <RefreshCw className="h-4 w-4" />
                   Refresh Now

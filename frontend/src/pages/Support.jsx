@@ -84,7 +84,7 @@ const CreateTicketDialog = ({ isOpen, onClose }) => {
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-xl bg-[#1a1d21] border-[#2e3337]/50 text-white">
         <DialogHeader>
-          <DialogTitle className="text-xl font-semibold">Create New Support Ticket</DialogTitle>
+	          <DialogTitle className="text-xl font-semibold">Create New Support Ticket</DialogTitle>
         </DialogHeader>
         
         {error && (
@@ -425,7 +425,7 @@ export default function Support() {
           <h1 className="text-2xl font-semibold text-white">Support Center</h1>
           <p className="text-[#95a1ad] mt-1">Get help from our support team</p>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex flex-col items-center gap-4">
           <Select value={sortBy} onValueChange={setSortBy}>
             <SelectTrigger className="w-full sm:w-[180px] bg-[#1a1d21] border-[#2e3337]/50 text-white">
               <SelectValue placeholder="Sort by" />

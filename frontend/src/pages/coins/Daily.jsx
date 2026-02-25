@@ -277,7 +277,7 @@ export default function DailyRewardsPage() {
                     </div>
 
                     <div className="bg-[#202229] p-4 rounded-lg border border-white/10 max-w-md">
-                      <div className="flex justify-between mb-2">
+                      <div className="flex justify-between mb-2 gap-3">
                         <span className="text-[#95a1ad]">Today's reward:</span>
                         <span className="font-medium">{claimStatus.nextReward.amount} coins</span>
                       </div>

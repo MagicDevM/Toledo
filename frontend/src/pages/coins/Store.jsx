@@ -267,7 +267,7 @@ export default function StorePage() {
               max={maxAmount}
               value={amount}
               onChange={(e) => setAmount(Math.max(1, Math.min(maxAmount, parseInt(e.target.value) || 1)))}
-              className="w-24 px-2 py-1 bg-[#394047] focus:bg-[#394047]/50 border border-white/5 focus:border-white/5 focus:ring-1 focus:ring-white/20 rounded-md text-sm focus:outline-none transition-colors"
+              className="flex-1 px-2 py-1 bg-[#394047] focus:bg-[#394047]/50 border border-white/5 focus:border-white/5 focus:ring-1 focus:ring-white/20 rounded-md text-sm focus:outline-none transition-colors"
             />
             <span className="text-sm text-[#95a1ad]">units</span>
           </div>
@@ -644,7 +644,7 @@ export default function StorePage() {
                       <div className="pt-3 border-t border-[#2e3337]">
                         <div className="space-y-3">
                           <p className="text-sm font-medium">Resource Multipliers:</p>
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                          <div className="grid grid-cols-3 gap-3">
                             <div className="flex flex-col items-center p-2 rounded bg-[#202229]">
                               <MemoryStick className="w-4 h-4 text-[#95a1ad] mb-1" />
                               <span className="text-xs text-[#95a1ad]">RAM</span>
@@ -736,7 +736,7 @@ export default function StorePage() {
             onClick={() => setConfirmDialog(null)}
           ></div>
           <div
-            className={`relative bg-[#202229] border border-white/5 rounded-lg w-full max-w-md p-6 transition-all duration-300 ${dialogAnimation}`}
+            className={`relative bg-[#202229] border border-white/5 rounded-lg w-full max-w-xs md:max-w-md p-6 transition-all duration-300 ${dialogAnimation}`}
           >
             <div className="mb-4">
               <h2 className="text-lg font-medium">
@@ -804,7 +804,7 @@ export default function StorePage() {
 
                   <div className="pt-3 border-t border-[#2e3337] mt-2">
                     <p className="text-sm font-medium mb-2">Resource Multipliers:</p>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                    <div className="grid grid-cols-3 gap-2">
                       <div className="flex flex-col items-center p-2 rounded bg-[#1a1c1e] text-center">
                         <span className="text-xs text-[#95a1ad]">RAM</span>
                         <span className="text-sm">{confirmDialog?.resourceMultipliers?.ram}x</span>

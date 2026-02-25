@@ -273,7 +273,7 @@ export default function ServerBoostsPage() {
   return (
     <div className="space-y-6 p-6 max-w-screen-2xl mx-auto">
       {/* Header section */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-col gap-3">
         <div>
           <h1 className="text-2xl font-semibold">Boosts</h1>
           <p className="text-[#95a1ad]">Manage temporary resource boosts for your servers</p>
