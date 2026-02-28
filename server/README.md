@@ -1,4 +1,4 @@
-# Heliactyl Next
+# Heliactyl Next (Toledo)
 
 The all-in-one dashboard built from the legacy of Heliactyl. A high performance user interface, full built-in panel for managing servers, coins system, resources store and more.
 
@@ -36,11 +36,11 @@ If you don't do this, Heliactyl Next can't communicate with your nodes.
 
 ## Prerequisites
 
-- Bun v1.1.42 or higher
-- Node.js v18+ *(for frontend only, backend runs on Bun)*
-- Redis
-- Nginx
+- **Node.js v18+** (Required for both frontend and backend)
+- **Redis**
+- **Nginx**
 - SSL certificate (recommended)
+- *Optional: Bun v1.1.42+ (You can use Bun instead of Node.js for the backend if preferred)*
 
 ## 1. Prerequisites Installation
 
@@ -59,18 +59,13 @@ sudo systemctl start redis
 sudo systemctl enable redis
 ```
 
-2. Install Bun:
+2. Install Node.js & NPM:
+*Find how to install Node.js via https://nodejs.org or via NVM.*
+
+*(Optional) Install Bun if you prefer it for the backend:*
 ```bash
-# Install Bun
 curl -fsSL https://bun.sh/install | bash
-
-# Install Node.js
-# This depends on your system, find how to via https://nodejs.org
-
-# Upgrade to Bun Canary (important!)
 bun upgrade --canary
-
-# Reload shell configuration to use Bun
 source ~/.bashrc
 ```
 
@@ -78,13 +73,15 @@ source ~/.bashrc
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/Heliactyl NextFOSS/Heliactyl Next
-cd Heliactyl Next
+git clone https://github.com/re-heliactyl/Toledo
+cd Toledo
 ```
 
-2. Install dependencies:
+2. Install backend dependencies:
 ```bash
-bun install
+cd server
+npm install
+# Or use 'bun install' or 'pnpm install'
 ```
 
 3. Create configuration file:
@@ -92,18 +89,20 @@ bun install
 cp example_config.toml config.toml
 ```
 
-4. Configure your `config.toml` file
+4. Configure your `config.toml` file with your database and Pterodactyl details.
 
-5. Build & Start Heliactyl Next:
+5. Build Frontend & Start Heliactyl Next:
 ```bash
-cd app
-npm install
-npm run build
-cd ../
+# Optional: If you haven't installed frontend dependencies yet
+# cd ../frontend && pnpm install && cd ../server
 
-bun run app.js
+# Build the frontend using the server's mono script
+npm run mono:build
+
+# Start the app
+npm start
+# Or manually: node --no-deprecation app.js (or bun run app.js)
 ```
-
 ## Nginx Configuration 
 
 This is required to host Heliactyl Next on a public URL.
@@ -253,4 +252,4 @@ For support, please open an issue on the GitHub repository or join our Discord c
 
 ## Security
 
-To report security vulnerabilities, please email security@xeh.sh
+To report security vulnerabilities, please email toledo@overnode.fr

@@ -5,8 +5,12 @@ import axios from 'axios';
 import {
   ServerIcon, PlusIcon,
   ArrowPathIcon, ExclamationCircleIcon,
-  UsersIcon, MagnifyingGlassIcon
+  UsersIcon, MagnifyingGlassIcon,
+  ChevronLeftIcon, ChevronRightIcon,
+  CheckIcon
 } from '@heroicons/react/24/outline';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Badge } from "@/components/ui/badge";
 
 // Utility function to format bytes
 function formatBytes(bytes, decimals = 2) {
@@ -19,9 +23,11 @@ function formatBytes(bytes, decimals = 2) {
 }
 
 function CreateServerModal({ isOpen, onClose }) {
+  const [step, setStep] = useState(1);
   const [name, setName] = useState('');
   const [egg, setEgg] = useState('');
   const [location, setLocation] = useState('');
+  const [selectedNode, setSelectedNode] = useState('');
   const [ram, setRam] = useState('');
   const [disk, setDisk] = useState('');
   const [cpu, setCpu] = useState('');
@@ -39,10 +45,13 @@ function CreateServerModal({ isOpen, onClose }) {
   useEffect(() => {
     if (isOpen) {
       setIsVisible(true);
-      setTimeout(() => setAnimationClass('opacity-100 scale-100'), 10);
+      setTimeout(() => setAnimationClass('opacity-100'), 10);
     } else {
-      setAnimationClass('opacity-0 scale-95');
-      setTimeout(() => setIsVisible(false), 300);
+      setAnimationClass('opacity-0');
+      setTimeout(() => {
+        setIsVisible(false);
+        setStep(1); // Reset step when closing
+      }, 300);
     }
   }, [isOpen]);
 
@@ -62,7 +71,18 @@ function CreateServerModal({ isOpen, onClose }) {
     }
   });
 
+  const { data: nodes } = useQuery({
+    queryKey: ['nodes'],
+    queryFn: async () => {
+      const { data } = await axios.get('/api/v5/nodes');
+      return data;
+    },
+    enabled: isOpen
+  });
+
   const selectedEgg = Array.isArray(eggs) ? eggs.find(e => e.id === egg) : null;
+  const selectedLocation = Array.isArray(locations) ? locations.find(l => l.id === location) : null;
+  const filteredNodes = Array.isArray(nodes) ? nodes.filter(n => n.locationId.toString() === selectedLocation?.id.toString()) : [];
 
   // Handle clicks outside dropdowns
   useEffect(() => {
@@ -74,20 +94,39 @@ function CreateServerModal({ isOpen, onClose }) {
         setShowLocationDropdown(false);
       }
     }
-
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  const handleNext = () => {
+    if (step === 1) {
+      if (!name.trim()) return setError('Server name is required');
+      if (!egg) return setError('Software selection is required');
+    }
+    if (step === 2) {
+      if (!location) return setError('Location is required');
+    }
+    if (step === 3) {
+      if (!ram || !disk || !cpu) return setError('Resource values are required');
+      if (selectedEgg) {
+        if (parseInt(ram) < selectedEgg.minimum.ram) return setError(`Minimum RAM required is ${selectedEgg.minimum.ram}MB`);
+        if (parseInt(disk) < selectedEgg.minimum.disk) return setError(`Minimum Disk required is ${selectedEgg.minimum.disk}MB`);
+        if (parseInt(cpu) < selectedEgg.minimum.cpu) return setError(`Minimum CPU required is ${selectedEgg.minimum.cpu}%`);
+      }
+    }
+    setError('');
+    setStep(step + 1);
+  };
+
+  const handleBack = () => {
+    setError('');
+    setStep(step - 1);
+  };
 
   const handleCreate = async () => {
     try {
       setError('');
       setIsCreating(true);
-
-      if (!name?.trim()) throw new Error('Server name is required');
-      if (!egg) throw new Error('Server type is required');
-      if (!location) throw new Error('Location is required');
-      if (!ram || !disk || !cpu) throw new Error('Resource values are required');
 
       await axios.post('/api/v5/servers', {
         name: name.trim(),
@@ -99,7 +138,7 @@ function CreateServerModal({ isOpen, onClose }) {
       });
 
       onClose();
-      window.location.reload(); // Simple reload to refresh list
+      window.location.reload();
     } catch (err) {
       setError(err.response?.data?.error || err.message);
     } finally {
@@ -109,165 +148,363 @@ function CreateServerModal({ isOpen, onClose }) {
 
   if (!isOpen && !isVisible) return null;
 
+  const steps = [
+    { id: 1, name: 'Name & Software' },
+    { id: 2, name: 'Location' },
+    { id: 3, name: 'Resources' },
+    { id: 4, name: 'Review' }
+  ];
+
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-50">
-      <div
-        className={`fixed inset-0 transition-opacity duration-300 ${animationClass}`}
-        onClick={onClose}
-      ></div>
-      <div
-        className={`relative bg-[#202229] border border-white/5 rounded-lg w-full max-w-lg p-6 transition-all duration-300 ${animationClass}`}
-      >
-        <div className="mb-4">
-          <h2 className="text-lg font-medium">Create New Server</h2>
+    <div className={`fixed inset-0 flex items-center justify-center z-50 transition-opacity duration-300 ${animationClass}`}>
+      <div className="fixed inset-0 bg-[#0a0a0a]/90 backdrop-blur-sm" onClick={onClose}></div>
+      <div className="relative w-full max-w-2xl p-8 bg-transparent text-white">
+        
+        {/* Progress Bar Header */}
+        <div className="mb-10 relative">
+          <div className="h-[2px] w-full bg-[#333] flex mb-4">
+            {steps.map((s) => (
+              <div 
+                key={s.id} 
+                className={`h-full transition-all duration-500 ${step >= s.id ? 'bg-[#00A3FF]' : 'bg-transparent'}`}
+                style={{ width: '25%' }}
+              />
+            ))}
+          </div>
+          <div className="grid grid-cols-4 gap-4">
+            {steps.map((s) => (
+              <div key={s.id} className="space-y-1 text-left">
+                <p className={`text-xs font-bold ${step >= s.id ? 'text-[#00A3FF]' : 'text-neutral-500'}`}>
+                  Step {s.id}
+                </p>
+                <p className={`text-sm font-semibold ${step >= s.id ? 'text-white' : 'text-neutral-300'}`}>
+                  {s.name}
+                </p>
+              </div>
+            ))}
+          </div>
         </div>
 
-        <div className="space-y-5 py-4">
-          <div className="space-y-2">
-            <label className="text-sm text-[#95a1ad] block">Server Name</label>
-            <input
-              placeholder="My Awesome Server"
-              value={name}
-              onChange={e => setName(e.target.value)}
-              className="w-full bg-[#394047] focus:bg-[#394047]/50 border border-white/5 focus:border-white/5 focus:ring-1 focus:ring-white/20 rounded-md p-2 text-sm focus:outline-none transition-colors"
-            />
-          </div>
-
-          <div className="space-y-2" ref={eggDropdownRef}>
-            <label className="text-sm text-[#95a1ad] block">Server Type</label>
-            <div className="relative">
-              <button
-                type="button"
-                className="w-full bg-[#394047] border border-white/5 rounded-md p-2 text-sm flex justify-between items-center focus:outline-none focus:bg-[#394047]/50 focus:border-white/5 focus:ring-1 focus:ring-white/20 transition-colors"
-                onClick={() => setShowEggDropdown(!showEggDropdown)}
+        {/* Content Area */}
+        <div className="min-h-[250px]">
+          <AnimatePresence mode="wait">
+            {step === 1 && (
+              <motion.div
+                key="step1"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="space-y-6"
               >
-                <span className={egg ? "text-white" : "text-[#95a1ad]"}>
-                  {Array.isArray(eggs) ? eggs.find(e => e.id === egg)?.name : "Select Server Type"}
-                </span>
-                <svg className="h-5 w-5 text-[#95a1ad]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" />
-                </svg>
-              </button>
-
-              {showEggDropdown && (
-                <div className="absolute z-10 mt-1 w-full bg-[#202229] border border-white/5 rounded-md shadow-lg max-h-60 overflow-auto">
-                  {Array.isArray(eggs) && eggs.map(eggItem => (
-                    <button
-                      key={eggItem.id}
-                      className="block w-full text-left px-4 py-2 text-sm hover:bg-white/5 transition-colors"
-                      onClick={() => {
-                        setEgg(eggItem.id);
-                        setShowEggDropdown(false);
-                      }}
-                    >
-                      {eggItem.name}
-                    </button>
-                  ))}
+                <div className="space-y-2">
+                  <label className="text-sm text-neutral-400 block font-medium">Server Name</label>
+                  <input
+                    placeholder="My Server"
+                    value={name}
+                    onChange={e => setName(e.target.value)}
+                    className="w-full bg-[#1c1c1c] border border-[#333] focus:border-white focus:ring-1 focus:ring-white rounded-lg p-3 text-sm transition-all outline-none text-white placeholder:text-neutral-500"
+                  />
+                  <p className="text-[11px] text-neutral-500">Choose a descriptive name for your server</p>
                 </div>
-              )}
-            </div>
-          </div>
 
-          <div className="space-y-2" ref={locationDropdownRef}>
-            <label className="text-sm text-[#95a1ad] block">Location</label>
-            <div className="relative">
-              <button
-                type="button"
-                className="w-full bg-[#394047] border border-white/5 rounded-md p-2 text-sm flex justify-between items-center focus:outline-none focus:bg-[#394047]/50 focus:border-white/5 focus:ring-1 focus:ring-white/20 transition-colors"
-                onClick={() => setShowLocationDropdown(!showLocationDropdown)}
+                <div className="space-y-2" ref={eggDropdownRef}>
+                  <label className="text-sm text-neutral-400 block font-medium">Software</label>
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={() => setShowEggDropdown(!showEggDropdown)}
+                      className="w-full bg-[#1c1c1c] border border-[#333] hover:border-neutral-500 rounded-lg p-3 text-left flex justify-between items-center transition-all text-sm"
+                    >
+                      <span className={egg ? "text-white" : "text-neutral-500"}>
+                        {selectedEgg ? selectedEgg.name : "Select a software type"}
+                      </span>
+                      <ChevronRightIcon className={`w-4 h-4 text-neutral-500 transition-transform duration-200 ${showEggDropdown ? 'rotate-90' : ''}`} />
+                    </button>
+                    {showEggDropdown && (
+                      <div className="absolute z-20 mt-1 w-full bg-[#1c1c1c] border border-[#333] rounded-lg shadow-xl overflow-hidden max-h-60 overflow-y-auto">
+                        <div className="p-2 border-b border-[#333]">
+                          <p className="text-xs text-neutral-400 px-2">Select a software type</p>
+                        </div>
+                        {Array.isArray(eggs) && eggs.map(e => (
+                          <button
+                            key={e.id}
+                            onClick={() => { setEgg(e.id); setShowEggDropdown(false); }}
+                            className="w-full text-left px-4 py-3 hover:bg-white/5 transition-colors flex justify-between items-center group"
+                          >
+                            <span className="text-sm text-neutral-200 group-hover:text-white">{e.name}</span>
+                            {egg === e.id && <CheckIcon className="w-4 h-4 text-neutral-400" />}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-neutral-500">Select the software type you want to run on your server</p>
+                </div>
+              </motion.div>
+            )}
+
+            {step === 2 && (
+              <motion.div
+                key="step2"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="space-y-6"
               >
-                <span className={location ? "text-white" : "text-[#95a1ad]"}>
-                  {Array.isArray(locations) ? locations.find(loc => loc.id === location)?.name : "Select Location"}
-                </span>
-                <svg className="h-5 w-5 text-[#95a1ad]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" />
-                </svg>
-              </button>
-
-              {showLocationDropdown && (
-                <div className="absolute z-10 mt-1 w-full bg-[#202229] border border-white/5 rounded-md shadow-lg max-h-60 overflow-auto">
-                  {Array.isArray(locations) && locations.map(locationItem => (
+                <div className="space-y-2" ref={locationDropdownRef}>
+                  <label className="text-sm text-neutral-400 block font-medium">Location</label>
+                  <div className="relative">
                     <button
-                      key={locationItem.id}
-                      className="block w-full text-left px-4 py-2 text-sm hover:bg-white/5 transition-colors"
-                      onClick={() => {
-                        setLocation(locationItem.id);
-                        setShowLocationDropdown(false);
-                      }}
+                      type="button"
+                      onClick={() => setShowLocationDropdown(!showLocationDropdown)}
+                      className="w-full bg-[#1c1c1c] border border-[#333] hover:border-neutral-500 rounded-lg p-3 text-left flex justify-between items-center transition-all text-sm"
                     >
-                      {locationItem.name}
+                      <span className={location ? "text-white" : "text-neutral-500"}>
+                        {selectedLocation ? selectedLocation.name : "Select a location"}
+                      </span>
+                      <ChevronRightIcon className={`w-4 h-4 text-neutral-500 transition-transform duration-200 ${showLocationDropdown ? 'rotate-90' : ''}`} />
                     </button>
-                  ))}
+                    {showLocationDropdown && (
+                      <div className="absolute z-20 mt-1 w-full bg-[#1c1c1c] border border-[#333] rounded-lg shadow-xl overflow-hidden">
+                        <div className="p-2 border-b border-[#333]">
+                          <p className="text-xs text-neutral-400 px-2">Select a location</p>
+                        </div>
+                        {Array.isArray(locations) && locations.map(l => (
+                          <button
+                            key={l.id}
+                            onClick={() => { setLocation(l.id); setShowLocationDropdown(false); }}
+                            className={`w-full text-left px-4 py-3 hover:bg-white/5 transition-colors flex justify-between items-center ${location === l.id ? 'bg-white/5' : ''}`}
+                          >
+                            <span className="text-sm text-neutral-200">{l.name}</span>
+                            {location === l.id && <CheckIcon className="w-4 h-4 text-neutral-400" />}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-neutral-500">Choose the geographic location for your server</p>
                 </div>
-              )}
-            </div>
-          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <label className="text-sm text-[#95a1ad] block">RAM (MB)</label>
-              <input
-                type="number"
-                placeholder="2048"
-                value={ram}
-                onChange={e => setRam(e.target.value)}
-                className="w-full bg-[#394047] focus:bg-[#394047]/50 border border-white/5 focus:border-white/5 focus:ring-1 focus:ring-white/20 rounded-md p-2 text-sm focus:outline-none transition-colors"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm text-[#95a1ad] block">Disk (MB)</label>
-              <input
-                type="number"
-                placeholder="10240"
-                value={disk}
-                onChange={e => setDisk(e.target.value)}
-                className="w-full bg-[#394047] focus:bg-[#394047]/50 border border-white/5 focus:border-white/5 focus:ring-1 focus:ring-white/20 rounded-md p-2 text-sm focus:outline-none transition-colors"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm text-[#95a1ad] block">CPU (%)</label>
-              <input
-                type="number"
-                placeholder="100"
-                value={cpu}
-                onChange={e => setCpu(e.target.value)}
-                className="w-full bg-[#394047] focus:bg-[#394047]/50 border border-white/5 focus:border-white/5 focus:ring-1 focus:ring-white/20 rounded-md p-2 text-sm focus:outline-none transition-colors"
-              />
-            </div>
-          </div>
+                {location && (
+                  <div className="space-y-3 pt-2">
+                    <p className="text-sm font-medium text-white">Nodes available in this location</p>
+                    <div className="flex gap-3 flex-wrap">
+                      {filteredNodes.length > 0 ? filteredNodes.map(node => {
+                        // Calculate mock or real load based on memory usage
+                        const memMax = node.memory || 1024;
+                        const memUsed = node.allocated_resources?.memory || 0;
+                        const loadPercent = (memUsed / memMax) * 100;
+                        
+                        let dotColor = 'bg-emerald-500';
+                        let loadText = 'Low load';
+                        if (loadPercent >= 85) { 
+                          dotColor = 'bg-red-500'; 
+                          loadText = 'High load'; 
+                        } else if (loadPercent >= 60) { 
+                          dotColor = 'bg-[#f59e0b]'; 
+                          loadText = 'Medium load'; 
+                        }
 
-          {selectedEgg && (
-            <div className="rounded-md border border-blue-500/20 bg-blue-500/10 text-blue-500 p-3 flex items-start">
-              <ExclamationCircleIcon className="w-4 h-4 mt-0.5 mr-2 flex-shrink-0" />
-              <span className="text-sm">
-                Minimum requirements: {selectedEgg.minimum.ram}MB RAM, {selectedEgg.minimum.disk}MB Disk, {selectedEgg.minimum.cpu}% CPU
-              </span>
-            </div>
-          )}
+                        return (
+                          <div 
+                            key={node.id} 
+                            onClick={() => setSelectedNode(node.id)}
+                            className={`bg-[#242424] border rounded-lg p-3 min-w-[80px] flex flex-col items-center justify-center relative cursor-pointer transition-all group ${selectedNode === node.id ? 'border-[#00A3FF] ring-1 ring-[#00A3FF]' : 'border-[#333] hover:border-neutral-500'}`}
+                          >
+                            <p className="text-xs text-neutral-400 pointer-events-none">{node.name.split(' ')[0]}</p>
+                            <p className="text-sm font-bold text-white pointer-events-none">{node.name.split(' ')[1] || node.id}</p>
+                            
+                            {/* The status dot (using provided code) */}
+                            <div 
+                              className={`absolute bottom-0 right-0 w-2.5 h-2.5 ${dotColor} transition-colors rounded-tl rounded-br-lg`}
+                              style={{
+                                backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 1px, rgba(0, 0, 0, 0.1) 1px, rgba(0, 0, 0, 0.1) 2px), repeating-linear-gradient(-45deg, transparent, transparent 1px, rgba(255, 255, 255, 0.1) 1px, rgba(255, 255, 255, 0.1) 2px)'
+                              }}
+                            ></div>
 
-          {error && (
-            <div className="rounded-md border border-red-500/20 bg-red-500/10 text-red-500 p-3 flex items-start">
-              <ExclamationCircleIcon className="w-4 h-4 mt-0.5 mr-2 flex-shrink-0" />
-              <span className="text-sm">{error}</span>
-            </div>
-          )}
+                            {/* Tooltip */}
+                            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-4 hidden group-hover:block w-56 bg-[#f4f4f5] text-black p-4 rounded-xl shadow-2xl text-xs z-50 text-left cursor-default pointer-events-none">
+                              <p className="font-bold text-sm text-black">{node.name}</p>
+                              {node.fqdn && <p className="text-neutral-500 mb-2 truncate">{node.fqdn}</p>}
+                              
+                              <div className="border-t border-neutral-300 my-2"></div>
+                              
+                              <p className="text-neutral-500 mb-0.5">Memory</p>
+                              <p className="font-bold text-black">
+                                {memUsed ? formatBytes(memUsed * 1024 * 1024) : '0 B'} / {node.memory ? formatBytes(node.memory * 1024 * 1024) : 'Unknown'}
+                              </p>
+                              <p className="text-neutral-500 text-[10px] mt-0.5">{loadPercent.toFixed(1)}% used</p>
+                              
+                              <div className="border-t border-neutral-300 my-2"></div>
+                              
+                              <p className="text-neutral-500 mb-0.5">Disk</p>
+                              <p className="font-bold text-black">
+                                {node.allocated_resources?.disk ? formatBytes(node.allocated_resources.disk * 1024 * 1024) : '0 B'} / {node.disk ? formatBytes(node.disk * 1024 * 1024) : 'Unknown'}
+                              </p>
+
+                              <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-[#f4f4f5] rotate-45"></div>
+                              
+                              {/* Status Badge */}
+                              <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 bg-white px-2 py-1 rounded shadow-md text-[10px] font-bold whitespace-nowrap text-black border border-neutral-200">
+                                {loadText}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      }) : (
+                        <p className="text-sm text-neutral-500 italic">No nodes found.</p>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </motion.div>
+            )}
+
+            {step === 3 && (
+              <motion.div
+                key="step3"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="space-y-6"
+              >
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm text-neutral-400 block font-medium">Memory (MiB)</label>
+                    <input
+                      type="number"
+                      placeholder="0"
+                      value={ram}
+                      onChange={e => setRam(e.target.value)}
+                      className="w-full bg-[#1c1c1c] border border-[#333] focus:border-white focus:ring-1 focus:ring-white rounded-lg p-3 text-sm transition-all outline-none text-white font-medium"
+                    />
+                    <p className="text-[11px] text-neutral-500">RAM allocation</p>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm text-neutral-400 block font-medium">Disk (MiB)</label>
+                    <input
+                      type="number"
+                      placeholder="0"
+                      value={disk}
+                      onChange={e => setDisk(e.target.value)}
+                      className="w-full bg-[#1c1c1c] border border-[#333] focus:border-white focus:ring-1 focus:ring-white rounded-lg p-3 text-sm transition-all outline-none text-white font-medium"
+                    />
+                    <p className="text-[11px] text-neutral-500">Storage/disk space</p>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm text-neutral-400 block font-medium">CPU (%)</label>
+                    <input
+                      type="number"
+                      placeholder="0"
+                      value={cpu}
+                      onChange={e => setCpu(e.target.value)}
+                      className="w-full bg-[#1c1c1c] border border-[#333] focus:border-white focus:ring-1 focus:ring-white rounded-lg p-3 text-sm transition-all outline-none text-white font-medium"
+                    />
+                    <p className="text-[11px] text-neutral-500">CPU percentage (100% = 1 core)</p>
+                  </div>
+                </div>
+
+                {selectedEgg && (
+                  <div className="bg-[#1c1c1c] border border-[#333] rounded-lg p-4 flex flex-col gap-1">
+                    <p className="text-xs text-neutral-400">
+                      Minimum requirements: {selectedEgg.minimum.ram}MB RAM, {selectedEgg.minimum.disk}MB Disk, {selectedEgg.minimum.cpu}% CPU.
+                    </p>
+                  </div>
+                )}
+              </motion.div>
+            )}
+
+            {step === 4 && (
+              <motion.div
+                key="step4"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="space-y-6"
+              >
+                <div className="bg-[#141414] rounded-xl p-6 space-y-6 border border-[#222]">
+                  <div className="grid grid-cols-1 gap-5">
+                    <div>
+                      <p className="text-sm text-neutral-400 font-medium mb-1">Server Name</p>
+                      <p className="text-base font-bold text-white">{name}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-neutral-400 font-medium mb-1">Software</p>
+                      <p className="text-base font-bold text-white">{selectedEgg?.name}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-neutral-400 font-medium mb-1">Location</p>
+                      <p className="text-base font-bold text-white">{selectedLocation?.name}</p>
+                    </div>
+                    <div className="grid grid-cols-3 pt-4 border-t border-[#333]">
+                      <div>
+                        <p className="text-sm text-neutral-400 font-medium mb-1">Memory</p>
+                        <p className="text-base font-bold text-white">{ram} MiB</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-neutral-400 font-medium mb-1">Disk</p>
+                        <p className="text-base font-bold text-white">{disk} MiB</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-neutral-400 font-medium mb-1">CPU</p>
+                        <p className="text-base font-bold text-white">{cpu}%</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
-        <div className="flex justify-end gap-3 mt-6">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 rounded-md border border-white/5 text-[#95a1ad] hover:text-white hover:bg-white/5 font-medium text-sm transition active:scale-95"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleCreate}
-            disabled={isCreating}
-            className="px-4 py-2 bg-white text-black hover:bg-white/90 rounded-md font-medium text-sm transition active:scale-95 flex items-center justify-center gap-2 disabled:opacity-70"
-          >
-            {isCreating ? <ArrowPathIcon className="w-4 h-4 animate-spin" /> : <PlusIcon className="w-4 h-4" />}
-            Create Server
-          </button>
+        {/* Footer */}
+        <div className="mt-8 flex justify-between items-center pt-6">
+          {step === 1 ? (
+            <button
+              onClick={onClose}
+              className="flex items-center text-neutral-400 hover:text-white transition-colors text-sm font-medium"
+            >
+              <ChevronLeftIcon className="w-4 h-4 mr-1" />
+              Cancel
+            </button>
+          ) : (
+            <button
+              onClick={handleBack}
+              className="flex items-center text-neutral-400 hover:text-white transition-colors text-sm font-medium"
+            >
+              <ChevronLeftIcon className="w-4 h-4 mr-1" />
+              Back
+            </button>
+          )}
+
+          <div className="flex items-center gap-4">
+            {error && <p className="text-red-400 text-xs font-medium">{error}</p>}
+            
+            {step < 4 ? (
+              <button
+                onClick={handleNext}
+                className="bg-white text-black hover:bg-neutral-200 rounded-full px-6 py-2 font-semibold text-sm flex items-center transition-all"
+              >
+                Next
+                <ChevronRightIcon className="w-4 h-4 ml-1" />
+              </button>
+            ) : (
+              <button
+                onClick={handleCreate}
+                disabled={isCreating}
+                className="bg-white text-black hover:bg-neutral-200 rounded-full px-6 py-2 font-bold text-sm flex items-center transition-all ring-2 ring-white ring-offset-2 ring-offset-black disabled:opacity-50"
+              >
+                {isCreating ? (
+                  <>
+                    <ArrowPathIcon className="w-4 h-4 mr-2 animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  'Create Server'
+                )}
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>

@@ -215,6 +215,26 @@ module.exports.load = async function (app, db) {
         }
     });
 
+    // GET /api/v5/nodes - List all available nodes
+    router.get('/nodes', async (req, res) => {
+        try {
+            const response = await pteroApi.get('/api/application/nodes?per_page=10000');
+            const nodes = response.data.data.map(node => ({
+                id: node.attributes.id,
+                name: node.attributes.name,
+                locationId: node.attributes.location_id,
+                fqdn: node.attributes.fqdn,
+                memory: node.attributes.memory,
+                disk: node.attributes.disk,
+                allocated_resources: node.attributes.allocated_resources
+            }));
+            res.json(nodes);
+        } catch (error) {
+            console.error('Error fetching nodes:', error);
+            res.status(500).json({ error: 'Failed to fetch nodes' });
+        }
+    });
+
     // GET /api/resources - Get user's resource usage and limits
     router.get('/resources', async (req, res) => {
         try {
